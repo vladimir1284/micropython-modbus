@@ -1,35 +1,51 @@
-import uos
-import sys
-import socket
-import time
+#!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
+
+"""
+webserver script
+"""
 import machine
+import socket
+import sys
+import time
 import ubinascii
+import uos
+
 
 class WebServer:
-    def __init__(self, user, password):
+    def __init__(self, user, password, port=80, maximum_connections=10):
         self._sock = None
         self._run = False
         self._user = user
         self._password = password
+        self._port = port
+        self._maximum_connections = maximum_connections
+        self._is_active = False
+
+    def get_status(self):
+        return self._is_active
 
     def stop(self):
+        print('Stopping WebServer ...')
+
         try:
             self._run = False
             self._sock.close()
-        except Exception:
-            pass
-        print('Web server disabled')
+        except Exception as e:
+            print('Failed to stop webserver due to {}'.format(e))
+
+        print('WebServer stopped')
 
     def start(self):
         try:
             self.stop()
             self._run = True
             self._sock = socket.socket()
-            self._sock.bind(('0.0.0.0', 80))
-            self._sock.listen()
-            print('Web server enabled')
-        except Exception:
-            pass
+            self._sock.bind(('0.0.0.0', self._port))
+            self._sock.listen(self._maximum_connections)
+            self._is_active = True
+        except Exception as e:
+            print('Failed to start webserver due to {}'.format(e))
 
     def _split(self, line, split_char):
         return line.decode().strip().split(split_char)
@@ -40,10 +56,11 @@ class WebServer:
         try:
             self._sock.settimeout(accept_timeout)
             client_sock, client_addr = self._sock.accept()
+
             if not client_sock:
                 return
 
-            print('WebServer - connection from', client_addr)
+            print('WebServer - connection from {}'.format(client_addr))
 
             client_sock.settimeout(0.3)
 
@@ -59,9 +76,12 @@ class WebServer:
             req_auth = None
             while True:
                 line = client_sock.readline()
+
                 if not line:
                     break
+
                 parts = self._split(line, ':')
+
                 if len(parts) < 2:
                     break
                 if parts[0].lower() == 'authorization':
@@ -72,72 +92,92 @@ class WebServer:
             else:
                 user_pass = None
 
-            if (not user_pass) or (user_pass[0] != self._user) or (user_pass[1] != self._password):
+            if ((not user_pass) or
+               (user_pass[0] != self._user) or
+               (user_pass[1] != self._password)):
                 if user_pass:
-                    print('WebServer - access attempt from', client_addr)
+                    print('WebServer - access attempt from {}'.
+                          format(client_addr))
+
                 client_sock.send('HTTP/1.1 401 Unauthorized\r\n')
-                client_sock.send('WWW-Authenticate: Basic realm="ExoSensePy"\r\n\r\n')
+                client_sock.send('WWW-Authenticate: Basic realm="Device Config"\r\n\r\n')
                 client_sock.close()
                 return
 
-            print('WebServer - request from', client_addr, req_method, req_path)
+            print('WebServer - request from: {} of type {} to {}'.
+                  format(client_addr, req_method, req_path))
 
-            if req_path == '/config':
+            if req_path == '/config' or req_path == '/config-network':
+                filename = "{}.py".format(req_path.strip('/'))
+
                 if req_method == 'POST':
                     state = 0
                     while True:
                         line = client_sock.readline()
+
                         if not line:
                             break
+
                         line = line.decode().strip()
+
                         if state == 0:
-                            if line.startswith('Content-Disposition: ') and line.endswith('filename="config.py"'):
+                            if ((line.startswith('Content-Disposition: ')) and
+                               (line.endswith('filename="{}"'.
+                                              format(filename)))):
                                 state = 1
                         elif state == 1:
                             if line == '':
                                 state = 2
-                                f = open('config.py.tmp', 'wb')
+                                f = open('{}.tmp'.format(filename), 'wb')
                         elif state == 2:
                             if line.startswith('--'):
                                 f.close()
                                 state = 3
-                                uos.remove('config.py')
+                                try:
+                                    uos.remove(filename)
+                                except Exception as e:
+                                    print('Failed to remove "{}" due to {}'.
+                                          format(filename, e))
                                 state = 4
-                                uos.rename('config.py.tmp', 'config.py')
+                                uos.rename('{}.tmp'.format(filename), filename)
                                 state = 5
                                 break
+
                             f.write(line)
                             f.write('\n')
 
-                    client_sock.readall()
+                    # readall is not a valid attribute for socket
+                    # client_sock.readall()
 
                     client_sock.send('HTTP/1.1 303 See Other\r\n')
                     client_sock.send('Location: /?state={}\r\n'.format(state))
                     client_sock.send('Content-Type: text/html\r\n\r\n')
-                    if state == 5:
-                        print('Config uploaded - restarting in 2 sec...')
-                        time.sleep(2)
-                        machine.reset()
 
+                    # reboot if network config changed
+                    if (state == 5) and (req_path == '/config-network'):
+                        print('Config uploaded - restarting in 3 sec ...')
+                        time.sleep(3)
+                        machine.reset()
                 else:
+                    # on GET
                     client_sock.send('HTTP/1.1 200 OK\r\n')
                     client_sock.send('Connection: close\r\n')
+
                     try:
-                        stat = uos.stat("config.py")
-                        client_sock.send('Content-Disposition: attachment; filename=config.py\r\n')
+                        stat = uos.stat(filename)
+                        client_sock.send('Content-Disposition: attachment; filename={}\r\n'.format(filename))
                         client_sock.send('Content-Type: application/force-download\r\n')
                         client_sock.send('Content-Transfer-Encoding: binary\r\n')
-                        client_sock.send('Content-Length: {}\r\n\r\n'.format(stat[6]))
-                        f = open('config.py', 'rb')
+                        client_sock.send('Content-Length: {}\r\n\r\n'.
+                                         format(stat[6]))
+                        f = open(filename, 'rb')
                         client_sock.send(f.read())
                     except Exception as e:
                         client_sock.send('Content-Type: text/html\r\n\r\n')
                         client_sock.send('Not configured')
-
             elif req_path == '/favicon.ico':
                 client_sock.send('HTTP/1.1 404 Not Found\r\n')
                 client_sock.send('Connection: close\r\n\r\n')
-
             else:
                 client_sock.send('HTTP/1.1 200 OK\r\n')
                 client_sock.send('Connection: close\r\n')
@@ -146,15 +186,13 @@ class WebServer:
                 client_sock.send('Content-Length: {}\r\n\r\n'.format(stat[6]))
                 f = open('index.html', 'rb')
                 client_sock.send(f.read())
-
         except OSError as e:
-            if e.args[0] != 11: # 11 = timeout expired
-                print("WebServer - OSError:", e)
+            if e.args[0] != 11:     # 11 = timeout expired
+                print("WebServer - OSError: {}".format(e))
                 sys.print_exception(e)
-
         except Exception as e:
             if self._run:
-                print("WebServer - process error:", e)
+                print("WebServer - process error: {}".format(e))
                 sys.print_exception(e)
             else:
                 print("WebServer - process stopped")
