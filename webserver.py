@@ -20,10 +20,9 @@ class WebServer:
         self._password = password
         self._port = port
         self._maximum_connections = maximum_connections
-        self._is_active = False
 
     def get_status(self):
-        return self._is_active
+        return self._run
 
     def stop(self):
         print('Stopping WebServer ...')
@@ -44,7 +43,6 @@ class WebServer:
             self._sock = socket.socket()
             self._sock.bind(('0.0.0.0', self._port))
             self._sock.listen(self._maximum_connections)
-            self._is_active = True
         except Exception as e:
             print('Failed to start webserver due to {}'.format(e))
 

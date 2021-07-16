@@ -15,193 +15,199 @@ class Modbus(object):
     def __init__(self, itf, addr_list):
         self._itf = itf
         self._addr_list = addr_list
+        self._register_dict = dict()
+        self._register_dict['COILS'] = dict()
+        self._register_dict['HREGS'] = dict()
+        self._register_dict['ISTS'] = dict()
+        self._register_dict['IREGS'] = dict()
 
-    def process(self):
+    def add_coil(self, address, value=False, numregs=1):
+        """
+        Add a coil to the modbus register dictionary.
+
+        :param      address:  The address (ID) of the register
+        :type       address:  int
+        :param      value:    The default value
+        :type       value:    bool, optional
+        :param      numregs:  The number of registers
+        :type       numregs:  int, optional
+        """
+        self._add_reg_to_dict(reg_type='COILS',
+                              address=address,
+                              value=value,
+                              numregs=numregs)
+
+    def add_hreg(self, address, value=0, numregs=1):
+        """
+        Add a holding register to the modbus register dictionary.
+
+        :param      address:  The address (ID) of the register
+        :type       address:  int
+        :param      value:    The default value
+        :type       value:    int, optional
+        :param      numregs:  The number of registers
+        :type       numregs:  int, optional
+        """
+        self._add_reg_to_dict(reg_type='HREGS',
+                              address=address,
+                              value=value,
+                              numregs=numregs)
+
+    def add_ist(self, address, value=False, numregs=1):
+        """
+        Add a discrete input register to the modbus register dictionary.
+
+        :param      address:  The address (ID) of the register
+        :type       address:  int
+        :param      value:    The default value
+        :type       value:    bool, optional
+        :param      numregs:  The number of registers
+        :type       numregs:  int, optional
+        """
+        self._add_reg_to_dict(reg_type='ISTS',
+                              address=address,
+                              value=value,
+                              numregs=numregs)
+
+    def add_ireg(self, address, value=0, numregs=1):
+        """
+        Add an input register to the modbus register dictionary.
+
+        :param      address:  The address (ID) of the register
+        :type       address:  int
+        :param      value:    The default value
+        :type       value:    int, optional
+        :param      numregs:  The number of registers
+        :type       numregs:  int, optional
+        """
+        self._add_reg_to_dict(reg_type='IREGS',
+                              address=address,
+                              value=value,
+                              numregs=numregs)
+
+    def _add_reg_to_dict(self, reg_type, address, value, numregs):
+        """
+        Add a register to the modbus registerdictionary.
+
+        :param      reg_type:  The register type
+        :type       reg_type:  str
+        :param      address:   The address (ID) of the register
+        :type       address:   int
+        :param      value:     The default value
+        :type       value:     int or bool
+        :param      numregs:   The number of registers
+        :type       numregs:   int
+        """
+        self._register_dict[reg_type][address] = value
+
+    def process(self) -> bool:
+        """
+        Process the modbus requests.
+
+        :returns:   Result of processing, True on success, False otherwise
+        :rtype:     bool
+        """
+        reg_type = None
+
         request = self._itf.get_request(unit_addr_list=self._addr_list,
                                         timeout=0)
         if request is None:
             return False
 
-        self._process_req(request=request)
-
-        return True
-
-    def _process_req(self, request):
         if request.function == ModbusConst.READ_COILS:
-            self._process_read_coils(request=request)
+            # Coils (setter+getter) [0, 1]
+            # function 01 - read single register
+            reg_type = 'COILS'
         elif request.function == ModbusConst.READ_DISCRETE_INPUTS:
-            self._process_read_ists(request=request)
+            # Ists (only getter) [0, 1]
+            # function 02 - read input status (discrete inputs/digital input)
+            reg_type = 'ISTS'
         elif request.function == ModbusConst.READ_HOLDING_REGISTERS:
-            self._process_read_hregs(request=request)
+            # Hregs (setter+getter) [0, 65535]
+            # function 03 - read holding register
+            reg_type = 'HREGS'
         elif request.function == ModbusConst.READ_INPUT_REGISTER:
-            self._process_read_iregs(request=request)
+            # Iregs (only getter) [0, 65535]
+            # function 04 - read input registers
+            reg_type = 'IREGS'
         elif request.function == ModbusConst.WRITE_SINGLE_COIL:
-            self._process_write_coils(request=request)
+            # Coils (setter+getter) [0, 1]
+            # function 05 - write single register
+            reg_type = 'COILS'
         elif request.function == ModbusConst.WRITE_SINGLE_REGISTER:
-            self._process_write_hregs(request=request)
+            # Hregs (setter+getter) [0, 65535]
+            # function 06 - write holding register
+            reg_type = 'HREGS'
         else:
             request.send_exception(ModbusConst.ILLEGAL_FUNCTION)
 
-    def _process_read_coils(self, request):
+        if reg_type:
+            self._process_read_access(request=request, reg_type=reg_type)
+
+        return True
+
+    def _create_response(self, request, reg_type) -> list:
         """
-        Process access to coil register
+        Create a response.
 
-        Coils (only getter) [0, 1], function 01 - read single register
+        :param      request:   The request
+        :type       request:   Request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
 
-        :param      request:  The request
-        :type       request:  Request
+        :returns:   Values of this register
+        :rtype:     list
         """
-        print('READ_COIL of ID #{}'.format(request.register_addr))
+        return [self._register_dict[reg_type][request.register_addr]]
 
-        if request.register_addr == 101:
-            request.send_response([1])
-        elif request.register_addr == 102:
-            request.send_response([1])
-        else:
-            request.send_exception(ModbusConst.ILLEGAL_DATA_ADDRESS)
-
-    def _process_read_ists(self, request):
+    def _process_read_access(self, request, reg_type):
         """
-        Process access to discrete input register
+        Process read access to register
 
-        Ists (only getter) [0, 1], function 02 - read input status (discrete
-        inputs/digital input)
-
-        :param      request:  The request
-        :type       request:  Request
+        :param      request:   The request
+        :type       request:   Request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
         """
-        print('READ_DISCRETE_INPUTS of ID #{}'.format(request.register_addr))
+        print('READ_{} of ID #{}'.format(reg_type, request.register_addr))
 
-        if request.register_addr >= 101 and request.register_addr <= 102:
-            vals = []
-            upper_limit = request.register_addr + request.quantity
-            for i in range(request.register_addr, upper_limit):
-                if i == 101:
-                    vals.append(1)
-                elif i == 102:
-                    vals.append(1)
-                else:
-                    request.send_exception(ModbusConst.ILLEGAL_DATA_ADDRESS)
-                    break
+        if request.register_addr in self._register_dict[reg_type]:
+            vals = self._create_response(request=request, reg_type=reg_type)
             request.send_response(vals)
         else:
             request.send_exception(ModbusConst.ILLEGAL_DATA_ADDRESS)
 
-    def _process_read_hregs(self, request):
+    def _process_write_access(self, request, reg_type):
         """
-        Process access to holding register
+        Process write access to register
 
-        Hregs (setter+getter) [0, 65535], function 03 - read holding register
-
-        :param      request:  The request
-        :type       request:  Request
+        :param      request:   The request
+        :type       request:   Request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
         """
-        print('READ_HOLDING_REGISTERS of ID #{}'.format(request.register_addr))
-
-        if request.register_addr >= 101 and request.register_addr <= 102:
-            vals = []
-            signed = []
-            for i in range(request.register_addr, request.register_addr + request.quantity):
-                if i == 101:
-                    vals.append(101)
-                    signed.append(True)
-                elif i == 102:
-                    vals.append(102)
-                    signed.append(False)
-                else:
-                    request.send_exception(ModbusConst.ILLEGAL_DATA_ADDRESS)
-                    break
-            request.send_response(vals, signed=signed)
-        else:
-            request.send_exception(ModbusConst.ILLEGAL_DATA_ADDRESS)
-
-    def _process_read_iregs(self, request):
-        """
-        Process access to input register
-
-        Iregs (only getter) [0, 65535], function 04 - read input registers
-
-        :param      request:  The request
-        :type       request:  Request
-        """
-        print('READ_INPUT_REGISTER of ID #{}'.format(request.register_addr))
-
-        if request.register_addr >= 101 and request.register_addr <= 102:
-            vals = []
-            signed = []
-            for i in range(request.register_addr, request.register_addr + request.quantity):
-                if i == 101:
-                    vals.append(101)
-                    signed.append(True)
-                elif i == 102:
-                    vals.append(102)
-                    signed.append(False)
-                else:
-                    request.send_exception(ModbusConst.ILLEGAL_DATA_ADDRESS)
-                    break
-            request.send_response(vals, signed=signed)
-        else:
-            request.send_exception(ModbusConst.ILLEGAL_DATA_ADDRESS)
-
-    def _process_write_coils(self, request):
-        """
-        Process setting of coil register
-
-        Coils (only getter) [0, 1], function 05 - write single register
-
-        :param      request:  The request
-        :type       request:  Request
-        """
-        print('WRITE_SINGLE_COIL of ID #{}'.format(request.register_addr))
+        print('WRITE_SINGLE_{} of ID #{}'.
+              format(request.register_addr, reg_type))
         print('Request data: {}'.format(request.data))
 
-        if request.register_addr == 101:
+        if request.register_addr in self._register_dict[reg_type]:
             val = request.data_as_registers(signed=False)[0]
             print('Set register to {}'.format(val))
 
-            if request.data[0] == 0x00:
-                print('Set coil to 0x0')
-                request.send_response()
-            elif request.data[0] == 0xFF:
-                print('Set coil to 0xFF')
-                request.send_response()
-            else:
-                request.send_exception(ModbusConst.ILLEGAL_DATA_VALUE)
-        elif request.register_addr == 102:
-            val = request.data_as_registers(signed=False)[0]
-            print('Set register to {}'.format(val))
-
-            if request.data[0] == 0x00:
-                print('Set coil to 0x0')
-                request.send_response()
-            elif request.data[0] == 0xFF:
-                print('Set coil to 0xFF')
+            if reg_type == 'COILS':
+                if request.data[0] == 0x00:
+                    print('Set coil to 0x0')
+                    request.send_response()
+                elif request.data[0] == 0xFF:
+                    print('Set coil to 0xFF')
+                    request.send_response()
+                else:
+                    request.send_exception(ModbusConst.ILLEGAL_DATA_VALUE)
+            elif reg_type == 'HREGS':
+                print('Set holding register to {}'.format(val))
                 request.send_response()
             else:
-                request.send_exception(ModbusConst.ILLEGAL_DATA_VALUE)
-        else:
-            request.send_exception(ModbusConst.ILLEGAL_DATA_ADDRESS)
-
-    def _process_write_hregs(self, request):
-        """
-        Process setting of holding register
-
-        Hregs (setter+getter) [0, 65535], function 06 - write holding register
-
-        :param      request:  The request
-        :type       request:  Request
-        """
-        print('WRITE_SINGLE_REGISTER of ID #{}'.format(request.register_addr))
-        print('Request data: {}'.format(request.data))
-
-        if request.register_addr == 101:
-            val = request.data_as_registers(signed=False)
-            print('Set holding register to {}'.format(val))
-            request.send_response()
-        elif request.register_addr == 102:
-            val = request.data_as_registers(signed=False)
-            print('Set holding register to {}'.format(val))
-            request.send_response()
+                print('No steps to set {}'.format(reg_type))
         else:
             request.send_exception(ModbusConst.ILLEGAL_DATA_ADDRESS)
 
