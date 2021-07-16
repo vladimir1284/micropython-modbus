@@ -1,89 +1,154 @@
-# Exo Sense Py Modbus
-Modbus RTU Slave and Modbus TCP Server app for [Exo Sense Py](https://www.sferalabs.cc/exo-sense-py/), configurable via FTP or Web server.
+# Micropython Modbus library
+
+Forked from [Exo Sense Py](https://github.com/sfera-labs/exo-sense-py-modbus),
+based on [PyCom Modbus](https://github.com/pycom/pycom-modbus) and extended
+with other functionalities to become a powerfull micropython library
+
+---------------
 
 ## Installation
-Just copy all the files in this repo into the Pycom's flash memory.
 
-## User guide
-Power on Exo Sense Py, the internal LED light will turn on as fixed red. Wait for the LED to turn blue or green.
+### Change network settings
 
-If green, the module is already configured and ready to process Modbus requests. On the first Modbus request received the LED will go off.
+The network settings are defined in the [config_network.py](config_network.py)
+file. It is possible to use a single network, trying to connect to different
+networks or creating an AccessPoint.
 
-If blue, the module is not configured and is set to access point mode. After some time (see below) the access point will be automatically disabled.
+### Copy files
 
-### Configuration
+Copy all python files (plus index.html) in this repo to the device.
+
+#### ampy
+
+*ampy has several drawbacks compared to rshell, consider using rshell*
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+
+pip install adafruit-ampy
+```
+
+Place a file named `.ampy` in the local directory, as proposed on the
+[ampy README](https://github.com/scientifichackers/ampy)
+
+```bash
+nano .ampy
+```
+
+```
+# Please fill in your own port, baud rate, and delay
+AMPY_PORT=/dev/cu.wchusbserial1410
+
+AMPY_BAUD=115200
+
+# Fix for macOS users' "Could not enter raw repl"; try 2.0 and lower from there:
+AMPY_DELAY=0.5
+```
+
+Perform the following command to copy all files and folders to the device
+
+```bash
+ampy mkdir lib
+ampy mkdir lib/uModbus
+
+ampy put lib/uModbus/*.py lib/uModbus
+
+ampy put boot.py
+ampy put config.py
+ampy put config_network.py
+ampy put index.html
+ampy put main.py
+ampy put modbus.py
+ampy put time_helper.py
+ampy put webserver.py
+ampy put wifi_helper.py
+```
+
+#### rshell
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+
+pip install rshell
+```
+
+Open the remote shell with the following command
+
+```bash
+rshell -p /dev/tty.wchusbserial1410 -b 115200 --editor nano
+```
+
+Perform the following command to copy all files and folders to the device
+```bash
+mkdir /pyboard/lib
+mkdir /pyboard/lib/uModbus
+
+cp lib/uModbus/* /pyboard/lib/uModbus
+cp *.py /pyboard
+cp index.html /pyboard
+```
+
+<!--
+#### uPIP
+
+Connect to the device, setup the WiFi connection as recommended and install
+this package with the following two lines
+
+```python
+# WiFi connection must be established before of course
+import upip
+upip.install('micropython-modbus')
+```
+-->
+
+## Usage
+
+Start a REPL (may perform a soft reboot), wait for network connection and
+start performing Modbus requests to the device
+
+### Device configuration
 
 All configuration parameters are in the [config.py](config.py) file.
 
-To access this file on the module, enable access point mode and join its WiFi network. Depending on the configuration, a Web server and/or an FTP server will be enabled. Using any Web browser or FTP client application, connect to 192.168.4.1 using the credentials specified in the configuration.
+To access this file on the module join its WiFi network or AccessPoint. A Web
+server will be enabled by default. Use a Web browser to connect to
+[`192.168.4.1`](http://192.168.4.1/) using the credentials specified in the
+[config.py](config.py) configuration file.
 
-Refer to [config.py](config.py) for the default WiFi, Web and FTP credentials.
+Refer to [config_network.py](config_network.py) for the default WiFi and
+AccessPoint credentials.
 
-Download the configuration file, edit it and re-upload it. If using the Web interface, after the upload, Exo will automatically restart using the new configuration, otherwise, on the next power-on, it will start with the new configuration.
+Download the configuration file, edit it and re-upload it. If using the Web
+interface, after the upload, the device will automatically restart using the
+new configuration, otherwise, on the next power-on, it will start with the new
+configuration.
 
-Configure it to work as Modbus RTU slave __or__ Modbus TCP server, by setting `MB_RTU_ADDRESS` __or__ `MB_TCP_IP` to a valid value. If both are set, the TCP configuration will be ignored. If neither are, it will boot as _not configured_ and enable the access point at power-on.
+### Register configuration
 
-When configured as Modbus TCP server, the configuration Web interface and/or FTP server will be available at the configured IP address. If Exo cannot connect to the specified WiFi, after the time specified by the `AP_ON_TIMEOUT_SEC` configuration parameter, it will go into access point mode.
+The available registers are defined by a JSON file, which can be up/downloaded
+from the device by a simple and lightweight webserver.
 
-When configured as RTU slave, to re-enable access point mode, write register 5 via Modbus (see below), or power on the module and wait without making any Modbus requests for the time specified by the `AP_ON_TIMEOUT_SEC` parameter.
+Configure it to work as Modbus RTU slave **or** Modbus TCP server, by setting
+`MB_RTU_ADDRESS` **or** `MB_TCP_IP` to a valid value. If both are set, the TCP
+configuration will be ignored. If neither are, it will boot as
+*not configured* and endup in the REPL.
 
-The above access point mode auto-enable routine can be disabled by setting `AP_ON_TIMEOUT_SEC` to `0`.
+When configured as Modbus TCP server, the configuration Web interface will be
+available at the configured IP address.
 
-The access point is automatically disabled after the time specified by `AP_ON_TIME_SEC`.
+## Modbus functions
 
-### LED status table
+Refer to the following table for the list of supported Modbus functions.
 
-|LED status|Description|
-|:--------:|-----------|
-|Red|Starting up|
-|Green|Ready and waiting for first Modbus request|
-|Off or Blue blink|Running (`HEARTBEAT_LED` config option)|
-|Blue|Access point on|
-|Yellow|Enabling access point|
-|Purple blink|Connecting to WiFi (TCP mode)|
-|Red blink|Not configured and AP timeout expired, reboot to re-enable access point|
-
-## Modbus registers
-
-Refer to the following table for the list of available registers and corresponding supported Modbus functions.
-
-For the "Functions" column:    
-1 = Read coils    
-2 = Read discrete inputs    
-3 = Read holding registers    
-4 = Read input registers    
-5 = Write single coil    
-6 = Write single register    
-15 = Write multiple coils    
-16 = Write multiple registers    
-
-|Address|R/W|Functions|Size (bits)|Data type|Unit|Description|
-|------:|:-:|---------|----|---------|----|-----------|
-|5|W|5|1|-|-|Write ON (0xFF00) to enable access point mode (RTU only)|
-|101|R|2|1|-|-|Digital input DI1|
-|102|R|2|1|-|-|Digital input DI2|
-|201|R/W|1,5|1|-|-|Digital output DO1|
-|211|W|6|16|unsigned short|ms|DO1 pulse|
-|301|R|4|16|signed short|&deg;C/10|Temperature|
-|302|R|4|16|unsigned short|&permil;|Relative humidity|
-|303|R|4|16|unsigned short|hPa/10|Atmospheric pressure|
-|304|R|4|16|unsigned short|K&#8486;|Air resistance (quality indication)|
-|305|R|4|16|unsigned short|lx/10|Light intensity|
-|306|R|4|16|unsigned short|-|Noise intensity|
-|307|R|4|16|unsigned short|-|Peak programme meter simulation on noise value|
-|308|R|4|16|unsigned short|-|IAQ index (see [below](#iaq-index))|
-|309|R|4|16|signed short|-|IAQ trend: a positive value represents an IAQ improvement, a negative value an IAQ worsening, a value of zero represents a stable IAQ|
-|401|W|6|16|unsigned short|ms|Buzzer beep|
-
-### IAQ index
-
-IAQ (Indoor Air Quality) index description:
-
-|IAQ index|Air Quality|
-|:-------:|:---------:|
-|0-50|Good|
-|51-100|Average|
-|101-150|Little bad|
-|151-200|Bad|
-|201-300|Worse|
-|301-500|Very bad|
+| ID | Description |
+|----|-------------|
+| 1  | Read coils |
+| 2  | Read discrete inputs |
+| 3  | Read holding registers |
+| 4  | Read input registers |
+| 5  | Write single coil |
+| 6  | Write single register |
+| 15 | Write multiple coils |
+| 16 | Write multiple registers |
