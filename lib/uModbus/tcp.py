@@ -274,7 +274,9 @@ class TCPServer:
                 req_header_no_uid = req[:Const.MBAP_HDR_LENGTH - 1]
                 self._req_tid, req_pid, req_len = struct.unpack('>HHH', req_header_no_uid)
                 req_uid_and_pdu = req[Const.MBAP_HDR_LENGTH - 1:Const.MBAP_HDR_LENGTH + req_len - 1]
-            except TimeoutError:
+            except Exception as e:
+            # except TimeoutError:
+                # TimeoutError is not defined
                 return None
             except Exception as e:
                 print("Modbus request error:", e)
