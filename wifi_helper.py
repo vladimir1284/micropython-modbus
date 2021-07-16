@@ -10,6 +10,21 @@ import time
 
 
 def _do_connect(station, ssid, password, timeout) -> bool:
+    """
+    Establish the network connection.
+
+    :param      station:   The network object
+    :type       station:   network.WLAN
+    :param      ssid:      The SSID of the network to connect to
+    :type       ssid:      str
+    :param      password:  The password of the network
+    :type       password:  str
+    :param      timeout:   Seconds to establish a connection to the network
+    :type       timeout:   int, optional
+
+    :returns:   Result of connection
+    :rtype:     bool
+    """
     is_successfull = False
 
     print('Connect to network "{}" with password "{}"'.format(ssid, password))
@@ -44,15 +59,15 @@ def connect(ssid=None,
     Connect to the configured network
 
     :param      ssid:      The SSID of the network to connect to
-    :type       ssid:      list or string
+    :type       ssid:      list or str
     :param      password:  The password of the network
-    :type       password:  list or string
+    :type       password:  list or str
     :param      networks:  Networks and passwords
-    :type       networks:  dict
+    :type       networks:  dict, optional
     :param      timeout:   Seconds to establish a connection to the network
-    :type       timeout:   int
+    :type       timeout:   int, optional
     :param      reconnect: Reconnect/disconnect from active connection
-    :type       reconnect: bool
+    :type       reconnect: bool, optional
 
     :returns:   Result of connection
     :rtype:     bool
@@ -122,21 +137,23 @@ def connect(ssid=None,
     return is_connected
 
 
-def create_ap(ssid, password, timeout=5) -> bool:
+def create_ap(ssid, password='', channel=11, timeout=5) -> bool:
     """
     Create an Accesspoint
 
     :param      ssid:      The SSID of the network to create
     :type       ssid:      str
     :param      password:  The password of the accesspoint
-    :type       password:  str
+    :type       password:  str, optional
+    :param      channel:   The channel of the accesspoint
+    :type       channel:   int, optional
     :param      timeout:   Seconds to create an accesspoint
-    :type       timeout:   int
+    :type       timeout:   int, optional
 
     :returns:   Result of connection
     :rtype:     bool
     """
-    did_timeout = True
+    is_successfull = True
 
     # configure the WiFi as accesspoint mode (server)
     accesspoint = network.WLAN(network.AP_IF)
@@ -145,27 +162,37 @@ def create_ap(ssid, password, timeout=5) -> bool:
     if not accesspoint.active():
         accesspoint.active(True)
 
-    accesspoint.config(essid=ssid, password=password)
+    # check for open AccessPoint configuration
+    if len(password):
+        _authmode = network.AUTH_WPA_WPA2_PSK
+    else:
+        _authmode = network.AUTH_OPEN
+
+    print('Create AccessPoint "{}" with password "{}"'.format(ssid, password))
+
+    accesspoint.config(essid=ssid,
+                       authmode=_authmode,
+                       password=password,
+                       channel=channel)
 
     # get current system timestamp
     now = time.time()
 
     # wait for success no longer than the specified timeout
     while (time.time() < (now + timeout)):
-        if accesspoint.active() is False:
-            did_timeout = False
+        if accesspoint.active():
+            is_successfull = True
             break
         else:
             pass
 
-    print('Stopped trying to setup accesspoint{}'.format(time.time()))
+    print('Stopped trying to setup AccessPoint {}'.format(time.time()))
 
-    if did_timeout:
-        print('Connection timeout, please check configured SSID and password')
+    if is_successfull:
+        print('AccessPoint setup successful')
     else:
-        print('Connection successful')
+        print('Connection timeout, failed to setup AccessPoint')
 
     print(accesspoint.ifconfig())
 
-    # return True if no connection timeout occured
-    return not did_timeout
+    return is_successfull
