@@ -1,17 +1,31 @@
-import uModBus.functions as functions
-import uModBus.const as Const
-from uModBus.common import Request
-from uModBus.common import ModbusException
+#!/usr/bin/env python
+#
+# Copyright (c) 2019, Pycom Limited.
+#
+# This software is licensed under the GNU GPL version 3 or any
+# later version, with permitted additional terms. For more information
+# see the Pycom Licence v1.0 document supplied with this file, or
+# available at https://www.pycom.io/opensource/licensing
+#
+
+import uModbus.functions as functions
+import uModbus.const as Const
+from uModbus.common import Request
+from uModbus.common import ModbusException
+
 import struct
 import socket
 import machine
 import time
 
-class TCP:
 
+class TCP(object):
     def __init__(self, slave_ip, slave_port=502, timeout=5):
         self._sock = socket.socket()
+
+        print('Connect socket to: {}:{}'.format(slave_ip, slave_port))
         self._sock.connect(socket.getaddrinfo(slave_ip, slave_port)[0][-1])
+
         self._sock.settimeout(timeout)
 
     def _create_mbap_hdr(self, slave_id, modbus_pdu):
@@ -33,7 +47,12 @@ class TCP:
 
         return struct.unpack(fmt, byte_array)
 
-    def _validate_resp_hdr(self, response, trans_id, slave_id, function_code, count=False):
+    def _validate_resp_hdr(self,
+                           response,
+                           trans_id,
+                           slave_id,
+                           function_code,
+                           count=False):
         rec_tid, rec_pid, rec_len, rec_uid, rec_fc = struct.unpack('>HHHBB', response[:Const.MBAP_HDR_LENGTH + 1])
         if (trans_id != rec_tid):
             raise ValueError('wrong transaction Id')
@@ -45,7 +64,8 @@ class TCP:
             raise ValueError('wrong slave Id')
 
         if (rec_fc == (function_code + Const.ERROR_BIAS)):
-            raise ValueError('slave returned exception code: {:d}'.format(rec_fc))
+            raise ValueError('slave returned exception code: {:d}'.
+                             format(rec_fc))
 
         hdr_length = (Const.MBAP_HDR_LENGTH + 2) if count else (Const.MBAP_HDR_LENGTH + 1)
 
@@ -56,7 +76,11 @@ class TCP:
         self._sock.send(mbap_hdr + modbus_pdu)
 
         response = self._sock.recv(256)
-        modbus_data = self._validate_resp_hdr(response, trans_id, slave_id, modbus_pdu[0], count)
+        modbus_data = self._validate_resp_hdr(response,
+                                              trans_id,
+                                              slave_id,
+                                              modbus_pdu[0],
+                                              count)
 
         return modbus_data
 
@@ -76,16 +100,26 @@ class TCP:
 
         return status_pdu
 
-    def read_holding_registers(self, slave_addr, starting_addr, register_qty, signed = True):
-        modbus_pdu = functions.read_holding_registers(starting_addr, register_qty)
+    def read_holding_registers(self,
+                               slave_addr,
+                               starting_addr,
+                               register_qty,
+                               signed=True):
+        modbus_pdu = functions.read_holding_registers(starting_addr,
+                                                      register_qty)
 
         response = self._send_receive(slave_addr, modbus_pdu, True)
         register_value = self._to_short(response, signed)
 
         return register_value
 
-    def read_input_registers(self, slave_addr, starting_address, register_quantity, signed = True):
-        modbus_pdu = functions.read_input_registers(starting_address, register_quantity)
+    def read_input_registers(self,
+                             slave_addr,
+                             starting_address,
+                             register_quantity,
+                             signed=True):
+        modbus_pdu = functions.read_input_registers(starting_address,
+                                                    register_quantity)
 
         response = self._send_receive(slave_addr, modbus_pdu, True)
         register_value = self._to_short(response, signed)
@@ -96,52 +130,92 @@ class TCP:
         modbus_pdu = functions.write_single_coil(output_address, output_value)
 
         response = self._send_receive(slave_addr, modbus_pdu, False)
-        operation_status = functions.validate_resp_data(response, Const.WRITE_SINGLE_COIL,
-                                                        output_address, value=output_value, signed=False)
+        operation_status = functions.validate_resp_data(response,
+                                                        Const.WRITE_SINGLE_COIL,
+                                                        output_address,
+                                                        value=output_value,
+                                                        signed=False)
 
         return operation_status
 
-    def write_single_register(self, slave_addr, register_address, register_value, signed=True):
-        modbus_pdu = functions.write_single_register(register_address, register_value, signed)
+    def write_single_register(self,
+                              slave_addr,
+                              register_address,
+                              register_value,
+                              signed=True):
+        modbus_pdu = functions.write_single_register(register_address,
+                                                     register_value,
+                                                     signed)
 
         response = self._send_receive(slave_addr, modbus_pdu, False)
-        operation_status = functions.validate_resp_data(response, Const.WRITE_SINGLE_REGISTER,
-                                                        register_address, value=register_value, signed=signed)
+        operation_status = functions.validate_resp_data(response,
+                                                        Const.WRITE_SINGLE_REGISTER,
+                                                        register_address,
+                                                        value=register_value,
+                                                        signed=signed)
 
         return operation_status
 
-    def write_multiple_coils(self, slave_addr, starting_address, output_values):
-        modbus_pdu = functions.write_multiple_coils(starting_address, output_values)
+    def write_multiple_coils(self,
+                             slave_addr,
+                             starting_address,
+                             output_values):
+        modbus_pdu = functions.write_multiple_coils(starting_address,
+                                                    output_values)
 
         response = self._send_receive(slave_addr, modbus_pdu, False)
-        operation_status = functions.validate_resp_data(response, Const.WRITE_MULTIPLE_COILS,
-                                                        starting_address, quantity=len(output_values))
+        operation_status = functions.validate_resp_data(response,
+                                                        Const.WRITE_MULTIPLE_COILS,
+                                                        starting_address,
+                                                        quantity=len(output_values))
 
         return operation_status
 
-    def write_multiple_registers(self, slave_addr, starting_address, register_values, signed=True):
-        modbus_pdu = functions.write_multiple_registers(starting_address, register_values, signed)
+    def write_multiple_registers(self,
+                                 slave_addr,
+                                 starting_address,
+                                 register_values,
+                                 signed=True):
+        modbus_pdu = functions.write_multiple_registers(starting_address,
+                                                        register_values,
+                                                        signed)
 
         response = self._send_receive(slave_addr, modbus_pdu, False)
-        operation_status = functions.validate_resp_data(response, Const.WRITE_MULTIPLE_REGISTERS,
-                                                        starting_address, quantity=len(register_values))
+        operation_status = functions.validate_resp_data(response,
+                                                        Const.WRITE_MULTIPLE_REGISTERS,
+                                                        starting_address,
+                                                        quantity=len(register_values))
 
         return operation_status
+
 
 class TCPServer:
-
     def __init__(self):
         self._sock = None
         self._client_sock = None
+        self._is_bound = False
+
+    def get_is_bound(self):
+        return self._is_bound
 
     def bind(self, local_ip, local_port=502):
         if self._client_sock:
             self._client_sock.close()
+
         if self._sock:
             self._sock.close()
+
         self._sock = socket.socket()
+
+        print('Bind socket to: {}:{}'.format(local_ip, local_port))
+        # print(socket.getaddrinfo(local_ip, local_port))
+        # [(2, 1, 0, '192.168.178.47', ('192.168.178.47', 502))]
         self._sock.bind(socket.getaddrinfo(local_ip, local_port)[0][-1])
-        self._sock.listen()
+
+        self._sock.listen(10)   # maximum 10 connections at once
+
+        self._is_bound = True
+        print('Binding socket done')
 
     def _send(self, modbus_pdu, slave_addr):
         size = len(modbus_pdu)
@@ -149,39 +223,57 @@ class TCPServer:
         adu = struct.pack('>HHHB' + fmt, self._req_tid, 0, size + 1, slave_addr, *modbus_pdu)
         self._client_sock.send(adu)
 
-    def send_response(self, slave_addr, function_code, request_register_addr, request_register_qty, request_data, values=None, signed=True):
-        modbus_pdu = functions.response(function_code, request_register_addr, request_register_qty, request_data, values, signed)
+    def send_response(self,
+                      slave_addr,
+                      function_code,
+                      request_register_addr,
+                      request_register_qty,
+                      request_data,
+                      values=None,
+                      signed=True):
+        modbus_pdu = functions.response(function_code,
+                                        request_register_addr,
+                                        request_register_qty,
+                                        request_data,
+                                        values,
+                                        signed)
         self._send(modbus_pdu, slave_addr)
 
-    def send_exception_response(self, slave_addr, function_code, exception_code):
-        modbus_pdu = functions.exception_response(function_code, exception_code)
+    def send_exception_response(self,
+                                slave_addr,
+                                function_code,
+                                exception_code):
+        modbus_pdu = functions.exception_response(function_code,
+                                                  exception_code)
         self._send(modbus_pdu, slave_addr)
 
     def _accept_request(self, accept_timeout, unit_addr_list):
         self._sock.settimeout(accept_timeout)
         new_client_sock = None
+
         try:
             new_client_sock, client_address = self._sock.accept()
         except OSError as e:
-            if e.args[0] != 11: # 11 = timeout expired
+            if e.args[0] != 11:     # 11 = timeout expired
                 raise e
 
-        if new_client_sock != None:
-            if self._client_sock != None:
+        if new_client_sock is not None:
+            if self._client_sock is not None:
                 self._client_sock.close()
-            self._client_sock = new_client_sock
-            self._client_sock.settimeout(0) # recv() timeout
 
-        if self._client_sock != None:
+            self._client_sock = new_client_sock
+            self._client_sock.settimeout(0)     # recv() timeout
+
+        if self._client_sock is not None:
             try:
                 req = self._client_sock.recv(128)
+
                 if len(req) == 0:
                     return None
 
                 req_header_no_uid = req[:Const.MBAP_HDR_LENGTH - 1]
                 self._req_tid, req_pid, req_len = struct.unpack('>HHH', req_header_no_uid)
                 req_uid_and_pdu = req[Const.MBAP_HDR_LENGTH - 1:Const.MBAP_HDR_LENGTH + req_len - 1]
-
             except TimeoutError:
                 return None
             except Exception as e:
@@ -196,25 +288,28 @@ class TCPServer:
                 self._client_sock = None
                 return None
 
-            if unit_addr_list != None and req_uid_and_pdu[0] not in unit_addr_list:
+            if ((unit_addr_list is not None) and
+               (req_uid_and_pdu[0] not in unit_addr_list)):
                 return None
 
             try:
                 return Request(self, req_uid_and_pdu)
             except ModbusException as e:
-                self.send_exception_response(req[0], e.function_code, e.exception_code)
+                self.send_exception_response(req[0],
+                                             e.function_code,
+                                             e.exception_code)
                 return None
 
     def get_request(self, unit_addr_list=None, timeout=None):
-        if self._sock == None:
+        if self._sock is None:
             raise Exception('Modbus TCP server not bound')
 
         if timeout > 0:
             start_ms = time.ticks_ms()
             elapsed = 0
             while True:
-                if self._client_sock == None:
-                    accept_timeout = None if timeout == None else (timeout - elapsed) / 1000
+                if self._client_sock is None:
+                    accept_timeout = None if timeout is None else (timeout - elapsed) / 1000
                 else:
                     accept_timeout = 0
                 req = self._accept_request(accept_timeout, unit_addr_list)
