@@ -30,7 +30,8 @@ class WebServer:
 
         try:
             self._run = False
-            self._sock.close()
+            if self._sock:
+                self._sock.close()
         except Exception as e:
             print('Failed to stop webserver due to {}'.format(e))
 
