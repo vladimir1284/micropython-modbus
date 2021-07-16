@@ -86,6 +86,26 @@ def setup_webserver():
     print('Webserver setup done')
 
 
+def setup_modbus_registers():
+    global _modbus
+
+    # set+get
+    _modbus.add_coil(address=101, value=True)
+    _modbus.add_coil(address=102, value=False)
+
+    # get only
+    _modbus.add_ist(address=101, value=True)
+    _modbus.add_ist(address=102, value=False)
+
+    # set+get
+    _modbus.add_hreg(address=101, value=101)
+    _modbus.add_hreg(address=102, value=102)
+
+    # get only
+    _modbus.add_ireg(address=101, value=101)
+    _modbus.add_ireg(address=102, value=102)
+
+
 def setup_modbus_rtu():
     global _modbus
 
@@ -160,11 +180,13 @@ def main():
             print('MB_RTU_ADDRESS available')
 
             setup_modbus_rtu()
+            setup_modbus_registers()
             _modbus_process = _modbus_rtu_process
         else:
             print('No MB_RTU_ADDRESS, using TCP')
 
             if setup_modbus_tcp():
+                setup_modbus_registers()
                 _modbus_process = _modbus_tcp_process
             else:
                 return
