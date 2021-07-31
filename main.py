@@ -175,7 +175,7 @@ def main():
     setup_webserver()
 
     if ((config.MB_RTU_ADDRESS > 0) or
-        (len(config.MB_TCP_IP) > 0)):
+       (config.MB_TCP_IP > 0)):
         if config.MB_RTU_ADDRESS > 0:
             print('MB_RTU_ADDRESS available')
 

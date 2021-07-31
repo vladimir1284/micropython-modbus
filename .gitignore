@@ -3,3 +3,5 @@
 pymakr.conf
 tests/
 config-*
+config_network.py
+thinking/
