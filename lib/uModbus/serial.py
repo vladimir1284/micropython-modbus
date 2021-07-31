@@ -34,8 +34,11 @@ class Serial(object):
                           bits=data_bits,
                           parity=parity,
                           stop=stop_bits,
-                          timeout_chars=2,
-                          pins=pins)
+                          # timeout_chars=2,  # WiPy only
+                          # pins=pins         # WiPy only
+                          tx=pins[0],
+                          rx=pins[1]
+                          )
 
         if ctrl_pin is not None:
             self._ctrlPin = Pin(ctrl_pin, mode=Pin.OUT)
@@ -88,7 +91,10 @@ class Serial(object):
 
         for x in range(1, 40):
             if self._uart.any():
-                response.extend(self._uart.readall())
+                # WiPy only
+                # response.extend(self._uart.readall())
+                response.extend(self._uart.read())
+
                 # variable length function codes may require multiple reads
                 if self._exit_read(response):
                     break

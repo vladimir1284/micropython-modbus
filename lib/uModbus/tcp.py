@@ -13,9 +13,10 @@ import uModbus.const as Const
 from uModbus.common import Request
 from uModbus.common import ModbusException
 
+import random
 import struct
 import socket
-import machine
+# import machine
 import time
 
 
@@ -29,7 +30,11 @@ class TCP(object):
         self._sock.settimeout(timeout)
 
     def _create_mbap_hdr(self, slave_id, modbus_pdu):
-        trans_id = machine.rng() & 0xFFFF
+        # only available on WiPy
+        # trans_id = machine.rng() & 0xFFFF
+        # use builtin function to generate random 24 bit integer
+        trans_id = random.getrandbits(24) & 0xFFFF
+
         mbap_hdr = struct.pack('>HHHB', trans_id, 0, len(modbus_pdu) + 1, slave_id)
 
         return mbap_hdr, trans_id
