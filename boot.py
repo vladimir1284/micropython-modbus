@@ -12,7 +12,8 @@ import time
 import wifi_helper
 
 try:
-    import config_network
+    # import config_network
+    from config import config_network
     create_ap = False
 except Exception as e:
     print('No "config_network" file found, creating AccessPoint')

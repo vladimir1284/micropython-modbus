@@ -12,7 +12,12 @@ import time
 
 # There's currently no timezone support in MicroPython
 # RTC is set in UTC time
-def set_time(gmt_diff=0):
+def set_time() -> None:
+    """
+    Set RTC time to time received from NTP server.
+
+    No network check is performed
+    """
     tm = time.localtime()
     print("Local time before synchronization: {}".format(tm))
     # Local time before synchronization: (2000, 1, 1, 0, 9, 44, 5, 1)

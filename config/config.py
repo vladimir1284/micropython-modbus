@@ -22,5 +22,5 @@ MB_RTU_PARITY = 1               # 1 = even, 2 = odd, 3 = none
 
 
 # Modbus TCP parameters
-MB_TCP_IP = 1                   # Set to 0 to disable
+MB_TCP_IP = True                # Enable or disable Modbus on TCP
 MB_TCP_PORT = 502               # Port for Modbus TCP requests
