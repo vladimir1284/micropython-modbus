@@ -120,11 +120,11 @@ class TCP(object):
 
     def read_input_registers(self,
                              slave_addr,
-                             starting_address,
-                             register_quantity,
+                             starting_addr,
+                             register_qty,
                              signed=True):
-        modbus_pdu = functions.read_input_registers(starting_address,
-                                                    register_quantity)
+        modbus_pdu = functions.read_input_registers(starting_addr,
+                                                    register_qty)
 
         response = self._send_receive(slave_addr, modbus_pdu, True)
         register_value = self._to_short(response, signed)
@@ -194,7 +194,7 @@ class TCP(object):
         return operation_status
 
 
-class TCPServer:
+class TCPServer(object):
     def __init__(self):
         self._sock = None
         self._client_sock = None

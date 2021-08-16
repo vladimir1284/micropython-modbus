@@ -22,7 +22,7 @@ import machine
 
 class Serial(object):
     def __init__(self,
-                 uart_id,
+                 uart_id=1,
                  baudrate=9600,
                  data_bits=8,
                  stop_bits=1,
@@ -199,11 +199,11 @@ class Serial(object):
 
     def read_input_registers(self,
                              slave_addr,
-                             starting_address,
-                             register_quantity,
+                             starting_addr,
+                             register_qty,
                              signed=True):
-        modbus_pdu = functions.read_input_registers(starting_address,
-                                                    register_quantity)
+        modbus_pdu = functions.read_input_registers(starting_addr,
+                                                    register_qty)
 
         resp_data = self._send_receive(modbus_pdu, slave_addr, True)
         register_value = self._to_short(resp_data, signed)
