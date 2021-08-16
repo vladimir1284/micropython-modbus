@@ -5,6 +5,7 @@ pymakr.conf
 tests/
 config/config*.py
 thinking/
+*.bin
 
 *.o
 

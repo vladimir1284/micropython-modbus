@@ -15,7 +15,9 @@ import uos
 
 # libraries
 from modbus import ModbusRTU
+from uModbus.serial import Serial as ModbusRTUMaster
 from modbus import ModbusTCP
+from uModbus.tcp import TCP as ModbusTCPMaster
 from webserver import WebServer
 
 # custom modules
@@ -90,12 +92,135 @@ def setup_webserver():
     print('Webserver setup done')
 
 
+def print_modbus_response(register: dict, response) -> None:
+    print('{description}: {content}'.format(
+            description=register['description'],
+            content=' '.join('{:d}'.format(x) for x in response)))
+
+
+def add_response_to_dict(response_dict: dict,
+                         key: str,
+                         register: int,
+                         response) -> None:
+    if len(response) == 1:
+        # only a single value
+        response_dict[key] = {'register': register, 'val': response[0]}
+    else:
+        # convert the tuple to list to be JSON conform
+        response_dict[key] = {'register': register, 'val': list(response)}
+
+
+def read_slave_registers(modbus_registers: dict) -> dict:
+    global _modbus
+
+    response_dict = dict()
+    slave_addr = 0
+    starting_address = 0
+    register_quantity = 0
+    description = ''
+    signed = False
+
+    try:
+        slave_addr = modbus_registers['CONNECTION']['unit']
+    except Exception as e:
+        print('Failed to load connection unit address from modbus_registers')
+        return response_dict
+
+    if len(modbus_registers):
+        if 'COILS' in modbus_registers:
+            response_dict['COILS'] = dict()
+
+            for register, val in modbus_registers['COILS'].items():
+                starting_address = val['register']
+                register_quantity = val['len']
+
+                coil_status = _modbus.read_coils(
+                    slave_addr=slave_addr,
+                    starting_addr=starting_address,
+                    coil_qty=register_quantity)
+
+                add_response_to_dict(response_dict=response_dict['COILS'],
+                                     key=register,
+                                     register=starting_address,
+                                     response=coil_status)
+                print_modbus_response(register=val, response=coil_status)
+        else:
+            print('No COILS defined in given modbus_registers')
+
+        if 'HREGS' in modbus_registers:
+            response_dict['HREGS'] = dict()
+
+            for register, val in modbus_registers['HREGS'].items():
+                starting_address = val['register']
+                register_quantity = val['len']
+
+                register_value = _modbus.read_holding_registers(
+                    slave_addr=slave_addr,
+                    starting_addr=starting_address,
+                    register_qty=register_quantity,
+                    signed=signed)
+
+                add_response_to_dict(response_dict=response_dict['HREGS'],
+                                     key=register,
+                                     register=starting_address,
+                                     response=register_value)
+                print_modbus_response(register=val, response=register_value)
+        else:
+            print('No HREGS defined in given modbus_registers')
+
+        if 'ISTS' in modbus_registers:
+            response_dict['ISTS'] = dict()
+
+            for register, val in modbus_registers['ISTS'].items():
+                starting_address = val['register']
+                register_quantity = val['len']
+
+                input_status = _modbus.read_discrete_inputs(
+                    slave_addr=slave_addr,
+                    starting_addr=starting_address,
+                    input_qty=register_quantity)
+
+                add_response_to_dict(response_dict=response_dict['ISTS'],
+                                     key=register,
+                                     register=starting_address,
+                                     response=input_status)
+                print_modbus_response(register=val, response=input_status)
+        else:
+            print('No ISTS defined in given modbus_registers')
+
+        if 'IREGS' in modbus_registers:
+            response_dict['IREGS'] = dict()
+
+            for register, val in modbus_registers['IREGS'].items():
+                starting_address = val['register']
+                register_quantity = val['len']
+
+                register_value = _modbus.read_input_registers(
+                    slave_addr=slave_addr,
+                    starting_addr=starting_address,
+                    register_qty=register_quantity,
+                    signed=signed)
+
+                add_response_to_dict(response_dict=response_dict['IREGS'],
+                                     key=register,
+                                     register=starting_address,
+                                     response=register_value)
+                print_modbus_response(register=val, response=register_value)
+        else:
+            print('No IREGS defined in given modbus_registers')
+    else:
+        print('No registers defined')
+
+    return response_dict
+
+
 def load_register_files(file_path='registers/modbusRegisters.json') -> dict:
     modbus_registers = dict()
 
     # if os.path.exists(file_path):
     if path_helper.exists(path=file_path):
         with open(file_path) as json_file:
+            # json module does not preserve the order of the items in the file
             modbus_registers = json.load(json_file)
             print('Loaded these registers: {}'.format(modbus_registers))
     else:
@@ -104,96 +229,158 @@ def load_register_files(file_path='registers/modbusRegisters.json') -> dict:
     return modbus_registers
 
 
-def setup_modbus_registers(modbus_registers: dict = dict()):
+def setup_modbus_registers(modbus_registers: dict = dict(),
+                           default_vals: bool = True) -> None:
     global _modbus
 
     if len(modbus_registers):
         if 'COILS' in modbus_registers:
             for register, val in modbus_registers['COILS'].items():
-                print('Adding COIL at {}'.format(val['register']))
-                _modbus.add_coil(address=val['register'],
-                                 value=True)
+                starting_address = val['register']
+
+                print('Adding COIL at {}'.format(starting_address))
+
+                if default_vals:
+                    if 'len' in val:
+                        value = [True] * val['len']
+                    else:
+                        value = True
+                else:
+                    value = val['val']
+
+                _modbus.add_coil(address=starting_address,
+                                 value=value)
         else:
-            print('No COILS defined in modbus_registers')
+            print('No COILS defined in given modbus_registers')
 
         if 'HREGS' in modbus_registers:
             for register, val in modbus_registers['HREGS'].items():
-                print('Adding HREG at {}'.format(val['register']))
-                _modbus.add_hreg(address=val['register'],
-                                 value=999)
+                starting_address = val['register']
+
+                print('Adding HREG at {}'.format(starting_address))
+
+                if default_vals:
+                    if 'len' in val:
+                        value = [999] * val['len']
+                    else:
+                        value = 999
+                else:
+                    value = val['val']
+
+                _modbus.add_hreg(address=starting_address,
+                                 value=value)
         else:
-            print('No HREGS defined in modbus_registers')
+            print('No HREGS defined in given modbus_registers')
 
         if 'ISTS' in modbus_registers:
             for register, val in modbus_registers['ISTS'].items():
-                print('Adding IST at {}'.format(val['register']))
-                _modbus.add_ist(address=val['register'],
-                                value=True)
+                starting_address = val['register']
+
+                print('Adding IST at {}'.format(starting_address))
+
+                if default_vals:
+                    if 'len' in val:
+                        value = [True] * val['len']
+                    else:
+                        value = True
+                else:
+                    value = val['val']
+
+                _modbus.add_ist(address=starting_address,
+                                value=value)
         else:
-            print('No ISTS defined in modbus_registers')
+            print('No ISTS defined in given modbus_registers')
 
         if 'IREGS' in modbus_registers:
             for register, val in modbus_registers['IREGS'].items():
-                print('Adding IREG at {}'.format(val['register']))
-                _modbus.add_ireg(address=val['register'],
-                                 value=999)
+                starting_address = val['register']
+
+                print('Adding IREG at {}'.format(starting_address))
+
+                if default_vals:
+                    if 'len' in val:
+                        value = [999] * val['len']
+                    else:
+                        value = 999
+                else:
+                    value = val['val']
+
+                _modbus.add_ireg(address=starting_address,
+                                 value=value)
         else:
-            print('No IREGS defined in modbus_registers')
-    else:
-        print('No registers defined, using default')
-
-        # set+get
-        _modbus.add_coil(address=101, value=True)
-        _modbus.add_coil(address=102, value=False)
-
-        # set+get
-        _modbus.add_hreg(address=101, value=101)
-        _modbus.add_hreg(address=102, value=102)
-
-        # get only
-        _modbus.add_ist(address=101, value=True)
-        _modbus.add_ist(address=102, value=False)
-
-        # get only
-        _modbus.add_ireg(address=101, value=101)
-        _modbus.add_ireg(address=102, value=102)
+            print('No IREGS defined in given modbus_registers')
 
 
-def setup_modbus_rtu(connection_setting: dict = dict(), pins: tuple = (1, 3)):
+def setup_modbus_rtu(connection_setting: dict = dict(),
+                     is_master: bool = False,
+                     pins: tuple = (1, 3)) -> bool:
     global _modbus
+
     result = False
 
     if 'unit' in connection_setting and 'baudrate' in connection_setting:
-        _modbus = ModbusRTU(
-            addr=connection_setting['unit'],
-            baudrate=connection_setting['baudrate'],
-            data_bits=config.MB_RTU_DATA_BITS,
-            stop_bits=config.MB_RTU_STOP_BITS,
-            parity=None,
-            pins=pins,
-            # ctrl_pin=MODBUS_PIN_TX_EN
-        )
-        print('Modbus RTU Master started on addr: {} with config: {} '.
-              format(connection_setting['unit'], connection_setting))
+        if is_master:
+            # master, get Modbus data from other device
+            _modbus = ModbusRTUMaster(
+                baudrate=connection_setting['baudrate'],
+                data_bits=config.MB_RTU_DATA_BITS,
+                stop_bits=config.MB_RTU_STOP_BITS,
+                parity=None,
+                pins=pins,
+                # ctrl_pin=MODBUS_PIN_TX_EN
+            )
+        else:
+            # slave, provide Modbus data for device
+            _modbus = ModbusRTU(
+                addr=connection_setting['unit'],
+                baudrate=connection_setting['baudrate'],
+                data_bits=config.MB_RTU_DATA_BITS,
+                stop_bits=config.MB_RTU_STOP_BITS,
+                parity=None,
+                pins=pins,
+                # ctrl_pin=MODBUS_PIN_TX_EN
+            )
+
+        print('Modbus RTU {type} started on addr {address} with config {cfg}'.
+              format(type='Master' if is_master else 'Slave',
+                     address=connection_setting['unit'],
+                     cfg=connection_setting))
         result = True
     else:
-        _modbus = ModbusRTU(
-            addr=config.MB_RTU_ADDRESS,
-            baudrate=config.MB_RTU_BAUDRATE,
-            data_bits=config.MB_RTU_DATA_BITS,
-            stop_bits=config.MB_RTU_STOP_BITS,
-            parity=None,
-            pins=pins,
-            # ctrl_pin=MODBUS_PIN_TX_EN
-        )
-        print('Modbus RTU Master started - addr:', config.MB_RTU_ADDRESS)
+        if is_master:
+            # master, get Modbus data from other device
+            _modbus = ModbusRTUMaster(
+                baudrate=config.MB_RTU_BAUDRATE,
+                data_bits=config.MB_RTU_DATA_BITS,
+                stop_bits=config.MB_RTU_STOP_BITS,
+                parity=None,
+                pins=pins,
+                # ctrl_pin=MODBUS_PIN_TX_EN
+            )
+        else:
+            # slave, provide Modbus data for device
+            _modbus = ModbusRTU(
+                addr=config.MB_RTU_ADDRESS,
+                baudrate=config.MB_RTU_BAUDRATE,
+                data_bits=config.MB_RTU_DATA_BITS,
+                stop_bits=config.MB_RTU_STOP_BITS,
+                parity=None,
+                pins=pins,
+                # ctrl_pin=MODBUS_PIN_TX_EN
+            )
+
+        print('Modbus RTU {type} started on addr {address}'.
+              format(type='Master' if is_master else 'Slave',
+                     address=config.MB_RTU_ADDRESS))
         result = True
 
     return result
 
 
-def setup_modbus_tcp(connection_setting: dict = dict()) -> bool:
+def setup_modbus_tcp(connection_setting: dict = dict(),
+                     is_master: bool = False) -> bool:
     global _modbus
+
     network_connection = False
     is_bound = False
     result = False
@@ -211,21 +398,11 @@ def setup_modbus_tcp(connection_setting: dict = dict()) -> bool:
         network_connection = True
 
     if network_connection:
-        _modbus = ModbusTCP()
+        if is_master:
+            # master, get Modbus data from other device
+            if 'address' in connection_setting:
+                slave_ip = connection_setting['address']
 
-        try:
-            is_bound = _modbus.get_bound_status()
-        except Exception as e:
-            print('No get_bound_status function available')
-
-        if is_bound is False:
-            print('Modbus TCP is not yet bound to IP and Port ...')
-
-            local_ip = _net.ifconfig()[0]
-            print('Local IP of device: {}'.format(local_ip))
-
-            print('Connection settings: {}'.format(connection_setting))
-            port = config_TCP_PORT
             if 'unit' in connection_setting:
                 try:
                     port = int(connection_setting['unit'])
@@ -233,13 +410,42 @@ def setup_modbus_tcp(connection_setting: dict = dict()) -> bool:
                     print('Failed, no valid "unit" in connection dict: {}'.
                           format(e))
 
-            print('Binding device to IP "{}" on port "{}"'.
-                  format(local_ip, port))
-            _modbus.bind(local_ip=local_ip,
-                         local_port=port)
+                _modbus = ModbusTCPMaster(slave_ip=slave_ip, slave_port=port)
+            else:
+                _modbus = ModbusTCPMaster(slave_ip=slave_ip)
 
-            print('Modbus TCP Server binding done')
             result = True
+        else:
+            # slave, provide Modbus data for device
+            _modbus = ModbusTCP()
+
+            try:
+                is_bound = _modbus.get_bound_status()
+            except Exception as e:
+                print('No get_bound_status function available')
+
+            if is_bound is False:
+                print('Modbus TCP is not yet bound to IP and Port ...')
+
+                local_ip = _net.ifconfig()[0]
+                print('Local IP of device: {}'.format(local_ip))
+
+                print('Connection settings: {}'.format(connection_setting))
+                port = config_TCP_PORT
+                if 'unit' in connection_setting:
+                    try:
+                        port = int(connection_setting['unit'])
+                    except Exception as e:
+                        print('Failed, no valid "unit" in connection dict: {}'.
+                              format(e))
+
+                print('Binding device to IP "{}" on port "{}"'.
+                      format(local_ip, port))
+                _modbus.bind(local_ip=local_ip,
+                             local_port=port)
+
+                print('Modbus TCP Server binding done')
+                result = True
     else:
         # @TODO resolve happy case, try to (re)connect here
         print('Device not connected to network')
@@ -255,21 +461,88 @@ def main():
     setup_webserver()
 
     modbus_registers = load_register_files(
-        file_path='registers/modbusRegisters.json')
+        # file_path='registers/modbusRegisters.json')
+        file_path='registers/modbusRegisters-MyEVSE.json')
     setup_result = False
 
+    """
+    #
+    # request data from MyEVSE and provide them via Modbus TCP on port 180
+    #
+    if 'CONNECTION' in modbus_registers:
+        print('CONNECTION content: {}'.
+              format(modbus_registers['CONNECTION']))
+
+        setup_result = setup_modbus_rtu(
+            connection_setting=modbus_registers['CONNECTION'],
+            is_master=True,   # configure as Master to collect data (from EVSE)
+            pins=(12, 13)     # (TX, RX) use other pins for testing
+        )
+
+        response_dict = read_slave_registers(modbus_registers=modbus_registers)
+        print('Received this content: {}'.format(response_dict))
+
+        # global _modbus is overwritten onwards, RTU can't be used anymore
+        setup_result = setup_modbus_tcp(
+            connection_setting={'unit': 180},
+            is_master=False   # configure as Slave to provide data
+        )
+
+        _modbus_process = _modbus_tcp_process
+
+        if setup_result:
+            print('Modbus setup successful, setup modbus registers...')
+
+            setup_modbus_registers(modbus_registers=response_dict,
+                                   default_vals=False)
+        else:
+            print('Modbus setup failed')
+            return
+    else:
+        print('No CONNECTION config element in the modbus register json file')
+        return
+    """
+
+    # """
+    #
+    # setup Modbus RTU slave
+    #
+    if 'CONNECTION' in modbus_registers:
+        setup_result = setup_modbus_rtu(
+            connection_setting=modbus_registers['CONNECTION'],
+            is_master=False,   # configure as Slave to provide data
+            pins=(12, 13)      # (TX, RX) use other pins for testing
+        )
+    else:
+        setup_result = setup_modbus_rtu(is_master=False)
+
+    _modbus_process = _modbus_rtu_process
+
+    if setup_result:
+        print('Modbus setup successful, setup modbus registers...')
+        setup_modbus_registers(modbus_registers=modbus_registers)
+    else:
+        print('Modbus setup failed')
+        return
+    # """
+
+    """
+    #
+    # general testing
+    #
     if ((config.MB_RTU_ADDRESS > 0) or
        (config.MB_TCP_IP is True)):
         if config.MB_RTU_ADDRESS > 0:
-            print('MB_RTU_ADDRESS available')
+            print('MB_RTU_ADDRESS available: {}'.format(config.MB_RTU_ADDRESS))
 
             if 'CONNECTION' in modbus_registers:
                 setup_result = setup_modbus_rtu(
                     connection_setting=modbus_registers['CONNECTION'],
-                    pins=(12, 13)     # use other pins for testing
+                    is_master=False,   # configure as Slave to provide data
+                    pins=(12, 13)      # (TX, RX) use other pins for testing
                 )
             else:
-                setup_result = setup_modbus_rtu()
+                setup_result = setup_modbus_rtu(is_master=False)
 
             _modbus_process = _modbus_rtu_process
         else:
@@ -279,11 +552,12 @@ def main():
                 print('CONNECTION content: {}'.
                       format(modbus_registers['CONNECTION']))
                 setup_result = setup_modbus_tcp(
-                    connection_setting=modbus_registers['CONNECTION']
+                    connection_setting=modbus_registers['CONNECTION'],
+                    is_master=False   # configure as Slave to provide data
                 )
             else:
                 print('No connection specified in modbus_registers')
-                setup_result = setup_modbus_tcp()
+                setup_result = setup_modbus_tcp(is_master=False)
 
             _modbus_process = _modbus_tcp_process
 
@@ -297,7 +571,9 @@ def main():
         print('Neither TCP nor RTU Modbus setup performed due to missing '
               'config in config.py')
         return
+    """
 
+    # common part
     print('Success, entering while loop')
     while True:
         try:
