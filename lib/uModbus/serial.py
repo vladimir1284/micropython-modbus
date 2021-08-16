@@ -46,9 +46,10 @@ class Serial(object):
             self._ctrlPin = None
 
         if baudrate <= 19200:
+            # 4010us (approx. 4ms) @ 9600 baud
             self._t35chars = (3500000 * (data_bits + stop_bits + 2)) // baudrate
         else:
-            self._t35chars = 1750
+            self._t35chars = 1750   # 1750us (approx. 1.75ms)
 
     def _calculate_crc16(self, data):
         crc = 0xFFFF
@@ -103,22 +104,44 @@ class Serial(object):
         return response
 
     def _uart_read_frame(self, timeout=None):
-        bytes = bytearray()
+        received_bytes = bytearray()
 
-        start_ms = time.ticks_ms()
-        while ((timeout is None) or
-               (time.ticks_diff(start_ms, time.ticks_ms()) <= timeout)):
-            last_byte_ts = time.ticks_us()
-            while time.ticks_diff(last_byte_ts, time.ticks_us()) <= self._t35chars:
-                r = self._uart.readall()
-                if r is not None:
-                    bytes.extend(r)
-                    last_byte_ts = time.ticks_us()
+        # set timeout to at least twice the time between two frames in case the
+        # timeout was set to zero or None
+        if timeout == 0 or timeout is None:
+            timeout = 2*self._t35chars  # in milliseconds
 
-            if len(bytes) > 0:
-                return bytes
+        start_us = time.ticks_us()
 
-        return bytes
+        # stay inside this while loop at least for the timeout time
+        while (time.ticks_diff(time.ticks_us(), start_us) <= timeout):
+            # check amount of available characters
+            if self._uart.any():
+                # remember this time in microseconds
+                last_byte_ts = time.ticks_us()
+
+                # do not stop reading and appending the result to the buffer
+                # until the time between two frames elapsed
+                while time.ticks_diff(time.ticks_us(), last_byte_ts) <= self._t35chars:
+                    # WiPy only
+                    # r = self._uart.readall()
+                    r = self._uart.read()
+
+                    # if something has been read after the first iteration of
+                    # this inner while loop (during self._t35chars time)
+                    if r is not None:
+                        # append the new read stuff to the buffer
+                        received_bytes.extend(r)
+
+                        # update the timestamp of the last byte being read
+                        last_byte_ts = time.ticks_us()
+
+            # if something has been read before the overall timeout is reached
+            if len(received_bytes) > 0:
+                return received_bytes
+
+        # return the result in case the overall timeout has been reached
+        return received_bytes
 
     def _send(self, modbus_pdu, slave_addr):
         serial_pdu = bytearray()

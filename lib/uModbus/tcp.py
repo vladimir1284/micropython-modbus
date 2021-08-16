@@ -25,6 +25,7 @@ class TCP(object):
         self._sock = socket.socket()
 
         print('Connect socket to: {}:{}'.format(slave_ip, slave_port))
+        # [(2, 1, 0, '192.168.178.47', ('192.168.178.47', 502))]
         self._sock.connect(socket.getaddrinfo(slave_ip, slave_port)[0][-1])
 
         self._sock.settimeout(timeout)
