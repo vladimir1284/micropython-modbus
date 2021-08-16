@@ -218,6 +218,7 @@ class ModbusRTU(Modbus):
                  baudrate=9600,
                  data_bits=8,
                  stop_bits=1,
+                 parity=None,
                  pins=None,
                  ctrl_pin=None):
         super().__init__(
@@ -226,6 +227,7 @@ class ModbusRTU(Modbus):
                    baudrate=baudrate,
                    data_bits=data_bits,
                    stop_bits=stop_bits,
+                   parity=parity,
                    pins=pins,
                    ctrl_pin=ctrl_pin),
             [addr]
