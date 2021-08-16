@@ -21,71 +21,59 @@ class Modbus(object):
         self._register_dict['ISTS'] = dict()
         self._register_dict['IREGS'] = dict()
 
-    def add_coil(self, address, value=False, numregs=1):
+    def add_coil(self, address, value=False):
         """
         Add a coil to the modbus register dictionary.
 
         :param      address:  The address (ID) of the register
         :type       address:  int
         :param      value:    The default value
-        :type       value:    bool, optional
-        :param      numregs:  The number of registers
-        :type       numregs:  int, optional
+        :type       value:    bool or list of bool, optional
         """
         self._add_reg_to_dict(reg_type='COILS',
                               address=address,
-                              value=value,
-                              numregs=numregs)
+                              value=value)
 
-    def add_hreg(self, address, value=0, numregs=1):
+    def add_hreg(self, address, value=0):
         """
         Add a holding register to the modbus register dictionary.
 
         :param      address:  The address (ID) of the register
         :type       address:  int
         :param      value:    The default value
-        :type       value:    int, optional
-        :param      numregs:  The number of registers
-        :type       numregs:  int, optional
+        :type       value:    int or list of int, optional
         """
         self._add_reg_to_dict(reg_type='HREGS',
                               address=address,
-                              value=value,
-                              numregs=numregs)
+                              value=value)
 
-    def add_ist(self, address, value=False, numregs=1):
+    def add_ist(self, address, value=False):
         """
         Add a discrete input register to the modbus register dictionary.
 
         :param      address:  The address (ID) of the register
         :type       address:  int
         :param      value:    The default value
-        :type       value:    bool, optional
-        :param      numregs:  The number of registers
-        :type       numregs:  int, optional
+        :type       value:    bool or list of bool, optional
         """
         self._add_reg_to_dict(reg_type='ISTS',
                               address=address,
-                              value=value,
-                              numregs=numregs)
+                              value=value)
 
-    def add_ireg(self, address, value=0, numregs=1):
+    def add_ireg(self, address, value=0):
         """
         Add an input register to the modbus register dictionary.
 
         :param      address:  The address (ID) of the register
         :type       address:  int
         :param      value:    The default value
-        :type       value:    int, optional
-        :param      numregs:  The number of registers
-        :type       numregs:  int, optional
+        :type       value:    int or list of int, optional
         """
         self._add_reg_to_dict(reg_type='IREGS',
                               address=address,
-                              value=value,
-                              numregs=numregs)
+                              value=value)
 
-    def _add_reg_to_dict(self, reg_type, address, value, numregs):
+    def _add_reg_to_dict(self, reg_type, address, value):
         """
         Add a register to the modbus registerdictionary.
 
@@ -94,9 +82,7 @@ class Modbus(object):
         :param      address:   The address (ID) of the register
         :type       address:   int
         :param      value:     The default value
-        :type       value:     int or bool
-        :param      numregs:   The number of registers
-        :type       numregs:   int
+        :type       value:     int, bool, list of int or list of bool
         """
         self._register_dict[reg_type][address] = value
 
@@ -158,7 +144,10 @@ class Modbus(object):
         :returns:   Values of this register
         :rtype:     list
         """
-        return [self._register_dict[reg_type][request.register_addr]]
+        if type(self._register_dict[reg_type][request.register_addr]) is list:
+            return self._register_dict[reg_type][request.register_addr]
+        else:
+            return [self._register_dict[reg_type][request.register_addr]]
 
     def _process_read_access(self, request, reg_type):
         """
