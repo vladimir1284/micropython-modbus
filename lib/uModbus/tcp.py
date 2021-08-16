@@ -267,7 +267,11 @@ class TCPServer:
                 self._client_sock.close()
 
             self._client_sock = new_client_sock
-            self._client_sock.settimeout(0)     # recv() timeout
+
+            # recv() timeout, setting to 0 might lead to the following error
+            # "Modbus request error: [Errno 11] EAGAIN"
+            # This is a socket timeout error
+            self._client_sock.settimeout(0.5)
 
         if self._client_sock is not None:
             try:
@@ -279,9 +283,9 @@ class TCPServer:
                 req_header_no_uid = req[:Const.MBAP_HDR_LENGTH - 1]
                 self._req_tid, req_pid, req_len = struct.unpack('>HHH', req_header_no_uid)
                 req_uid_and_pdu = req[Const.MBAP_HDR_LENGTH - 1:Const.MBAP_HDR_LENGTH + req_len - 1]
-            except Exception as e:
-            # except TimeoutError:
-                # TimeoutError is not defined
+            except OSError as e:
+                # MicroPython raises an OSError instead of socket.timeout
+                print("Socket OSError aka TimeoutError: {}".format(e))
                 return None
             except Exception as e:
                 print("Modbus request error:", e)
