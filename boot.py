@@ -7,6 +7,7 @@ boot script, do initial stuff here, similar to the setup() function on Arduino
 
 import esp
 import gc
+import led_helper
 from machine import Pin
 import time
 import wifi_helper
@@ -26,18 +27,15 @@ except Exception as e:
 # disable ESP os debug output
 esp.osdebug(None)
 
-# set pin D4 as output (blue LED)
-led_pin = Pin(4, Pin.OUT)
+# turn Neopixel and onboard LED off
+led_helper.onboard_led_off()
+led_helper.neopixel_clear()
 
-# flash LED 3 times
-for x in range(1, 3 + 1):
-    led_pin.value(1)
-    time.sleep(0.05)
-    led_pin.value(0)
-    time.sleep(0.05)
+# flash onboard LED 3 times
+led_helper.flash_led(amount=3)
 
-# turn LED on
-led_pin.value(1)
+# turn onboard LED on
+led_helper.onboard_led_on()
 
 if create_ap:
     print('Creating AccessPoint ...')
@@ -71,11 +69,19 @@ else:
         print('No networks dictionary defined')
         print('Using SSID and password string or list of strings')
 
-    wifi_helper.connect(ssid=defined_ssid,
-                        password=defined_password,
-                        networks=defined_networks)
+    result = wifi_helper.connect(ssid=defined_ssid,
+                                 password=defined_password,
+                                 networks=defined_networks)
 
-led_pin.value(0)
+    if result:
+        # connection successfully established
+        led_helper.neopixel_green()
+    else:
+        # failed to connect to network
+        led_helper.neopixel_blue()
+
+# turn onboard LED off
+led_helper.onboard_led_off()
 
 # run garbage collector at the end to clean up
 gc.collect()
