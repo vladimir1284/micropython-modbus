@@ -109,7 +109,7 @@ class Serial(object):
         # set timeout to at least twice the time between two frames in case the
         # timeout was set to zero or None
         if timeout == 0 or timeout is None:
-            timeout = 2*self._t35chars  # in milliseconds
+            timeout = 2 * self._t35chars  # in milliseconds
 
         start_us = time.ticks_us()
 
@@ -177,8 +177,7 @@ class Serial(object):
         resp_crc = response[-Const.CRC_LENGTH:]
         expected_crc = self._calculate_crc16(response[0:len(response) - Const.CRC_LENGTH])
 
-        if ((resp_crc[0] is not expected_crc[0]) or
-            (resp_crc[1] is not expected_crc[1])):
+        if ((resp_crc[0] is not expected_crc[0]) or (resp_crc[1] is not expected_crc[1])):
             raise OSError('invalid response CRC')
 
         if (response[0] != slave_addr):

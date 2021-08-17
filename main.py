@@ -5,15 +5,12 @@
 main script, do your stuff here, similar to the loop() function on Arduino
 """
 
-from machine import UART
 import json
 import led_helper
 import network
-import os
 import sys
 import _thread
 import time
-import uos
 
 # libraries
 from modbus import ModbusRTU
@@ -24,8 +21,6 @@ from webserver import WebServer
 
 # custom modules
 import path_helper
-import time_helper
-import wifi_helper
 
 try:
     from config import config
@@ -156,9 +151,9 @@ def setup_webserver():
 
 
 def print_modbus_response(register: dict, response) -> None:
-    print('{description}: {content}'.format(
-            description=register['description'],
-            content=' '.join('{:d}'.format(x) for x in response)))
+    print('{description}: {content}'.
+          format(description=register['description'],
+                 content=' '.join('{:d}'.format(x) for x in response)))
 
 
 def add_response_to_dict(response_dict: dict,
@@ -180,13 +175,12 @@ def read_slave_registers(modbus_registers: dict) -> dict:
     slave_addr = 0
     starting_address = 0
     register_quantity = 0
-    description = ''
     signed = False
 
     try:
         slave_addr = modbus_registers['CONNECTION']['unit']
     except Exception as e:
-        print('Failed to load connection unit address from modbus_registers')
+        print('Failed to load connection unit address, exception {}'.format(e))
         return response_dict
 
     if len(modbus_registers):
@@ -485,7 +479,7 @@ def setup_modbus_tcp(connection_setting: dict = dict(),
             try:
                 is_bound = _modbus.get_bound_status()
             except Exception as e:
-                print('No get_bound_status function available')
+                print('No get_bound_status function available: {}'.format(e))
 
             if is_bound is False:
                 print('Modbus TCP is not yet bound to IP and Port ...')

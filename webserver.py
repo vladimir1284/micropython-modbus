@@ -171,7 +171,7 @@ class WebServer:
                                          format(stat[6]))
                         f = open(filename, 'rb')
                         client_sock.send(f.read())
-                    except Exception as e:
+                    except Exception:
                         client_sock.send('Content-Type: text/html\r\n\r\n')
                         client_sock.send('Not configured')
             elif req_path == '/favicon.ico':

@@ -6,7 +6,7 @@ provide unavailable path functions in micropython
 """
 
 import os
-import sys
+# import sys
 
 
 # There's currently no os.path.exists() support in MicroPython

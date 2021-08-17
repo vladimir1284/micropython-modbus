@@ -93,8 +93,7 @@ def connect(ssid=None,
 
             return is_connected
 
-    if ((type(ssid) is str) and
-        (type(password) is str)):
+    if ((type(ssid) is str) and (type(password) is str)):
         # user provided string of single network to connect to
         print('Connect by single network and password')
 

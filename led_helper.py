@@ -150,12 +150,12 @@ def neopixel_color(color: str, intensity: int = 30) -> None:
         'cyan': [0, intensity, intensity],
         'magenta': [intensity, 0, intensity],
         'white': [intensity, intensity, intensity],
-        'maroon': [intensity//2, 0, 0],
-        'darkgreen': [0, intensity//2, 0],
-        'darkblue': [0, 0, intensity//2],
-        'olive': [intensity//2, intensity//2, 0],
-        'teal': [0, intensity//2, intensity//2],
-        'purple': [intensity//2, 0, intensity//2],
+        'maroon': [intensity // 2, 0, 0],
+        'darkgreen': [0, intensity // 2, 0],
+        'darkblue': [0, 0, intensity // 2],
+        'olive': [intensity // 2, intensity // 2, 0],
+        'teal': [0, intensity // 2, intensity // 2],
+        'purple': [intensity // 2, 0, intensity // 2],
     }
     if color in color_code:
         set_neopixel(rgb=color_code[color])
@@ -182,11 +182,11 @@ def neopixel_fade(finally_clear: bool = True,
         # for color in range(0, 8):
         # loop through all possible color combinations
 
-        color_list = list('{:03b}'.format(color, 'b'))
+        color_list = list('{:03b}'.format(color))
         # ['0', '0', '1'], ['0', '1', '0'], ['0', '1', '1'] ...
 
         # set upper intensity limit to 30 to avoid getting blinded by the light
-        for intensity in range(0, maximum_intensity+1, 5):
+        for intensity in range(0, maximum_intensity + 1, 5):
             # create empty list
             pixel_color = [0] * len(color_list)
 

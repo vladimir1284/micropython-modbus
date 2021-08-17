@@ -300,8 +300,7 @@ class TCPServer(object):
                 self._client_sock = None
                 return None
 
-            if ((unit_addr_list is not None) and
-               (req_uid_and_pdu[0] not in unit_addr_list)):
+            if ((unit_addr_list is not None) and (req_uid_and_pdu[0] not in unit_addr_list)):
                 return None
 
             try:

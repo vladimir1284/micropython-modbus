@@ -1,4 +1,7 @@
 [flake8]
+ignore =
+    E501
+    W504
 exclude =
     .git,
     .venv,
@@ -7,4 +10,6 @@ exclude =
     old,
     build,
     dist,
-    modules
+    modules,
+    setup,
+    thinking

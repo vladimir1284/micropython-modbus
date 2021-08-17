@@ -8,8 +8,6 @@ boot script, do initial stuff here, similar to the setup() function on Arduino
 import esp
 import gc
 import led_helper
-from machine import Pin
-import time
 import wifi_helper
 
 try:
@@ -17,7 +15,8 @@ try:
     from config import config_network
     create_ap = False
 except Exception as e:
-    print('No "config_network" file found, creating AccessPoint')
+    print('No "config_network" file found, using AccessPoint, exception: {}'.
+          format(e))
     create_ap = True
 
 # set clock speed to 240MHz instead of default 160MHz
@@ -49,7 +48,7 @@ if create_ap:
         defined_accesspoint_password = ''
         # defined_accesspoint_password = '123456789'
         defined_accesspoint_channel = 11
-        print('Failed to load AccessPoint parameters')
+        print('Failed to load AccessPoint parameters, exception: {}'.format(e))
         print('Using default SSID "{}" and password "{}" for Accesspoint'.
               format(defined_accesspoint_ssid, defined_accesspoint_password))
 
@@ -66,7 +65,7 @@ else:
         defined_networks = None
         defined_ssid = config_network.ssid
         defined_password = config_network.password
-        print('No networks dictionary defined')
+        print('No networks dictionary defined, exception: {}'.format(e))
         print('Using SSID and password string or list of strings')
 
     result = wifi_helper.connect(ssid=defined_ssid,

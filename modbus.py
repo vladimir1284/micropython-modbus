@@ -8,7 +8,6 @@ modbus script
 from uModbus.serial import Serial
 from uModbus.tcp import TCPServer
 import uModbus.const as ModbusConst
-from machine import UART
 
 
 class Modbus(object):
@@ -263,5 +262,5 @@ class ModbusTCP(Modbus):
         try:
             return self._itf.get_is_bound()
         except Exception as e:
-            print('Unable to access _is_bound flag')
+            print('Unable to access _is_bound flag, exception: {}'.format(e))
             return False
