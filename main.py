@@ -7,9 +7,11 @@ main script, do your stuff here, similar to the loop() function on Arduino
 
 from machine import UART
 import json
+import led_helper
 import network
 import os
 import sys
+import _thread
 import time
 import uos
 
@@ -41,6 +43,8 @@ except Exception as e:
 
 _modbus = None
 _web = None
+_active_threads = dict()
+stop_threads = False
 
 
 def _print_ex(msg, e):
@@ -52,6 +56,64 @@ def _print_ex(msg, e):
     print('===================================')
 
 
+def _modbus_rtu_thread():
+    global _active_threads
+    global _modbus
+    global stop_threads
+
+    _active_threads['_modbus_rtu_thread'] = _thread.get_ident()
+
+    while stop_threads is False:
+        try:
+            _modbus.process()
+        except KeyboardInterrupt:
+            print('KeyboardInterrupt, killing this thread: {} ({})'.
+                  format('_modbus_rtu_thread', _thread.get_ident()))
+            break
+        except Exception as e:
+            _print_ex(msg='_modbus_rtu_thread() error', e=e)
+
+    # remove this thread ID from the _active_threads dict
+    _active_threads.pop('_modbus_rtu_thread', None)
+
+
+def _modbus_tcp_thread():
+    global _active_threads
+    global _modbus
+    global stop_threads
+    global _web
+
+    _active_threads['_modbus_tcp_thread'] = _thread.get_ident()
+
+    while stop_threads is False:
+        try:
+            # always assuming device is connected
+            _modbus.process()
+
+            if _web.get_status():
+                _web.process(0)
+            else:
+                print('(Re)starting WebServer ...')
+                _web.start()
+                print('WebServer (re)started')
+        except KeyboardInterrupt:
+            print('KeyboardInterrupt, killing this thread: {} ({})'.
+                  format('_modbus_tcp_thread', _thread.get_ident()))
+            break
+        except Exception as e:
+            _print_ex(msg='_modbus_tcp_thread() error', e=e)
+
+    # remove this thread ID from the _active_threads dict
+    _active_threads.pop('_modbus_tcp_thread', None)
+
+
+def get_active_threads() -> dict:
+    global _active_threads
+
+    return _active_threads
+
+
+"""
 def _modbus_rtu_process():
     global _modbus
 
@@ -71,6 +133,7 @@ def _modbus_tcp_process():
         print('(Re)starting WebServer ...')
         _web.start()
         print('WebServer (re)started')
+"""
 
 
 def setup_webserver():
@@ -456,6 +519,7 @@ def setup_modbus_tcp(connection_setting: dict = dict(),
 
 def main():
     global _modbus
+    global stop_threads
     global _web
 
     setup_webserver()
@@ -488,7 +552,8 @@ def main():
             is_master=False   # configure as Slave to provide data
         )
 
-        _modbus_process = _modbus_tcp_process
+        # _modbus_process = _modbus_tcp_process
+        _modbus_thread = _modbus_tcp_thread
 
         if setup_result:
             print('Modbus setup successful, setup modbus registers...')
@@ -516,7 +581,8 @@ def main():
     else:
         setup_result = setup_modbus_rtu(is_master=False)
 
-    _modbus_process = _modbus_rtu_process
+    # _modbus_process = _modbus_rtu_process
+    _modbus_thread = _modbus_rtu_thread
 
     if setup_result:
         print('Modbus setup successful, setup modbus registers...')
@@ -544,7 +610,8 @@ def main():
             else:
                 setup_result = setup_modbus_rtu(is_master=False)
 
-            _modbus_process = _modbus_rtu_process
+            # _modbus_process = _modbus_rtu_process
+            _modbus_thread = _modbus_rtu_thread
         else:
             print('No MB_RTU_ADDRESS, using TCP')
 
@@ -559,7 +626,8 @@ def main():
                 print('No connection specified in modbus_registers')
                 setup_result = setup_modbus_tcp(is_master=False)
 
-            _modbus_process = _modbus_tcp_process
+            # _modbus_process = _modbus_tcp_process
+            _modbus_thread = _modbus_tcp_thread
 
         if setup_result:
             print('Modbus setup successful, setup modbus registers...')
@@ -573,6 +641,36 @@ def main():
         return
     """
 
+    _thread.start_new_thread(_modbus_thread, ())
+    print('Successfully started _modbus_thread')
+    time.sleep(1.0)
+
+    print('Currently active threads: {}'.format(get_active_threads()))
+
+    # show activity
+    while True:
+        try:
+            led_helper.neopixel_fade(finally_clear=False,
+                                     delay_ms=250,
+                                     maximum_intensity=30)
+        except KeyboardInterrupt:
+            print('KeyboardInterrupt, killing all active threads...')
+            break
+        except Exception as e:
+            print('Catched exception: {}'.format(e))
+
+    print('While loop left. These threads are still running: {}'.
+          format(get_active_threads()))
+
+    print('Stopping all threads now ...')
+    stop_threads = True
+    time.sleep(1.0)
+
+    print('Active threads after stop: {}'.format(get_active_threads()))
+    print('Goodbye :)')
+
+    """
+    # using specific modbus thread instead of this while loop
     # common part
     print('Success, entering while loop')
     while True:
@@ -582,6 +680,7 @@ def main():
             _print_ex(msg='_modbus_process() error', e=e)
 
     print('While loop left ...')
+    """
 
 
 if __name__ == '__main__':
