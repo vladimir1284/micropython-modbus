@@ -7,6 +7,8 @@ boot script, do initial stuff here, similar to the setup() function on Arduino
 
 import esp
 import gc
+
+# custom modules
 import led_helper
 import wifi_helper
 

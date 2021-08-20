@@ -15,20 +15,20 @@ pixel = neopixel.NeoPixel(pin=neopixel_pin, n=1)
 active_color_number = 1     # 0 represents all off
 
 
-def flash_led(amount: int, delay: int = 0.05) -> None:
+def flash_led(amount: int, delay: int = 50) -> None:
     """
     Flash onboard led for given amount of iterations.
 
     :param      amount:  The amount of iterations
     :type       amount:  int
-    :param      delay:   The delay between a flash
+    :param      delay:   The delay between a flash in milliseconds
     :type       delay:   int, optional
     """
     global led_pin
     toggle_pin(pin=led_pin, amount=amount, delay=delay)
 
 
-def toggle_pin(pin: int, amount: int, delay: int = 0.05) -> None:
+def toggle_pin(pin: int, amount: int, delay: int = 50) -> None:
     """
     Toggle pin for given amount of iterations.
 
@@ -36,14 +36,14 @@ def toggle_pin(pin: int, amount: int, delay: int = 0.05) -> None:
     :type       pin:     int
     :param      amount:  The amount of iterations
     :type       amount:  int
-    :param      delay:   The delay between a pin change
+    :param      delay:   The delay between a pin change in milliseconds
     :type       delay:   int, optional
     """
     for x in range(1, amount + 1):
         pin.value(not pin.value())
-        time.sleep(delay)
+        time.sleep_ms(delay)
         pin.value(not pin.value())
-        time.sleep(delay)
+        time.sleep_ms(delay)
 
 
 def onboard_led_on() -> None:

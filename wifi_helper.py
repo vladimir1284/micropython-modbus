@@ -47,6 +47,8 @@ def _do_connect(station, ssid, password, timeout) -> bool:
         else:
             pass
 
+        time.sleep_ms(100)
+
     return is_successfull
 
 
