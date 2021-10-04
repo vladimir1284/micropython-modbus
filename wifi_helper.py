@@ -5,11 +5,19 @@
 connect to specified network(s) or create an accesspoint
 """
 
+import machine
 import network
 import time
 
+# not natively supported on micropython, see lib/typing.py
+from typing import List
+from typing import Union
 
-def _do_connect(station, ssid, password, timeout) -> bool:
+
+def _do_connect(station: network.WLAN,
+                ssid: str,
+                password: str,
+                timeout: int) -> bool:
     """
     Establish the network connection.
 
@@ -29,8 +37,16 @@ def _do_connect(station, ssid, password, timeout) -> bool:
 
     print('Connect to network "{}" with password "{}"'.format(ssid, password))
 
+    # WiFi connection remains after a soft reset
+    if machine.reset_cause() == machine.SOFT_RESET:
+        print('Soft reset, checking existing WiFi connection')
+        if station.isconnected():
+            is_successfull = True
+            return is_successfull
+
     try:
         station.disconnect()
+        time.sleep_ms(250)
         station.connect(ssid, password)
     except Exception as e:
         print('Failed to connect due to: {}'.format(e))
@@ -52,11 +68,11 @@ def _do_connect(station, ssid, password, timeout) -> bool:
     return is_successfull
 
 
-def connect(ssid=None,
-            password=None,
-            networks=None,
-            timeout=5,
-            reconnect=False) -> bool:
+def connect(ssid: Union[None, str] = None,
+            password: Union[None, str] = None,
+            networks: Union[dict, None] = None,
+            timeout: int = 5,
+            reconnect: bool = False) -> bool:
     """
     Connect to the configured network
 
@@ -138,7 +154,10 @@ def connect(ssid=None,
     return is_connected
 
 
-def create_ap(ssid, password='', channel=11, timeout=5) -> bool:
+def create_ap(ssid: str,
+              password: str = '',
+              channel: int = 11,
+              timeout: int = 5) -> bool:
     """
     Create an Accesspoint
 
@@ -197,3 +216,40 @@ def create_ap(ssid, password='', channel=11, timeout=5) -> bool:
     print(accesspoint.ifconfig())
 
     return is_successfull
+
+
+def get_wifi_networks(sort_key: str = 'RSSI') -> List[dict]:
+    """
+    Scan for available WiFi networks and return found networks.
+
+    :param      sort_key:  The sort key
+    :type       sort_key:  str, optional
+
+    :returns:   The WiFi networks
+    :rtype:     List[dict]
+    """
+    scan_info = ['ssid', 'bssid', 'channel', 'RSSI', 'authmode', 'hidden']
+    auth_modes = {0: "open", 1: "WEP", 2: "WPA-PSK", 3: "WPA2-PSK", 4: "WPA/WPA2-PSK"}
+    if not (sort_key in scan_info):
+        sort_key = 'RSSI'
+
+    # configure the WiFi as station mode (client)
+    station = network.WLAN(network.STA_IF)
+
+    # activate WiFi if not yet enabled
+    if not station.active():
+        station.active(True)
+
+    # scan for available networks
+    found_networks = station.scan()
+
+    # create dict based on scan_info and found networks
+    network_list = [dict(zip(scan_info, x)) for x in found_networks]
+
+    for net in network_list:
+        net['authmode'] = auth_modes[net['authmode']]
+
+    # sort list by specified sort_key
+    sorted(network_list, key=lambda k: k[sort_key])
+
+    return network_list
