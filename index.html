@@ -15,10 +15,10 @@
 	<div>
 		<h3>WiFi/Accesspoint</h3>
 		<div>
-			<a href="/config-network">Download current configuration</a>
+			<a href="/config_network">Download current configuration</a>
 		</div>
 		<div>Upload new configuration:</div>
-		<form action="/config-network" method="POST" enctype="multipart/form-data">
+		<form action="/config_network" method="POST" enctype="multipart/form-data">
 			<div><input type="file" name="file" id="file"></div>
 			<div><input type="submit" name="submit" value="Upload"></div>
 		</form>
@@ -30,6 +30,14 @@
 		</div>
 		<div>Upload new configuration:</div>
 		<form action="/config" method="POST" enctype="multipart/form-data">
+			<div><input type="file" name="file" id="file"></div>
+			<div><input type="submit" name="submit" value="Upload"></div>
+		</form>
+	</div>
+	<div>
+		<h3>Update</h3>
+		<div>Upload new Update</div>
+		<form action="/update" method="POST" enctype="multipart/form-data">
 			<div><input type="file" name="file" id="file"></div>
 			<div><input type="submit" name="submit" value="Upload"></div>
 		</form>
