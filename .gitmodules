@@ -4,3 +4,6 @@
 [submodule "helpers"]
 	path = helpers
 	url = git@github.com:brainelectronics/micropython-modules.git
+[submodule "wifi-mananger"]
+	path = wifi-manager
+	url = git@github.com:brainelectronics/Micropython-ESP-WiFi-Manager.git
