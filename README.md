@@ -198,9 +198,18 @@ Refer to the following table for the list of supported Modbus functions.
 | 15 | Write multiple coils |
 | 16 | Write multiple registers |
 
+## Credits
+
+Big thank you to [giampiero7][ref-giampiero7] for the initial implementation
+of this library.
+
+* **sfera-labs** - *Initial work* - [giampiero7][ref-sferalabs-exo-sense]
+* **pycom** - *Initial Modbus work* - [pycom-modbus][ref-pycom-modbus]
+
 <!-- Links -->
 [ref-sferalabs-exo-sense]: https://github.com/sfera-labs/exo-sense-py-modbus
 [ref-pycom-modbus]: https://github.com/pycom/pycom-modbus
 [ref-remote-upy-shell]: https://github.com/dhylands/rshell
 [ref-myevse-be]: https://brainelectronics.de/
 [ref-myevse-tindie]: https://www.tindie.com/stores/brainelectronics/
+[ref-giampiero7]: https://github.com/giampiero7
