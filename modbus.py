@@ -573,8 +573,8 @@ class Modbus(object):
         val = 0
         valid_register = False
 
-        print('WRITE_{} of ID #{} to {}'.
-              format(reg_type, address, request.data))
+        # print('WRITE_{} of ID #{} to {}'.
+        #       format(reg_type, address, request.data))
 
         if address in self._register_dict[reg_type]:
             if reg_type == 'COILS':
@@ -582,7 +582,7 @@ class Modbus(object):
                 if val == 0x00:
                     val = False
                     valid_register = True
-                    print('Set coil {} to {}'.format(address, val))
+                    # print('Set coil {} to {}'.format(address, val))
 
                     request.send_response()
 
@@ -590,7 +590,7 @@ class Modbus(object):
                 elif val == 0xFF:
                     val = True
                     valid_register = True
-                    print('Set coil {} to {}'.format(address, val))
+                    # print('Set coil {} to {}'.format(address, val))
 
                     request.send_response()
 
@@ -601,13 +601,14 @@ class Modbus(object):
                 valid_register = True
                 val = request.data_as_registers(signed=False)[0]
 
-                print('Set holding register {} to {}'.format(address, val))
+                # print('Set holding register {} to {}'.format(address, val))
 
                 request.send_response()
 
                 self.set_hreg(address=address, value=val)
             else:
-                print('No steps to set {}'.format(reg_type))
+                # print('No steps to set {}'.format(reg_type))
+                pass
 
             if valid_register:
                 self._set_changed_register(reg_type=reg_type,
@@ -652,7 +653,8 @@ class Modbus(object):
                             # invalid register type
                             pass
                 else:
-                    print('No {} defined in registers'.format(reg_type))
+                    # print('No {} defined in registers'.format(reg_type))
+                    pass
 
 
 class ModbusRTU(Modbus):
@@ -692,5 +694,5 @@ class ModbusTCP(Modbus):
         try:
             return self._itf.get_is_bound()
         except Exception as e:
-            print('Unable to access _is_bound flag, exception: {}'.format(e))
+            # print('Unable to access _is_bound flag, exception: {}'.format(e))
             return False

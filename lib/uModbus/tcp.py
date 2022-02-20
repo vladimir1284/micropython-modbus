@@ -24,7 +24,7 @@ class TCP(object):
     def __init__(self, slave_ip, slave_port=502, timeout=5):
         self._sock = socket.socket()
 
-        print('Connect socket to: {}:{}'.format(slave_ip, slave_port))
+        # print('Connect socket to: {}:{}'.format(slave_ip, slave_port))
         # [(2, 1, 0, '192.168.178.47', ('192.168.178.47', 502))]
         self._sock.connect(socket.getaddrinfo(slave_ip, slave_port)[0][-1])
 
@@ -213,7 +213,7 @@ class TCPServer(object):
 
         self._sock = socket.socket()
 
-        print('Bind socket to: {}:{}'.format(local_ip, local_port))
+        # print('Bind socket to: {}:{}'.format(local_ip, local_port))
         # print(socket.getaddrinfo(local_ip, local_port))
         # [(2, 1, 0, '192.168.178.47', ('192.168.178.47', 502))]
         self._sock.bind(socket.getaddrinfo(local_ip, local_port)[0][-1])
@@ -221,7 +221,7 @@ class TCPServer(object):
         self._sock.listen(10)   # maximum 10 connections at once
 
         self._is_bound = True
-        print('Binding socket done')
+        # print('Binding socket done')
 
     def _send(self, modbus_pdu, slave_addr):
         size = len(modbus_pdu)
@@ -286,16 +286,16 @@ class TCPServer(object):
                 req_uid_and_pdu = req[Const.MBAP_HDR_LENGTH - 1:Const.MBAP_HDR_LENGTH + req_len - 1]
             except OSError as e:
                 # MicroPython raises an OSError instead of socket.timeout
-                print("Socket OSError aka TimeoutError: {}".format(e))
+                # print("Socket OSError aka TimeoutError: {}".format(e))
                 return None
             except Exception as e:
-                print("Modbus request error:", e)
+                # print("Modbus request error:", e)
                 self._client_sock.close()
                 self._client_sock = None
                 return None
 
             if (req_pid != 0):
-                print("Modbus request error: PID not 0")
+                # print("Modbus request error: PID not 0")
                 self._client_sock.close()
                 self._client_sock = None
                 return None
