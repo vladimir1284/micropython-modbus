@@ -14,6 +14,45 @@ provides by default.
 
 `esp32spiram-20220117-v1.18.bin` is used as MicroPython firmware
 
+This repo contains submodules (even sub-submodules), sorry for that.
+Perform the following steps to clone and update everything to gain the best
+usage experience:
+
+```bash
+# clone this repo with all submodules
+git clone --recurse-submodules https://github.com/brainelectronics/micropython-modbus.git
+
+# init and update all submodules
+git submodules update --init --recursive
+
+# enter micropython helper modules submodule
+cd helpers
+# check available tags
+git tag --list
+# checkout the latest non breaking tag, choose manually
+git checkout x.y.z
+# return to root of repo
+cd ..
+
+# enter python modules submodule
+cd modules
+# check available tags
+git tag --list
+# checkout the latest non breaking tag, choose manually
+git checkout x.y.z
+# return to root of repo
+cd ..
+
+# enter WiFi Manager submodule
+cd wifi-manager
+# check available tags
+git tag --list
+# checkout the latest non breaking tag, choose manually
+git checkout x.y.z
+# return to root of repo
+cd ..
+```
+
 ### Install required tools
 
 Python3 must be installed on your system. Check the current Python version
