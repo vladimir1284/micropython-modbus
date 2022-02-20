@@ -12,6 +12,8 @@ The current implementation does only run on a board with external SPI RAM. As
 of now up to 300kB of RAM are required. This is more than an ESP32-D4 Pico
 provides by default.
 
+`esp32spiram-20220117-v1.18.bin` is used as MicroPython firmware
+
 ### Install required tools
 
 Python3 must be installed on your system. Check the current Python version
