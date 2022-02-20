@@ -7,11 +7,20 @@ boot script, do initial stuff here, similar to the setup() function on Arduino
 
 import esp
 import gc
+import machine
+import network
+# import os
+import time
+# import uos
 
 # custom modules
-import led_helper
-import wifi_helper
+from helpers.generic_helper import GenericHelper
+from helpers.led_helper import Led, Neopixel
+# from helpers.wifi_helper import WifiHelper as wifi_helper
+# from helpers.update_helper import UpdateHelper as update_helper
+from wifi_manager import WiFiManager
 
+"""
 try:
     # import config_network
     from config import config_network
@@ -20,6 +29,7 @@ except Exception as e:
     print('No "config_network" file found, using AccessPoint, exception: {}'.
           format(e))
     create_ap = True
+"""
 
 # set clock speed to 240MHz instead of default 160MHz
 # import machine
@@ -28,16 +38,36 @@ except Exception as e:
 # disable ESP os debug output
 esp.osdebug(None)
 
+led = Led()
+pixel = Neopixel()
 # turn Neopixel and onboard LED off
-led_helper.onboard_led_off()
-led_helper.neopixel_clear()
+led.turn_off()
+pixel.clear()
 
 # flash onboard LED 3 times
-led_helper.flash_led(amount=3)
+led.flash(amount=3, delay_ms=50)
 
 # turn onboard LED on
-led_helper.onboard_led_on()
+led.turn_on()
 
+station = network.WLAN(network.STA_IF)
+if station.active() and station.isconnected():
+    station.disconnect()
+    time.sleep(1)
+station.active(False)
+time.sleep(1)
+station.active(True)
+
+wm = WiFiManager()
+result = wm.load_and_connect()
+if result is False:
+    # wm.start_config()
+    wm.wh.create_ap(ssid='WiFiManager', password='', channel=11, timeout=5)
+    print('Created Accesspoint "WiFiManager"')
+else:
+    print('Successfully connected to a network :)')
+
+"""
 if create_ap:
     print('Creating AccessPoint ...')
     try:
@@ -54,9 +84,16 @@ if create_ap:
         print('Using default SSID "{}" and password "{}" for Accesspoint'.
               format(defined_accesspoint_ssid, defined_accesspoint_password))
 
-    wifi_helper.create_ap(ssid=defined_accesspoint_ssid,
-                          password=defined_accesspoint_password,
-                          channel=defined_accesspoint_channel)
+    result = wifi_helper.create_ap(ssid=defined_accesspoint_ssid,
+                                   password=defined_accesspoint_password,
+                                   channel=defined_accesspoint_channel)
+    print('Accesspoint created: {}'.format(result))
+    # if result:
+    #     # accesspoint successfully created
+    #     pixel.green()
+    # else:
+    #     # failed to create an accesspoint
+    #     pixel.blue()
 else:
     try:
         defined_networks = config_network.networks
@@ -74,15 +111,26 @@ else:
                                  password=defined_password,
                                  networks=defined_networks)
 
+    print('Connection to network established: {}'.format(result))
+
     if result:
         # connection successfully established
-        led_helper.neopixel_green()
+        pixel.green()
     else:
         # failed to connect to network
-        led_helper.neopixel_blue()
+        pixel.blue()
 
-# turn onboard LED off
-led_helper.onboard_led_off()
+        result = wifi_helper.create_ap(ssid='Backup-Accesspoint',
+                                       password='123456789',
+                                       channel=11)
+"""
+
+# turn Neopixel and onboard LED off
+led.turn_off()
+pixel.clear()
+
+print('Restart cause: {}'.format(machine.reset_cause()))
+print('RAM info: {}'.format(GenericHelper.free(full=True)))
 
 # run garbage collector at the end to clean up
 gc.collect()
