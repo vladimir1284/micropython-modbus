@@ -8,8 +8,11 @@
 # available at https://www.pycom.io/opensource/licensing
 #
 
-import uModbus.const as Const
+# system packages
 import struct
+
+# custom packages
+from . import const as Const
 
 
 class Request(object):

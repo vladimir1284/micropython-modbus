@@ -5,14 +5,17 @@
 modbus script
 """
 
-from uModbus.serial import Serial
-from uModbus.tcp import TCPServer
-import uModbus.const as ModbusConst
-
+# system packages
 import time
-# not natively supported on micropython, see lib/typing.py
-from typing import List
-from typing import Union
+
+# custom packages
+from .serial import Serial
+from .tcp import TCPServer
+from . import const as ModbusConst
+
+# typing not natively supported on MicroPython
+from .typing import List
+from .typing import Union
 
 
 class Modbus(object):

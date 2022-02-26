@@ -8,16 +8,18 @@
 # available at https://www.pycom.io/opensource/licensing
 #
 
-import uModbus.functions as functions
-import uModbus.const as Const
-from uModbus.common import Request
-from uModbus.common import ModbusException
-
+# system packages
 from machine import UART
 from machine import Pin
 import struct
 import time
 import machine
+
+# custom packages
+from . import const as Const
+from . import functions
+from .common import Request
+from .common import ModbusException
 
 
 class Serial(object):

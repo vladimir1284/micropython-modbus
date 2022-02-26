@@ -8,16 +8,17 @@
 # available at https://www.pycom.io/opensource/licensing
 #
 
-import uModbus.functions as functions
-import uModbus.const as Const
-from uModbus.common import Request
-from uModbus.common import ModbusException
-
+# system packages
 import random
 import struct
 import socket
-# import machine
 import time
+
+# custom packages
+from . import functions
+from . import const as Const
+from .common import Request
+from .common import ModbusException
 
 
 class TCP(object):

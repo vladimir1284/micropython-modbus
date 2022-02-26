@@ -98,4 +98,4 @@ def generate_crc16_table():
             byte >>= 1
         crc_table.append(crc)
     return crc_table
-    """
+"""
