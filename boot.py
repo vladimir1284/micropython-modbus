@@ -6,9 +6,10 @@ Boot script
 
 Do initial stuff here, similar to the setup() function on Arduino
 
-Start WiFi Manager and connect to network, create an AccessPoint otherwise
+Connect to network, create an AccessPoint if connection failed otherwise
 """
 
+# system packages
 import esp
 import gc
 import machine
@@ -16,9 +17,8 @@ import network
 import time
 
 # custom modules
-from helpers.generic_helper import GenericHelper
-from helpers.led_helper import Led, Neopixel
-from wifi_manager import WiFiManager
+from be_helpers.generic_helper import GenericHelper
+from be_helpers.led_helper import Led, Neopixel
 
 
 # set clock speed to 240MHz instead of default 160MHz
@@ -48,23 +48,32 @@ station.active(False)
 time.sleep(1)
 station.active(True)
 
-wm = WiFiManager()
-result = wm.load_and_connect()
+station.connect('SSID', 'PASSWORD')
+time.sleep(1)
 
+result = station.isconnected()
 # force an accesspoint creation
 # result = False
 
 if result is False:
-    # wm.start_config()
-
     # disconnect as/from station and disable WiFi for it
     station.disconnect()
     station.active(False)
     time.sleep(1)
 
     # create a true AccessPoint without any active Station mode
-    wm.wh.create_ap(ssid='WiFiManager', password='', channel=11, timeout=5)
-    print('Created Accesspoint "WiFiManager"')
+    accesspoint = network.WLAN(network.AP_IF)
+
+    # activate accesspoint if not yet enabled
+    if not accesspoint.active():
+        accesspoint.active(True)
+
+    accesspoint.config(essid="MicroPython AP",
+                       authmode=network.AUTH_OPEN,
+                       password='',
+                       channel=11)
+
+    print('Created Accesspoint')
 else:
     print('Successfully connected to a network :)')
 
