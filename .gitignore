@@ -6,6 +6,8 @@ tests/
 config/config*.py
 thinking/
 *.bin
+.idea
+*.bak
 
 *.o
 
