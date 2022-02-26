@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [PyPi][ref-pypi]
 - Usage examples in [`README`](README.md) updated with new import path
 - Update [`boot`](boot.py) and [`main`](main.py) files to use `be_helpers`
+- Enable setting of `max_connections` to TCP socket in
+  [`modbus ModbusTCP bind function`](umodbus/modbus.py) and [`tcp TCPServer bind function`](umodbus/tcp.py)
 
 ### Removed
 - MicroPython helpers module no longer used
