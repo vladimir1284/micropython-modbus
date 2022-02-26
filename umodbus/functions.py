@@ -8,8 +8,11 @@
 # available at https://www.pycom.io/opensource/licensing
 #
 
-import uModbus.const as Const
+# system packages
 import struct
+
+# custom packages
+from . import const as Const
 
 
 def read_coils(starting_address, quantity):

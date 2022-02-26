@@ -16,11 +16,13 @@ and UART communication speed are defined in the JSON file at
 'registers/modbusRegisters-MyEVSE.json'.
 """
 
+# system packages
 import time
 import machine
 
-from helpers.modbus_bridge import ModbusBridge
-# from helpers.generic_helper import GenericHelper
+# custom packages
+from be_helpers.modbus_bridge import ModbusBridge
+# from be_helpers.generic_helper import GenericHelper
 
 register_file = 'registers/modbusRegisters-MyEVSE.json'
 rtu_pins = (25, 26)     # (TX, RX)

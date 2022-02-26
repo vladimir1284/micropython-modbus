@@ -1,57 +1,24 @@
-# Micropython Modbus library
+# MicroPython Modbus library
 
-Forked from [Exo Sense Py][ref-sferalabs-exo-sense], based on
-[PyCom Modbus][ref-pycom-modbus] and extended with other functionalities to
-become a powerfull micropython library
+MicroPython ModBus TCP and RTU library supporting client and host mode
 
 ---------------
 
+## General
+
+Forked from [Exo Sense Py][ref-sferalabs-exo-sense], based on
+[PyCom Modbus][ref-pycom-modbus] and extended with other functionalities to
+become a powerfull MicroPython library
+
 ## Installation
 
+<!--
 The current implementation does only run on a board with external SPI RAM. As
 of now up to 300kB of RAM are required. This is more than an ESP32-D4 Pico
 provides by default.
 
 `esp32spiram-20220117-v1.18.bin` is used as MicroPython firmware
-
-This repo contains submodules (even sub-submodules), sorry for that.
-Perform the following steps to clone and update everything to gain the best
-usage experience:
-
-```bash
-# clone this repo with all submodules
-git clone --recurse-submodules https://github.com/brainelectronics/micropython-modbus.git
-
-# init and update all submodules
-git submodules update --init --recursive
-
-# enter micropython helper modules submodule
-cd helpers
-# check available tags
-git tag --list
-# checkout the latest non breaking tag, choose manually
-git checkout x.y.z
-# return to root of repo
-cd ..
-
-# enter python modules submodule
-cd modules
-# check available tags
-git tag --list
-# checkout the latest non breaking tag, choose manually
-git checkout x.y.z
-# return to root of repo
-cd ..
-
-# enter WiFi Manager submodule
-cd wifi-manager
-# check available tags
-git tag --list
-# checkout the latest non breaking tag, choose manually
-git checkout x.y.z
-# return to root of repo
-cd ..
-```
+-->
 
 ### Install required tools
 
@@ -73,10 +40,32 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Copy files
+## Setup
 
-For interaction with the filesystem of the device the
-[Remote MicroPython shell][ref-remote-upy-shell] can be used.
+### Install package with pip
+
+Connect to a network
+
+```python
+import network
+station = network.WLAN(network.STA_IF)
+station.connect('SSID', 'PASSWORD')
+station.isconnected()
+```
+
+and install this lib on the MicroPython device like this
+
+```python
+import upip
+upip.install('micropython-modbus')
+```
+
+### Manually
+
+#### Upload files to board
+
+Copy the module to the MicroPython board and import them as shown below
+using [Remote MicroPython shell][ref-remote-upy-shell]
 
 Open the remote shell with the following command. Additionally use `-b 115200`
 in case no CP210x is used but a CH34x.
@@ -88,71 +77,193 @@ rshell -p /dev/tty.SLAB_USBtoUART --editor nano
 Perform the following command to copy all files and folders to the device
 
 ```bash
-mkdir /pyboard/helpers
 mkdir /pyboard/lib
-mkdir /pyboard/primitives
+mkdir /pyboard/lib/umodbus
 mkdir /pyboard/registers
-mkdir /pyboard/static/
-mkdir /pyboard/templates
 
-cp helpers/*.py /pyboard/helpers
-cp -r lib/* /pyboard/lib/
-cp -r wifi-manager/lib/* /pyboard/lib
-cp wifi-manager/primitives/*.py /pyboard/primitives
-cp registers/modbusRegisters-MyEVSE.json /pyboard/register/
-cp wifi-manager/simulation/static/css/*.gz /pyboard/static/
-cp wifi-manager/templates/* /pyboard/templates
+cp registers/modbusRegisters-MyEVSE.json /pyboard/registers/
+cp umodbus/* /pyboard/lib/umodbus
 
-cp wifi-manager/wifi_manager.py /pyboard
-cp modbus.py /pyboard
 cp main.py /pyboard
 cp boot.py /pyboard
 ```
 
-<!--
-#### uPIP
+### Install additional MicroPython packages
 
-Connect to the device, setup the WiFi connection as recommended and install
-this package with the following two lines
+To use this package with the provided [`boot.py`](boot.py) and
+[`main.py`](main.py) file, additional modules are required, which are not part
+of this repo/package. To install these modules on the device, connect to a
+network and install them via `upip` as follows
 
 ```python
-# WiFi connection must be established before of course
 import upip
-upip.install('micropython-modbus')
+upip.install('micropython-brainelectronics-helper')
 ```
 
-[Micropython lib README](https://github.com/micropython/micropython-lib/blob/3c383f6d2864a4b39bbe4ceb2ae8f29b519c9afe/README.md)
-
-    For example, to add collections.defaultdict, copy collections/collections/__init__.py and collections.defaultdict/collections/defaultdict.py to a directory named lib/collections on your device.
-
-[Micropython PyPI packaging guidelines](https://github.com/micropython/micropython/issues/413)
--->
+or check the README of the
+[brainelectronics MicroPython modules][ref-github-be-mircopython-modules]
 
 ## Usage
 
 Start a REPL (may perform a soft reboot), wait for network connection and
 start performing Modbus requests to the device.
 
-For further details check the header comment of [`main.py`](main.py).
+For further details about a TCP-RTU bridge implementation check the header
+comment of [`main.py`](main.py).
 
-<!--
-### Device configuration
+### Master implementation
 
-All configuration parameters are in the [config.py](config/config.py) file.
+Act as host, get Modbus data via RTU or TCP from a client device
 
-To access this file on the module join its WiFi network or AccessPoint. A Web
-server will be enabled by default. Use a Web browser to connect to
-[`192.168.4.1`](http://192.168.4.1/) using the credentials specified in the
-[config.py](config/config.py) configuration file.
+```python
+# RTU Master setup
+# act as host, get Modbus data via RTU from a client device
+rtu_pins = (25, 26)         # (TX, RX)
+slave_addr = 10             # bus address of client
+host = ModbusRTUMaster(
+    baudrate=9600,          # optional, default 9600
+    data_bits=8,            # optional, default 7
+    stop_bits=1,            # optional, default 1
+    parity=None,            # optional, default None
+    pins=rtu_pins)
 
-Refer to [config_network.py](config/config_network.py) for the default WiFi and
-AccessPoint credentials.
+# TCP Master setup
+# act as host, get Modbus data via TCP from a client device
+host = ModbusTCPMaster(
+    slave_ip=192.168.178.34,
+    slave_port=180,
+    timeout=5)              # optional, default 5
 
-Download the configuration file, edit it and re-upload it. If using the Web
-interface, after the upload, the device will automatically restart using the
-new configuration, otherwise, on the next power-on, it will start with the new
-configuration.
--->
+# READ COILS
+coil_address = 123
+coil_status = host.read_coils(
+    slave_addr=slave_addr,
+    starting_addr=123,
+    coil_qty=1)
+print('Status of coil {}: {}'.format(coil_status, coil_address))
+
+# WRITE COILS
+new_coil_val = 0
+operation_status = host.write_single_coil(
+    slave_addr=slave_addr,
+    output_address=coil_address,
+    output_value=new_coil_val)
+print('Result of setting coil {} to {}'.format(coil_address, operation_status))
+
+# READ HREGS
+hreg_address = 93
+register_value = host.read_holding_registers(
+    slave_addr=slave_addr,
+    starting_addr=hreg_address,
+    register_qty=1,
+    signed=False)
+print('Status of hreg {}: {}'.format(hreg_address, register_value))
+
+# WRITE HREGS
+new_hreg_val = 44
+operation_status = self.host.write_single_register(
+                    slave_addr=slave_addr,
+                    register_address=hreg_address,
+                    register_value=new_hreg_val,
+                    signed=False)
+print('Result of setting hreg {} to {}'.format(hreg_address, operation_status))
+
+# READ ISTS
+ist_address = 67
+input_status = self.host.read_discrete_inputs(
+    slave_addr=slave_addr,
+    starting_addr=ist_address,
+    input_qty=1)
+print('Status of ist {}: {}'.format(ist_address, input_status))
+
+# READ IREGS
+ireg_address = 10
+register_value = self.host.read_input_registers(
+                    slave_addr=slave_addr,
+                    starting_addr=ireg_address,
+                    register_qty=2,
+                    signed=False)
+print('Status of ireg {}: {}'.format(ireg_address, register_value))
+```
+
+### Slave implementation
+
+Act as client, provide Modbus data via RTU or TCP to a host device
+
+```python
+# RTU Slave setup
+# act as client, provide Modbus data via RTU to a host device
+rtu_pins = (25, 26)         # (TX, RX)
+slave_addr = 10             # address on bus as client
+client = ModbusRTU(
+    addr=slave_addr,        # address on bus
+    baudrate=9600,          # optional, default 9600
+    data_bits=8,            # optional, default 7
+    stop_bits=stop_bits,    # optional, default 1
+    parity=parity,          # optional, default None
+    pins=rtu_pins)
+
+# TCP Slave setup
+# act as client, provide Modbus data via TCP to a host device
+local_ip = '192.168.4.1'    # IP address
+tcp_port = 502              # port to listen to
+
+"""
+# to get from MicroPython core functions use this
+import network
+station = network.WLAN(network.STA_IF)
+if station.active():
+    if station.isconnected():
+        local_ip = station.ifconfig()[0]
+"""
+
+client = ModbusTCP()
+is_bound = False
+
+# check whether client has been bound to an IP and port
+is_bound = client.get_bound_status()
+
+if not is_bound:
+    client.bind(local_ip=local_ip, local_port=tcp_port)
+
+# commond slave register setup, to be used with the Master example above
+register_definitions = {
+    "COILS": {
+        "EXAMPLE_COIL": {
+            "register": 123,
+            "len": 1,
+        }
+    },
+    "HREGS": {
+        "EXAMPLE_HREG": {
+            "register": 93,
+            "len": 1,
+        }
+    },
+    "ISTS": {
+        "EXAMPLE_ISTS": {
+            "register": 67,
+            "len": 1,
+        }
+    },
+    "IREGS": {
+        "EXAMPLE_IREG": {
+            "register": 10,
+            "len": 2,
+        }
+    }
+}
+
+"""
+# alternatively the register definitions can also be loaded from a JSON file
+import json
+
+with open('registers/modbusRegisters-MyEVSE.json', 'r') as file:
+    register_definitions = json.load(file)
+"""
+
+client.setup_registers(registers=register_definitions, use_default_vals=True)
+```
 
 ### Register configuration
 
@@ -160,28 +271,8 @@ The available registers are defined by a JSON file, placed inside the
 `/pyboard/registers` folder on the board and selected in [`main.py`](main.py).
 
 As an [example the registers](registers/modbusRegisters-MyEVSE.json) of a
-[Brainelectronics MyEVSE][ref-myevse-be], [MyEVSE on Tindie][ref-myevse-tindie]
+[brainelectronics MyEVSE][ref-myevse-be], [MyEVSE on Tindie][ref-myevse-tindie]
 board is provided with this repo.
-
-<!--
-Configure it to work as Modbus RTU slave **or** Modbus TCP server, by setting
-`MB_RTU_ADDRESS` **or** `MB_TCP_IP` to a valid value. If both are set, the TCP
-configuration will be ignored. If neither are, it will boot as
-*not configured* and endup in the REPL.
-
-When configured as Modbus TCP server, the configuration Web interface will be
-available at the configured IP address.
--->
-
-<!--
-## Available webpages
-
-| URL | Description |
-|-----|-------------|
-| / | Config page of device |
-| /config | Config JSON of Modbus RTU/TCP |
-| /config-network | Config JSON of network |
--->
 
 ## Supported Modbus functions
 
@@ -210,6 +301,7 @@ of this library.
 [ref-sferalabs-exo-sense]: https://github.com/sfera-labs/exo-sense-py-modbus
 [ref-pycom-modbus]: https://github.com/pycom/pycom-modbus
 [ref-remote-upy-shell]: https://github.com/dhylands/rshell
+[ref-github-be-mircopython-modules]: https://github.com/brainelectronics/micropython-modules
 [ref-myevse-be]: https://brainelectronics.de/
 [ref-myevse-tindie]: https://www.tindie.com/stores/brainelectronics/
 [ref-giampiero7]: https://github.com/giampiero7

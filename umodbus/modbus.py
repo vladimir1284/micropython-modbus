@@ -5,14 +5,17 @@
 modbus script
 """
 
-from uModbus.serial import Serial
-from uModbus.tcp import TCPServer
-import uModbus.const as ModbusConst
-
+# system packages
 import time
-# not natively supported on micropython, see lib/typing.py
-from typing import List
-from typing import Union
+
+# custom packages
+from .serial import Serial
+from .tcp import TCPServer
+from . import const as ModbusConst
+
+# typing not natively supported on MicroPython
+from .typing import List
+from .typing import Union
 
 
 class Modbus(object):
@@ -552,8 +555,6 @@ class Modbus(object):
         :param      reg_type:  The register type
         :type       reg_type:  str
         """
-        # print('READ_{} of ID #{}'.format(reg_type, request.register_addr))
-
         if request.register_addr in self._register_dict[reg_type]:
             vals = self._create_response(request=request, reg_type=reg_type)
             request.send_response(vals)
@@ -573,16 +574,12 @@ class Modbus(object):
         val = 0
         valid_register = False
 
-        # print('WRITE_{} of ID #{} to {}'.
-        #       format(reg_type, address, request.data))
-
         if address in self._register_dict[reg_type]:
             if reg_type == 'COILS':
                 val = request.data[0]
                 if val == 0x00:
                     val = False
                     valid_register = True
-                    # print('Set coil {} to {}'.format(address, val))
 
                     request.send_response()
 
@@ -590,7 +587,6 @@ class Modbus(object):
                 elif val == 0xFF:
                     val = True
                     valid_register = True
-                    # print('Set coil {} to {}'.format(address, val))
 
                     request.send_response()
 
@@ -601,13 +597,10 @@ class Modbus(object):
                 valid_register = True
                 val = request.data_as_registers(signed=False)[0]
 
-                # print('Set holding register {} to {}'.format(address, val))
-
                 request.send_response()
 
                 self.set_hreg(address=address, value=val)
             else:
-                # print('No steps to set {}'.format(reg_type))
                 pass
 
             if valid_register:
@@ -634,9 +627,6 @@ class Modbus(object):
                         else:
                             value = val['val']
 
-                        # print('Adding {} at {} with default content {}'.
-                        #       format(reg_type, address, value))
-
                         if reg_type == 'COILS':
                             self.add_coil(address=address,
                                           value=value)
@@ -653,7 +643,6 @@ class Modbus(object):
                             # invalid register type
                             pass
                 else:
-                    # print('No {} defined in registers'.format(reg_type))
                     pass
 
 
@@ -687,12 +676,14 @@ class ModbusTCP(Modbus):
             None
         )
 
-    def bind(self, local_ip: str, local_port: int = 502) -> None:
-        self._itf.bind(local_ip, local_port)
+    def bind(self,
+             local_ip: str,
+             local_port: int = 502,
+             max_connections: int = 10) -> None:
+        self._itf.bind(local_ip, local_port, max_connections)
 
     def get_bound_status(self) -> bool:
         try:
             return self._itf.get_is_bound()
         except Exception as e:
-            # print('Unable to access _is_bound flag, exception: {}'.format(e))
             return False

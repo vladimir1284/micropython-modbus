@@ -8,23 +8,24 @@
 # available at https://www.pycom.io/opensource/licensing
 #
 
-import uModbus.functions as functions
-import uModbus.const as Const
-from uModbus.common import Request
-from uModbus.common import ModbusException
-
+# system packages
 import random
 import struct
 import socket
-# import machine
 import time
+
+# custom packages
+from . import functions
+from . import const as Const
+from .common import Request
+from .common import ModbusException
 
 
 class TCP(object):
     def __init__(self, slave_ip, slave_port=502, timeout=5):
         self._sock = socket.socket()
 
-        # print('Connect socket to: {}:{}'.format(slave_ip, slave_port))
+        # print(socket.getaddrinfo(slave_ip, slave_port))
         # [(2, 1, 0, '192.168.178.47', ('192.168.178.47', 502))]
         self._sock.connect(socket.getaddrinfo(slave_ip, slave_port)[0][-1])
 
@@ -204,7 +205,7 @@ class TCPServer(object):
     def get_is_bound(self):
         return self._is_bound
 
-    def bind(self, local_ip, local_port=502):
+    def bind(self, local_ip, local_port=502, max_connections=10):
         if self._client_sock:
             self._client_sock.close()
 
@@ -213,15 +214,13 @@ class TCPServer(object):
 
         self._sock = socket.socket()
 
-        # print('Bind socket to: {}:{}'.format(local_ip, local_port))
         # print(socket.getaddrinfo(local_ip, local_port))
         # [(2, 1, 0, '192.168.178.47', ('192.168.178.47', 502))]
         self._sock.bind(socket.getaddrinfo(local_ip, local_port)[0][-1])
 
-        self._sock.listen(10)   # maximum 10 connections at once
+        self._sock.listen(max_connections)
 
         self._is_bound = True
-        # print('Binding socket done')
 
     def _send(self, modbus_pdu, slave_addr):
         size = len(modbus_pdu)
