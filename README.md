@@ -1,5 +1,10 @@
 # MicroPython Modbus library
 
+[![Downloads](https://pepy.tech/badge/micropython-modbus)](https://pepy.tech/project/micropython-modbus)
+![Release](https://img.shields.io/github/v/release/brainelectronics/micropython-modbus?include_prereleases&color=success)
+![MicroPython](https://img.shields.io/badge/micropython-Ok-green.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 MicroPython ModBus TCP and RTU library supporting client and host mode
 
 ---------------
