@@ -2,7 +2,7 @@
 # title         :read_registers_tcp.sh
 # description   :Read Modbus registers via TCP based on register JSON
 # author        :brainelectronics
-# date          :20210731
+# date          :20220708
 # version       :0.1.0
 # usage         :sh read_registers_tcp.sh \
 #                192.168.178.188 \

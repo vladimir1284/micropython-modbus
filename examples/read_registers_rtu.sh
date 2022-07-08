@@ -2,7 +2,7 @@
 # title         :read_registers_rtu.sh
 # description   :Read Modbus registers via Serial RTU based on register JSON
 # author        :brainelectronics
-# date          :20210731
+# date          :20220708
 # version       :0.1.0
 # usage         :sh read_registers_rtu.sh \
 #                /dev/tty.SLAB_USBtoUART \
