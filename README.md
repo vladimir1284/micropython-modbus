@@ -172,7 +172,7 @@ print('Status of hreg {}: {}'.format(hreg_address, register_value))
 
 # WRITE HREGS
 new_hreg_val = 44
-operation_status = self.host.write_single_register(
+operation_status = host.write_single_register(
                     slave_addr=slave_addr,
                     register_address=hreg_address,
                     register_value=new_hreg_val,
@@ -181,7 +181,7 @@ print('Result of setting hreg {} to {}'.format(hreg_address, operation_status))
 
 # READ ISTS
 ist_address = 67
-input_status = self.host.read_discrete_inputs(
+input_status = host.read_discrete_inputs(
     slave_addr=slave_addr,
     starting_addr=ist_address,
     input_qty=1)
@@ -189,7 +189,7 @@ print('Status of ist {}: {}'.format(ist_address, input_status))
 
 # READ IREGS
 ireg_address = 10
-register_value = self.host.read_input_registers(
+register_value = host.read_input_registers(
                     slave_addr=slave_addr,
                     starting_addr=ireg_address,
                     register_qty=2,
