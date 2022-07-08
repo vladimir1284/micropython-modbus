@@ -1,0 +1,38 @@
+{
+    "COILS": {
+        "EXAMPLE_COIL": {
+            "register": 123,
+            "len": 1,
+            "description": "Example COILS register, Coils (setter+getter) [0, 1]",
+            "range": "",
+            "unit": ""
+        }
+    },
+    "HREGS": {
+        "EXAMPLE_HREG": {
+            "register": 93,
+            "len": 1,
+            "description": "Example HREGS register, Hregs (setter+getter) [0, 65535]",
+            "range": "",
+            "unit": ""
+        }
+    },
+    "ISTS": {
+        "EXAMPLE_ISTS": {
+            "register": 67,
+            "len": 1,
+            "description": "Example ISTS register, Ists (only getter) [0, 1]",
+            "range": "",
+            "unit": ""
+        }
+    },
+    "IREGS": {
+        "EXAMPLE_IREG": {
+            "register": 10,
+            "len": 1,
+            "description": "Example IREGS register, Iregs (only getter) [0, 65535]",
+            "range": "",
+            "unit": ""
+        }
+    }
+}
