@@ -121,19 +121,25 @@ comment of [`main.py`](main.py).
 Act as host, get Modbus data via RTU or TCP from a client device
 
 ```python
+# import modbus host classes
+from umodbus.tcp import TCP as ModbusTCPMaster
+from umodbus.serial import Serial as ModbusRTUMaster
+
 # RTU Master setup
 # act as host, get Modbus data via RTU from a client device
+# ModbusRTUMaster can make serial requests to a client device to get/set data
 rtu_pins = (25, 26)         # (TX, RX)
 slave_addr = 10             # bus address of client
 host = ModbusRTUMaster(
     baudrate=9600,          # optional, default 9600
-    data_bits=8,            # optional, default 7
+    data_bits=8,            # optional, default 8
     stop_bits=1,            # optional, default 1
     parity=None,            # optional, default None
     pins=rtu_pins)
 
 # TCP Master setup
 # act as host, get Modbus data via TCP from a client device
+# ModbusTCPMaster can make TCP requests to a client device to get/set data
 host = ModbusTCPMaster(
     slave_ip=192.168.178.34,
     slave_port=180,
@@ -143,7 +149,7 @@ host = ModbusTCPMaster(
 coil_address = 123
 coil_status = host.read_coils(
     slave_addr=slave_addr,
-    starting_addr=123,
+    starting_addr=coil_address,
     coil_qty=1)
 print('Status of coil {}: {}'.format(coil_status, coil_address))
 
@@ -193,82 +199,17 @@ print('Status of ireg {}: {}'.format(ireg_address, register_value))
 
 ### Slave implementation
 
-Act as client, provide Modbus data via RTU or TCP to a host device
+Act as client, provide Modbus data via RTU or TCP to a host device.
 
-```python
-# RTU Slave setup
-# act as client, provide Modbus data via RTU to a host device
-rtu_pins = (25, 26)         # (TX, RX)
-slave_addr = 10             # address on bus as client
-client = ModbusRTU(
-    addr=slave_addr,        # address on bus
-    baudrate=9600,          # optional, default 9600
-    data_bits=8,            # optional, default 7
-    stop_bits=stop_bits,    # optional, default 1
-    parity=parity,          # optional, default None
-    pins=rtu_pins)
+See [Modbus TCP Client example](examples/tcp_client_example.py) and
+[Modbus RTU Client example](examples/rtu_client_example.py)
 
-# TCP Slave setup
-# act as client, provide Modbus data via TCP to a host device
-local_ip = '192.168.4.1'    # IP address
-tcp_port = 502              # port to listen to
+Both examples are using [example register definitions](examples/example.json)
 
-"""
-# to get from MicroPython core functions use this
-import network
-station = network.WLAN(network.STA_IF)
-if station.active():
-    if station.isconnected():
-        local_ip = station.ifconfig()[0]
-"""
-
-client = ModbusTCP()
-is_bound = False
-
-# check whether client has been bound to an IP and port
-is_bound = client.get_bound_status()
-
-if not is_bound:
-    client.bind(local_ip=local_ip, local_port=tcp_port)
-
-# commond slave register setup, to be used with the Master example above
-register_definitions = {
-    "COILS": {
-        "EXAMPLE_COIL": {
-            "register": 123,
-            "len": 1,
-        }
-    },
-    "HREGS": {
-        "EXAMPLE_HREG": {
-            "register": 93,
-            "len": 1,
-        }
-    },
-    "ISTS": {
-        "EXAMPLE_ISTS": {
-            "register": 67,
-            "len": 1,
-        }
-    },
-    "IREGS": {
-        "EXAMPLE_IREG": {
-            "register": 10,
-            "len": 2,
-        }
-    }
-}
-
-"""
-# alternatively the register definitions can also be loaded from a JSON file
-import json
-
-with open('registers/modbusRegisters-MyEVSE.json', 'r') as file:
-    register_definitions = json.load(file)
-"""
-
-client.setup_registers(registers=register_definitions, use_default_vals=True)
-```
+Use the provided example scripts [read RTU](examples/read_registers_rtu.sh) or
+[read TCP](examples/read_registers_tcp.sh) to read the data from the devices.
+This requires the [modules submodule](modules) to be cloned as well and the
+required packages being installed as described in the modules README file.
 
 ### Register configuration
 
