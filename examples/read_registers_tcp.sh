@@ -7,7 +7,7 @@
 # usage         :sh read_registers_tcp.sh \
 #                192.168.178.188 \
 #                example.json \
-#                180
+#                502
 #                Register file and modbus port are optional
 # notes         :Install python3 and its requirements file to use this script.
 # bash_version  :3.2.53(1)-release
