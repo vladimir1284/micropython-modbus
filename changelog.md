@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   changed to `False` to avoid confusion behaviour if not explicitly defined,
   see [issue 13][ref-issue-13]
 - Missing function docstring added to `setup_registers` function
+- `write_single_coil` allows `0`, `1`, `False`, `True`, `0x0` or `0xFF00`
+  instead of `0x0` and `0xFF00` only as set value, see [issue 14][ref-issue-14]
 
 ## [1.0.0] - 2022-02-26
 ### Added
@@ -80,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.0]: https://github.com/brainelectronics/micropython-modbus/tree/0.1.0
 
 [ref-issue-13]: https://github.com/brainelectronics/micropython-modbus/issues/13
+[ref-issue-14]: https://github.com/brainelectronics/micropython-modbus/issues/14
 
 [ref-pypi]: https://pypi.org/
 [ref-pfalcon-picoweb-sdist-upip]: https://github.com/pfalcon/picoweb/blob/b74428ebdde97ed1795338c13a3bdf05d71366a0/sdist_upip.py

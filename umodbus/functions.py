@@ -44,8 +44,14 @@ def read_input_registers(starting_address, quantity):
 
 
 def write_single_coil(output_address, output_value):
-    if output_value not in [0x0000, 0xFF00]:
+    if output_value not in [0x0000, 0xFF00, True]:
         raise ValueError('Illegal coil value')
+
+    if output_value not in [0x0000, 0xFF00]:
+        if output_value:
+            output_value = 0xFF00
+        else:
+            output_value = 0x0000
 
     return struct.pack('>BHH', Const.WRITE_SINGLE_COIL, output_address, output_value)
 
