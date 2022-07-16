@@ -39,7 +39,7 @@ while True:
     if station.isconnected():
         print('Connected to WiFi.')
         break
-time.sleep(2)
+    time.sleep(2)
 
 # ===============================================
 # TCP Slave setup
