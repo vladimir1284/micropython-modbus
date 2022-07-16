@@ -208,8 +208,9 @@ Both examples are using [example register definitions](examples/example.json)
 
 Use the provided example scripts [read RTU](examples/read_registers_rtu.sh) or
 [read TCP](examples/read_registers_tcp.sh) to read the data from the devices.
-This requires the [modules submodule](modules) to be cloned as well and the
-required packages being installed as described in the modules README file.
+This requires the [modules submodule][ref-github-be-python-modules] to be
+cloned as well and the required packages being installed as described in the
+modules README file.
 
 ### Register configuration
 
@@ -248,6 +249,7 @@ of this library.
 [ref-pycom-modbus]: https://github.com/pycom/pycom-modbus
 [ref-remote-upy-shell]: https://github.com/dhylands/rshell
 [ref-github-be-mircopython-modules]: https://github.com/brainelectronics/micropython-modules
+[ref-github-be-python-modules]: https://github.com/brainelectronics/python-modules
 [ref-myevse-be]: https://brainelectronics.de/
 [ref-myevse-tindie]: https://www.tindie.com/stores/brainelectronics/
 [ref-giampiero7]: https://github.com/giampiero7
