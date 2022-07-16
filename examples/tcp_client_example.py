@@ -35,9 +35,9 @@ time.sleep(1)
 
 while True:
     print('Waiting for WiFi connection...')
-    print(station.ifconfig())
     if station.isconnected():
         print('Connected to WiFi.')
+        print(station.ifconfig())
         break
     time.sleep(2)
 
