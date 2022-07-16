@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [1.0.1] - 2022-07-16
+### Fixed
+- Default value of `setup_registers` function parameter `use_default_vals`
+  changed to `False` to avoid confusion behaviour if not explicitly defined,
+  see [issue 13][ref-issue-13]
+- Missing function docstring added to `setup_registers` function
+
 ## [1.0.0] - 2022-02-26
 ### Added
 - [`setup.py`](setup.py) and [`sdist_upip.py`](sdist_upip.py) taken from
@@ -66,10 +73,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/1.0.0...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/1.0.1...develop
 
+[1.0.1]: https://github.com/brainelectronics/micropython-modbus/tree/1.0.1
 [1.0.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.0.0
 [0.1.0]: https://github.com/brainelectronics/micropython-modbus/tree/0.1.0
+
+[ref-issue-13]: https://github.com/brainelectronics/micropython-modbus/issues/13
 
 [ref-pypi]: https://pypi.org/
 [ref-pfalcon-picoweb-sdist-upip]: https://github.com/pfalcon/picoweb/blob/b74428ebdde97ed1795338c13a3bdf05d71366a0/sdist_upip.py
