@@ -12,6 +12,7 @@ import time
 from .serial import Serial
 from .tcp import TCPServer
 from . import const as ModbusConst
+from urequests import request
 
 # typing not natively supported on MicroPython
 from .typing import List
@@ -530,12 +531,12 @@ class Modbus(object):
 
         return True
 
-    def _create_response(self, request: Request, reg_type: str):
+    def _create_response(self, request: request, reg_type: str):
         """
         Create a response.
 
         :param      request:   The request
-        :type       request:   Request
+        :type       request:   request
         :param      reg_type:  The register type
         :type       reg_type:  str
 
@@ -547,12 +548,12 @@ class Modbus(object):
         else:
             return [self._register_dict[reg_type][request.register_addr]]
 
-    def _process_read_access(self, request: Request, reg_type: str) -> None:
+    def _process_read_access(self, request: request, reg_type: str) -> None:
         """
         Process read access to register
 
         :param      request:   The request
-        :type       request:   Request
+        :type       request:   request
         :param      reg_type:  The register type
         :type       reg_type:  str
         """
@@ -562,12 +563,12 @@ class Modbus(object):
         else:
             request.send_exception(ModbusConst.ILLEGAL_DATA_ADDRESS)
 
-    def _process_write_access(self, request: Request, reg_type: str) -> None:
+    def _process_write_access(self, request: request, reg_type: str) -> None:
         """
         Process write access to register
 
         :param      request:   The request
-        :type       request:   Request
+        :type       request:   request
         :param      reg_type:  The register type
         :type       reg_type:  str
         """
