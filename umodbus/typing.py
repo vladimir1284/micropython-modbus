@@ -130,6 +130,10 @@ class Set:
     pass
 
 
+class dict_keys:
+    pass
+
+
 class FrozenSet:
     pass
 
