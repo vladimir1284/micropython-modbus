@@ -686,5 +686,5 @@ class ModbusTCP(Modbus):
     def get_bound_status(self) -> bool:
         try:
             return self._itf.get_is_bound()
-        except Exception as e:
+        except Exception:
             return False

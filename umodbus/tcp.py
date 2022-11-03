@@ -283,11 +283,11 @@ class TCPServer(object):
                 req_header_no_uid = req[:Const.MBAP_HDR_LENGTH - 1]
                 self._req_tid, req_pid, req_len = struct.unpack('>HHH', req_header_no_uid)
                 req_uid_and_pdu = req[Const.MBAP_HDR_LENGTH - 1:Const.MBAP_HDR_LENGTH + req_len - 1]
-            except OSError as e:
+            except OSError:
                 # MicroPython raises an OSError instead of socket.timeout
                 # print("Socket OSError aka TimeoutError: {}".format(e))
                 return None
-            except Exception as e:
+            except Exception:
                 # print("Modbus request error:", e)
                 self._client_sock.close()
                 self._client_sock = None
