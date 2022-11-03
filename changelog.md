@@ -15,13 +15,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [1.1.0] - 2022-11-03
+### Added
+- `float_to_bin`, `bin_to_float`, `int_to_bin` functions added to
+  [`umodbus/functions.py`](umodbus/functions.py)
+- Deploy to [Test Python Package Index](https://test.pypi.org/) on every PR
+  build with a [PEP440][ref-pep440] compliant `-rc<BUILDNUMBER>.dev<PR_NUMBER>`
+  meta data extension
+- [Test release workflow](.github/workflows/test-release.yaml) running only on
+  PRs is archiving and uploading built artifacts to
+  [Test Python Package Index](https://test.pypi.org/)
+
+### Changed
+- Author is explicitly mentioned in [`setup.py`](setup.py) instead of used by
+  `__author__` variable which has been previously defined in
+  [`version.py`](umodbus/version.py) but no longer available with autodeploy.
+
 ## [1.0.0] - 2022-02-26
 ### Added
 - [`setup.py`](setup.py) and [`sdist_upip.py`](sdist_upip.py) taken from
   [pfalcon's picoweb repo][ref-pfalcon-picoweb-sdist-upip] and PEP8 improved
 - [`MIT License`](LICENSE)
-- [`version.py`](modbus/version.py) storing current library version
-- [`typing.py`](modbus/typing.py) enabling type hints
+- [`version.py`](umodbus/version.py) storing current library version
+- [`typing.py`](umodbus/typing.py) enabling type hints
 
 ### Changed
 - Moved all uModbus files from `lib/uModbus` into [`umodbus`](umodbus)
@@ -66,11 +82,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/1.0.0...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/1.1.0...develop
 
+[1.1.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.1.0
 [1.0.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.0.0
 [0.1.0]: https://github.com/brainelectronics/micropython-modbus/tree/0.1.0
 
+[ref-pep440]: https://peps.python.org/pep-0440/
 [ref-pypi]: https://pypi.org/
 [ref-pfalcon-picoweb-sdist-upip]: https://github.com/pfalcon/picoweb/blob/b74428ebdde97ed1795338c13a3bdf05d71366a0/sdist_upip.py
 [ref-be-micropython-module]: https://github.com/brainelectronics/micropython-modules/tree/1.1.0
