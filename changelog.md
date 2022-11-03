@@ -31,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `__author__` variable which has been previously defined in
   [`version.py`](umodbus/version.py) but no longer available with autodeploy.
 
+### Fixed
+- All uncovered flake8 warnings of [`umodbus`](umodbus)
+
 ## [1.0.0] - 2022-02-26
 ### Added
 - [`setup.py`](setup.py) and [`sdist_upip.py`](sdist_upip.py) taken from
