@@ -16,6 +16,7 @@ from . import const as ModbusConst
 # typing not natively supported on MicroPython
 from .typing import List
 from .typing import Union
+from .typing import dict_keys
 
 
 class Modbus(object):
