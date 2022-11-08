@@ -15,7 +15,7 @@ from . import const as ModbusConst
 from urequests import request
 
 # typing not natively supported on MicroPython
-from .typing import List
+from .typing import List, Optional
 from .typing import Union
 from .typing import dict_keys
 
