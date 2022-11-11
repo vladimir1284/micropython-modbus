@@ -15,7 +15,7 @@ from . import const as ModbusConst
 from urequests import request
 
 # typing not natively supported on MicroPython
-from .typing import List
+from .typing import List, Optional
 from .typing import Union
 from .typing import dict_keys
 
@@ -614,7 +614,15 @@ class Modbus(object):
 
     def setup_registers(self,
                         registers: dict = dict(),
-                        use_default_vals: bool = True) -> None:
+                        use_default_vals: Optional[bool] = False) -> None:
+        """
+        Setup all registers of the client
+
+        :param      registers:         The registers
+        :type       registers:         dict
+        :param      use_default_vals:  Flag to use dummy default values
+        :type       use_default_vals:  Optional[bool]
+        """
         if len(registers):
             for reg_type, default_val in self._default_vals.items():
                 if reg_type in registers:
