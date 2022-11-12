@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update [modules submodule](modules) to `1.3.0`
 - Line breaks are no longer used in this changelog for enumerations
 - Issues are referenced as `#123` instead of `[#123][ref-issue-123]` to avoid explicit references at the bottom or some other location in the file
+- Scope of contents permissions in release and test release workflow is now `write` to use auto release creation
 
 ### Fixed
 - Typo in [RTU client example script](examples/rtu_client_example.py)
