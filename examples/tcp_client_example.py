@@ -99,12 +99,22 @@ with open('registers/example.json', 'r') as file:
     register_definitions = json.load(file)
 """
 
+print('Setting up registers ...')
 # use the defined values of each register type provided by register_definitions
 client.setup_registers(registers=register_definitions)
 # alternatively use dummy default values (True for bool regs, 999 otherwise)
 # client.setup_registers(registers=register_definitions, use_default_vals=True)
+print('Register setup done')
+
+print('Serving as TCP client on {}:{}'.format(local_ip, tcp_port))
 
 while True:
-    result = client.process()
+    try:
+        result = client.process()
+    except KeyboardInterrupt:
+        print('KeyboardInterrupt, stopping TCP client...')
+        break
+    except Exception as e:
+        print('Exception during execution: {}'.format(e))
 
 print("Finished providing/accepting data as client")

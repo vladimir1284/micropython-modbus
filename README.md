@@ -16,82 +16,64 @@ Forked from [Exo Sense Py][ref-sferalabs-exo-sense], based on
 [PyCom Modbus][ref-pycom-modbus] and extended with other functionalities to
 become a powerfull MicroPython library
 
-## Installation
+<!-- MarkdownTOC -->
 
-<!--
-The current implementation does only run on a board with external SPI RAM. As
-of now up to 300kB of RAM are required. This is more than an ESP32-D4 Pico
-provides by default.
+- [Quickstart](#quickstart)
+    - [Install package on board with pip](#install-package-on-board-with-pip)
+    - [Install additional MicroPython packages](#install-additional-micropython-packages)
+- [Usage](#usage)
+    - [Master implementation](#master-implementation)
+    - [Slave implementation](#slave-implementation)
+    - [Register configuration](#register-configuration)
+- [Supported Modbus functions](#supported-modbus-functions)
+- [Credits](#credits)
 
-`esp32spiram-20220117-v1.18.bin` is used as MicroPython firmware
--->
+<!-- /MarkdownTOC -->
 
-### Install required tools
+## Quickstart
 
-Python3 must be installed on your system. Check the current Python version
-with the following command
+This is a quickstart to install the `micropython-modbus` library on a
+MicroPython board.
 
-```bash
-python --version
-python3 --version
-```
-
-Depending on which command `Python 3.x.y` (with x.y as some numbers) is
-returned, use that command to proceed.
+A more detailed guide of the development environment can be found in
+[SETUP](SETUP.md)
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 
-pip install -r requirements.txt
+pip install 'rshell>=0.0.30,<1.0.0'
 ```
 
-## Setup
-
-### Install package with pip
-
-Connect to a network
-
-```python
-import network
-station = network.WLAN(network.STA_IF)
-station.connect('SSID', 'PASSWORD')
-station.isconnected()
-```
-
-and install this lib on the MicroPython device like this
-
-```python
-import upip
-upip.install('micropython-modbus')
-```
-
-### Manually
-
-#### Upload files to board
-
-Copy the module to the MicroPython board and import them as shown below
-using [Remote MicroPython shell][ref-remote-upy-shell]
-
-Open the remote shell with the following command. Additionally use `-b 115200`
-in case no CP210x is used but a CH34x.
+### Install package on board with pip
 
 ```bash
 rshell -p /dev/tty.SLAB_USBtoUART --editor nano
 ```
 
-Perform the following command to copy all files and folders to the device
+Inside the rshell
 
 ```bash
-mkdir /pyboard/lib
-mkdir /pyboard/lib/umodbus
-mkdir /pyboard/registers
-
-cp registers/modbusRegisters-MyEVSE.json /pyboard/registers/
-cp umodbus/* /pyboard/lib/umodbus
-
 cp main.py /pyboard
 cp boot.py /pyboard
+repl
+```
+
+Inside the REPL
+
+```python
+import machine
+import network
+import time
+import upip
+station = network.WLAN(network.STA_IF)
+station.active(True)
+station.connect('SSID', 'PASSWORD')
+time.sleep(1)
+print('Device connected to network: {}'.format(station.isconnected()))
+upip.install('micropython-modbus')
+print('Installation completed')
+machine.soft_reset()
 ```
 
 ### Install additional MicroPython packages
@@ -110,6 +92,8 @@ or check the README of the
 [brainelectronics MicroPython modules][ref-github-be-mircopython-modules]
 
 ## Usage
+
+See also [USAGE](USAGE.md)
 
 Start a REPL (may perform a soft reboot), wait for network connection and
 start performing Modbus requests to the device.
@@ -211,7 +195,7 @@ Use the provided example scripts [read RTU](examples/read_registers_rtu.sh) or
 [read TCP](examples/read_registers_tcp.sh) to read the data from the devices.
 This requires the [modules submodule][ref-github-be-python-modules] to be
 cloned as well and the required packages being installed as described in the
-modules README file.
+modules README file. For further details read the [SETUP](SETUP.md) guide.
 
 ### Register configuration
 

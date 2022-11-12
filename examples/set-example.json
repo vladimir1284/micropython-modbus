@@ -1,0 +1,30 @@
+{
+    "COILS": {
+        "EXAMPLE_COIL": {
+            "register": 123,
+            "val": 0,
+            "description": "Example COILS register, Coils (setter+getter) [0, 1]",
+            "unit": ""
+        }
+    },
+    "HREGS": {
+        "EXAMPLE_HREG": {
+            "register": 93,
+            "len": 1,
+            "val": 19,
+            "description": "Example HREGS register, Hregs (setter+getter) [0, 65535]",
+            "unit": ""
+        }
+    },
+    "META": {
+        "created": "12.11.2022",
+        "modified": "12.11.2022"
+    },
+    "CONNECTION": {
+        "type": "rtu",
+        "unit": 10,
+        "address": "/dev/tty.SLAB_USBtoUART",
+        "baudrate": 9600,
+        "mode": "slave"
+    }
+}
