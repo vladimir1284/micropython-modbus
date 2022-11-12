@@ -16,6 +16,24 @@ Forked from [Exo Sense Py][ref-sferalabs-exo-sense], based on
 [PyCom Modbus][ref-pycom-modbus] and extended with other functionalities to
 become a powerfull MicroPython library
 
+<!-- MarkdownTOC -->
+
+- [Installation](#installation)
+    - [Install required tools](#install-required-tools)
+- [Setup](#setup)
+    - [Install package with pip](#install-package-with-pip)
+    - [Manually](#manually)
+        - [Upload files to board](#upload-files-to-board)
+    - [Install additional MicroPython packages](#install-additional-micropython-packages)
+- [Usage](#usage)
+    - [Master implementation](#master-implementation)
+    - [Slave implementation](#slave-implementation)
+    - [Register configuration](#register-configuration)
+- [Supported Modbus functions](#supported-modbus-functions)
+- [Credits](#credits)
+
+<!-- /MarkdownTOC -->
+
 ## Installation
 
 <!--
