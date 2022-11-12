@@ -6,7 +6,7 @@ Main script
 
 Do your stuff here, this file is similar to the loop() function on Arduino
 
-Create a Modbus RUT client (slave) which can be requested for data or set with
+Create a Modbus RTU client (slave) which can be requested for data or set with
 specific values by a host device.
 
 The RTU communication pins can be choosen freely. The register definitions of
