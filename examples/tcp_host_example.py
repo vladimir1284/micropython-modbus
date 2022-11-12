@@ -145,10 +145,10 @@ time.sleep(1)
 # WRITE HREGS
 new_hreg_val = 44
 operation_status = host.write_single_register(
-                    slave_addr=slave_addr,
-                    register_address=hreg_address,
-                    register_value=new_hreg_val,
-                    signed=False)
+    slave_addr=slave_addr,
+    register_address=hreg_address,
+    register_value=new_hreg_val,
+    signed=False)
 print('Result of setting HREG {}: {}'.format(hreg_address, operation_status))
 time.sleep(1)
 
@@ -177,10 +177,10 @@ time.sleep(1)
 ireg_address = register_definitions['IREGS']['EXAMPLE_IREG']['register']
 register_qty = register_definitions['IREGS']['EXAMPLE_IREG']['len']
 register_value = host.read_input_registers(
-                    slave_addr=slave_addr,
-                    starting_addr=ireg_address,
-                    register_qty=register_qty,
-                    signed=False)
+    slave_addr=slave_addr,
+    starting_addr=ireg_address,
+    register_qty=register_qty,
+    signed=False)
 print('Status of IREG {}: {}'.format(ireg_address, register_value))
 time.sleep(1)
 
