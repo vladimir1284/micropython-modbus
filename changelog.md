@@ -15,6 +15,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [1.2.0] - 2022-11-13
+### Added
+- [TCP host example script](examples/tcp_host_example.py)
+- JSON file to set registers on TCP/RTU device
+- Bash script to wrap manipulation of TCP modbus register data
+- [Example boot script](examples/boot.py)
+- TOC in [README](README.md)
+- Use [changelog-based-release action](https://github.com/brainelectronics/changelog-based-release) to create a draft release with every merge to develop
+- Use [changelog-based-release action](https://github.com/brainelectronics/changelog-based-release) to create a drafted prerelease release with every PR build, see #20
+- [USAGE](USAGE.md) and [SETUP](SETUP.md) files with more details
+
+### Changed
+- Add more info to [TCP client example script](examples/tcp_client_example.py)
+- Update [modules submodule](modules) to `1.3.0`
+- Line breaks are no longer used in this changelog for enumerations
+- Issues are referenced as `#123` instead of `[#123][ref-issue-123]` to avoid explicit references at the bottom or some other location in the file
+- Scope of contents permissions in release and test release workflow is now `write` to use auto release creation
+
+### Fixed
+- Typo in [RTU client example script](examples/rtu_client_example.py)
+
 ## [1.1.1] - 2022-11-09
 ### Fixed
 - Default value of `setup_registers` function parameter `use_default_vals`
@@ -94,8 +115,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/1.1.1...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/1.2.0...develop
 
+[1.2.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.2.0
 [1.1.1]: https://github.com/brainelectronics/micropython-modbus/tree/1.1.1
 [1.1.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.1.0
 [1.0.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.0.0
