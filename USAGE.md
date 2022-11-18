@@ -6,10 +6,19 @@ Using and testing this `micropython-modbus` library
 
 <!-- MarkdownTOC -->
 
-- [Development environment](#development-environment)
+- [Classic development environment](#classic-development-environment)
 	- [TCP](#tcp)
 		- [Read data](#read-data)
 		- [Write data](#write-data)
+- [Docker development environment](#docker-development-environment)
+	- [Pull container](#pull-container)
+	- [Spin up container](#spin-up-container)
+		- [Simple container](#simple-container)
+		- [Docker compose](#docker-compose)
+		- [Enter MicroPython REPL](#enter-micropython-repl)
+	- [Run unittests](#run-unittests)
+		- [Custom selected tests](#custom-selected-tests)
+		- [Docker compose](#docker-compose-1)
 - [MicroPython](#micropython)
 	- [TCP](#tcp-1)
 		- [Client](#client)
@@ -21,7 +30,7 @@ Using and testing this `micropython-modbus` library
 The onwards described steps assume a successful setup as described in
 [SETUP.md](SETUP.md)
 
-## Development environment
+## Classic development environment
 
 This section describes the necessary steps on the computer to get ready to
 test and run the examples.
@@ -87,6 +96,90 @@ Or use the even more convenient wrapper script for the wrapper.
 cd examples
 sh write_registers_tcp.sh 192.168.178.69 set-example.json 502
 ```
+
+## Docker development environment
+
+### Pull container
+
+Checkout the available
+[MicroPython containers](https://hub.docker.com/r/micropython/unix/tags)
+
+```bash
+docker pull micropython/unix:v1.18
+```
+
+### Spin up container
+
+#### Simple container
+
+Use this command for your first tests, or to run some MicroPython commands in
+a simple REPL
+
+```bash
+docker run -it \
+--name micropython-1.18 \
+--network=host \
+--entrypoint bash \
+micropython/unix:v1.18
+```
+
+#### Docker compose
+
+The following command uses the setup defined in the `docker-compose.yaml` file
+to provide all required MicroPython packages and files within the container
+
+```bash
+# spin up container in deamon mode
+docker compose up -d
+
+# list all running containers
+docker ps
+
+# log into the micropython container afterwards
+docker exec -it micropython bash
+
+# finally stop the micropython container again
+docker stop micropython
+```
+
+#### Enter MicroPython REPL
+
+Inside the container enter the REPL by running `micropython-dev`. The console
+should now look similar to this
+
+```
+root@debian:/home#
+MicroPython v1.18 on 2022-01-17; linux version
+Use Ctrl-D to exit, Ctrl-E for paste mode
+>>>
+```
+
+### Run unittests
+
+#### Custom selected tests
+
+Execute the following command inside the container to execute the unittests
+
+```bash
+# run all unittests defined in "tests" directory and exit with status result
+micropython-dev -c "import unittest; unittest.main('tests')"
+
+# run all tests of "TestAbsoluteTruth" defined in tests/test_absolute_truth.py
+# and exit with status result
+micropython-dev -c "import unittest; unittest.main(name='tests.test_absolute_truth', fromlist=['TestAbsoluteTruth'])"
+```
+
+#### Docker compose
+
+Spin up the container with the following command to execute the tests and
+report it's result back to the host machine.
+
+```bash
+RUN_UNITTESTS=1 docker compose up --exit-code-from micropython
+```
+
+The return value can be collected by `echo $?`, which will be either `0` in
+case all tests passed, or `1` if one or multiple tests failed.
 
 ## MicroPython
 
