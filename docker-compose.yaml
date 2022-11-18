@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  micropython:
+    image: micropython/unix:v1.18
+    container_name: micropython
+    volumes:
+      - $PWD:/home
+      - $PWD/unittest.py:/root/.micropython/lib/unittest.py
+    command:
+      - /bin/bash
+      - -c
+      - |
+        micropython-dev -m upip install micropython-ulogging
+        if [ -n "${RUN_UNITTESTS}" ]; then micropython-dev -c "import unittest; unittest.main('tests')"; else tail -f /dev/null; fi
+    # See comment for correct environment variable usage
+    # https://github.com/docker/compose/issues/4189#issuecomment-274915631
+
+    networks:
+      - host
+
+networks:
+  host:
+    # use "external: true" if the network already exists
+    # check available networks with "docker network ls"
+    # external: true
