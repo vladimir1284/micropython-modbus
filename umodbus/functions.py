@@ -267,11 +267,15 @@ def response(function_code: int,
              value_list=None,
              signed=True):
     if function_code in [Const.READ_COILS, Const.READ_DISCRETE_INPUTS]:
-        output_value = []
         sectioned_list = [value_list[i:i + 8] for i in range(0, len(value_list), 8)]    # noqa: E501
 
+        output_value = []
         for index, byte in enumerate(sectioned_list):
-            output = sum(v << i for i, v in enumerate(byte))
+            # see https://github.com/brainelectronics/micropython-modbus/issues/22
+            # output = sum(v << i for i, v in enumerate(byte))
+            output = 0
+            for bit in byte:
+                output = (output << 1) | bit
             output_value.append(output)
 
         fmt = 'B' * len(output_value)
