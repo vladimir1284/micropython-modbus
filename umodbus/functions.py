@@ -207,7 +207,7 @@ def write_multiple_registers(starting_address: int,
     quantity = len(register_values)
 
     if not (1 <= quantity <= 123):
-        raise ValueError('invalid number of registers')
+        raise ValueError('Invalid number of registers')
 
     fmt = ('h' if signed else 'H') * quantity
     return struct.pack('>BHHB' + fmt,
@@ -243,15 +243,16 @@ def validate_resp_data(data: bytes,
     :returns:   True if valid, False otherwise
     :rtype:     bool
     """
+    fmt = '>H' + ('h' if signed else 'H')
+
     if function_code in [Const.WRITE_SINGLE_COIL, Const.WRITE_SINGLE_REGISTER]:
-        fmt = '>H' + ('h' if signed else 'H')
         resp_addr, resp_value = struct.unpack(fmt, data)
 
         if (address == resp_addr) and (value == resp_value):
             return True
     elif function_code in [Const.WRITE_MULTIPLE_COILS,
                            Const.WRITE_MULTIPLE_REGISTERS]:
-        resp_addr, resp_qty = struct.unpack('>HH', data)
+        resp_addr, resp_qty = struct.unpack(fmt, data)
 
         if (address == resp_addr) and (quantity == resp_qty):
             return True
