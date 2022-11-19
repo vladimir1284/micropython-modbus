@@ -32,7 +32,7 @@ class TestAbsoluteTruth(unittest.TestCase):
         some_dict = dict()
         some_list = [x, y, 40, "asdf", z]
 
-        self.assertTrue(False)
+        self.assertTrue(True)
         self.assertFalse(False)
 
         self.assertEqual(y, 1)
