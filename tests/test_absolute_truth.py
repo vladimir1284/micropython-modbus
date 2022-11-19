@@ -56,7 +56,7 @@ class TestAbsoluteTruth(unittest.TestCase):
 
         # self.assertRaises(exc, fun, args, *kwds)
         with self.assertRaises(ZeroDivisionError):
-            1/0
+            1 / 0
 
         self.assertIsInstance(some_dict, dict)
         self.assertNotIsInstance(some_list, dict)
