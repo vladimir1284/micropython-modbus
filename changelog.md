@@ -15,6 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [1.3.0] - 2022-11-19
+### Added
+- Perform MicroPython based unittests on every `Test` workflow run
+- Add usage description of docker based MicroPython unittest framework in [USAGE](USAGE.md)
+- Add [docker compose file](docker-compose.yaml) based in MicroPython 1.18 image
+- Add initial test, testing the unittest itself
+- Add [unittest](unittest.py) implementation based on pfalcon's [micropython-unittest](https://github.com/pfalcon/pycopy-lib/blob/56ebf2110f3caa63a3785d439ce49b11e13c75c0/unittest/unittest.py)
+- Docstrings available for all functions of [functions.py](umodbus/functions.py), see #27
+- Typing hints availble for all functions of [functions.py](umodbus/functions.py), see #27
+- Unittest for [functions.py](umodbus/functions.py), see #16
+
+### Fixed
+- `write_multiple_coils` function works as specified. Constructed outputs value was incorrect, see #22
+
 ## [1.2.0] - 2022-11-13
 ### Added
 - [TCP host example script](examples/tcp_host_example.py)
@@ -115,8 +129,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/1.2.0...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/1.3.0...develop
 
+[1.3.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.3.0
 [1.2.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.2.0
 [1.1.1]: https://github.com/brainelectronics/micropython-modbus/tree/1.1.1
 [1.1.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.1.0
