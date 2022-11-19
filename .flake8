@@ -42,6 +42,7 @@ exclude =
     # example testing folder before going live
     thinking
     .idea
+    .bak
     # custom scripts, not being part of the distribution
     libs_external
     modules
