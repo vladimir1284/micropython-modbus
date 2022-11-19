@@ -323,12 +323,46 @@ def exception_response(function_code: int, exception_code: int) -> bytes:
 
 
 def float_to_bin(num: float) -> bin:
-    return bin(struct.unpack('!I', struct.pack('!f', num))[0])[2:].zfill(32)
+    """
+    Convert floating point value to binary
+
+    See IEEE 754
+
+    :param      num:  The number
+    :type       num:  float
+
+    :returns:   Binary representation
+    :rtype:     bin
+    """
+    # no "zfill" available in MicroPython
+    # return bin(struct.unpack('!I', struct.pack('!f', num))[0])[2:].zfill(32)
+
+    return '{:0>{w}}'.format(
+        bin(struct.unpack('!I', struct.pack('!f', num))[0])[2:],
+        w=32)
 
 
-def bin_to_float(binary: bin) -> float:
+def bin_to_float(binary: str) -> float:
+    """
+    Convert binary string to floating point value
+
+    :param      binary:  The binary string
+    :type       binary:  str
+
+    :returns:   Converted floating point value
+    :rtype:     float
+    """
     return struct.unpack('!f', struct.pack('!I', int(binary, 2)))[0]
 
 
 def int_to_bin(num: int) -> str:
+    """
+    Convert integer to binary
+
+    :param      num:  The number
+    :type       num:  int
+
+    :returns:   Binary representation of given input
+    :rtype:     str
+    """
     return "{0:b}".format(num)
