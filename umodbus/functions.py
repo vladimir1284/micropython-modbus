@@ -164,11 +164,18 @@ def write_multiple_coils(starting_address: int,
     :returns:   Packed Modbus message
     :rtype:     bytes
     """
+    if not (1 <= len(value_list) <= 0x07B0):
+        raise ValueError('Invalid quantity of outputs')
+
     sectioned_list = [value_list[i:i + 8] for i in range(0, len(value_list), 8)]    # noqa: E501
 
     output_value = []
     for index, byte in enumerate(sectioned_list):
-        output = sum(v << i for i, v in enumerate(byte))
+        # see https://github.com/brainelectronics/micropython-modbus/issues/22
+        # output = sum(v << i for i, v in enumerate(byte))
+        output = 0
+        for bit in byte:
+            output = (output << 1) | bit
         output_value.append(output)
 
     fmt = 'B' * len(output_value)
