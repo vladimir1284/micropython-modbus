@@ -375,6 +375,18 @@ class TestFunctions(unittest.TestCase):
     def test_response(self) -> None:
         pass
 
+    def test_exception_response(self) -> None:
+        """Test exception responses"""
+        function_code = Const.READ_COILS
+        exception_code = Const.ILLEGAL_DATA_ADDRESS
+
+        result = functions.exception_response(function_code=function_code,
+                                              exception_code=exception_code)
+
+        self.assertIsInstance(result, bytes)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result, b'\x81\x02')
+
     def test_float_to_bin(self) -> None:
         """Test conversion of float to bin according to IEEE 754"""
         float_val = 10.27

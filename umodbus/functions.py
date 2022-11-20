@@ -129,7 +129,7 @@ def write_single_coil(output_address: int,
 
 def write_single_register(register_address: int,
                           register_value: int,
-                          signed=True) -> bytes:
+                          signed: bool = True) -> bytes:
     """
     Create Modbus message to writes a single register
 
@@ -190,7 +190,7 @@ def write_multiple_coils(starting_address: int,
 
 def write_multiple_registers(starting_address: int,
                              register_values: List[int],
-                             signed=True):
+                             signed: bool = True) -> bytes:
     """
     Create Modbus message to update multiple coils
 
@@ -319,6 +319,17 @@ def response(function_code: int,
 
 
 def exception_response(function_code: int, exception_code: int) -> bytes:
+    """
+    Create Modbus exception response
+
+    :param      function_code:   The function code
+    :type       function_code:   int
+    :param      exception_code:  The exception code
+    :type       exception_code:  int
+
+    :returns:   Packed Modbus message
+    :rtype:     bytes
+    """
     return struct.pack('>BB', Const.ERROR_BIAS + function_code, exception_code)
 
 
