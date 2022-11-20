@@ -8,6 +8,8 @@
 # available at https://www.pycom.io/opensource/licensing
 #
 
+from micropython import const
+
 # function codes
 # defined as const(), see https://github.com/micropython/micropython/issues/573
 READ_COILS = const(0x01)                # COILS, [0, 1]
