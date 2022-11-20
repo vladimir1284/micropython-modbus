@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 """Unittest for testing const definitions of umodbus"""
 
+from umodbus.typing import List
 import ulogging as logging
 import unittest
 from umodbus import const as Const
