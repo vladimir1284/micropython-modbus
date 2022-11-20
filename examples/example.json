@@ -3,6 +3,7 @@
         "EXAMPLE_COIL": {
             "register": 123,
             "len": 1,
+            "val": 1,
             "description": "Example COILS register, Coils (setter+getter) [0, 1]",
             "range": "",
             "unit": ""
@@ -12,6 +13,7 @@
         "EXAMPLE_HREG": {
             "register": 93,
             "len": 1,
+            "val": 19,
             "description": "Example HREGS register, Hregs (setter+getter) [0, 65535]",
             "range": "",
             "unit": ""
@@ -21,6 +23,7 @@
         "EXAMPLE_ISTS": {
             "register": 67,
             "len": 1,
+            "val": 0,
             "description": "Example ISTS register, Ists (only getter) [0, 1]",
             "range": "",
             "unit": ""
@@ -30,6 +33,7 @@
         "EXAMPLE_IREG": {
             "register": 10,
             "len": 1,
+            "val": 60001,
             "description": "Example IREGS register, Iregs (only getter) [0, 65535]",
             "range": "",
             "unit": ""
