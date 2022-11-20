@@ -42,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Add more info to [TCP client example script](examples/tcp_client_example.py)
-- Update [modules submodule](modules) to `1.3.0`
+- Update [modules submodule](https://github.com/brainelectronics/python-modules/tree/43bad716b7db27db07c94c2d279cee57d0c8c753) to `1.3.0`
 - Line breaks are no longer used in this changelog for enumerations
 - Issues are referenced as `#123` instead of `[#123][ref-issue-123]` to avoid explicit references at the bottom or some other location in the file
 - Scope of contents permissions in release and test release workflow is now `write` to use auto release creation
