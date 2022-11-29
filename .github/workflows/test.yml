@@ -36,7 +36,7 @@ jobs:
     - name: Execute tests
       run: |
         # RUN_UNITTESTS=1 docker compose up --exit-code-from micropython
-        docker build --tag micropython-test --file Dockerfile.tests
+        docker build --tag micropython-test --file Dockerfile.tests .
     - name: Run Client/Host example
       run: |
         docker compose up --build --exit-code-from micropython-host
