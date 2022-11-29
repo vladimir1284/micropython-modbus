@@ -19,9 +19,169 @@ from . import functions
 from . import const as Const
 from .common import Request
 from .common import ModbusException
+from .modbus import Modbus
+from urequests import request
 
 # typing not natively supported on MicroPython
 from .typing import List, Optional, Tuple, Union
+
+
+class ModbusTCP(Modbus):
+    def __init__(self):
+        super().__init__(
+            # set itf to TCPServer object, addr_list to None
+            TCPServer(),
+            None
+        )
+
+    def bind(self,
+             local_ip: str,
+             local_port: int = 502,
+             max_connections: int = 10) -> None:
+        self._itf.bind(local_ip, local_port, max_connections)
+
+    def get_bound_status(self) -> bool:
+        try:
+            return self._itf.get_is_bound()
+        except Exception:
+            return False
+
+    def process(self) -> bool:
+        """
+        Process the modbus requests.
+
+        :returns:   Result of processing, True on success, False otherwise
+        :rtype:     bool
+        """
+        reg_type = None
+        req_type = None
+
+        request = self._itf.get_request(unit_addr_list=self._addr_list,
+                                        timeout=0)
+        if request is None:
+            return False
+
+        if request.function == Const.READ_COILS:
+            # Coils (setter+getter) [0, 1]
+            # function 01 - read single register
+            reg_type = 'COILS'
+            req_type = 'READ'
+        elif request.function == Const.READ_DISCRETE_INPUTS:
+            # Ists (only getter) [0, 1]
+            # function 02 - read input status (discrete inputs/digital input)
+            reg_type = 'ISTS'
+            req_type = 'READ'
+        elif request.function == Const.READ_HOLDING_REGISTERS:
+            # Hregs (setter+getter) [0, 65535]
+            # function 03 - read holding register
+            reg_type = 'HREGS'
+            req_type = 'READ'
+        elif request.function == Const.READ_INPUT_REGISTER:
+            # Iregs (only getter) [0, 65535]
+            # function 04 - read input registers
+            reg_type = 'IREGS'
+            req_type = 'READ'
+        elif request.function == Const.WRITE_SINGLE_COIL:
+            # Coils (setter+getter) [0, 1]
+            # function 05 - write single register
+            reg_type = 'COILS'
+            req_type = 'WRITE'
+        elif request.function == Const.WRITE_SINGLE_REGISTER:
+            # Hregs (setter+getter) [0, 65535]
+            # function 06 - write holding register
+            reg_type = 'HREGS'
+            req_type = 'WRITE'
+        else:
+            request.send_exception(Const.ILLEGAL_FUNCTION)
+
+        if reg_type:
+            if req_type == 'READ':
+                self._process_read_access(request=request, reg_type=reg_type)
+            elif req_type == 'WRITE':
+                self._process_write_access(request=request, reg_type=reg_type)
+
+        return True
+
+    def _create_response(self, request: request, reg_type: str):
+        """
+        Create a response.
+
+        :param      request:   The request
+        :type       request:   request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
+
+        :returns:   Values of this register
+        :rtype:     Union[bool, int, List[int], List[bool]]
+        """
+        if type(self._register_dict[reg_type][request.register_addr]) is list:
+            return self._register_dict[reg_type][request.register_addr]
+        else:
+            return [self._register_dict[reg_type][request.register_addr]]
+
+    def _process_read_access(self, request: request, reg_type: str) -> None:
+        """
+        Process read access to register
+
+        :param      request:   The request
+        :type       request:   request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
+        """
+        if request.register_addr in self._register_dict[reg_type]:
+            vals = self._create_response(request=request, reg_type=reg_type)
+            request.send_response(vals)
+        else:
+            request.send_exception(Const.ILLEGAL_DATA_ADDRESS)
+
+    def _process_write_access(self, request: request, reg_type: str) -> None:
+        """
+        Process write access to register
+
+        :param      request:   The request
+        :type       request:   request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
+        """
+        address = request.register_addr
+        val = 0
+        valid_register = False
+
+        if address in self._register_dict[reg_type]:
+            if reg_type == 'COILS':
+                val = request.data[0]
+                if val == 0x00:
+                    val = False
+                    valid_register = True
+
+                    request.send_response()
+
+                    self.set_coil(address=address, value=val)
+                elif val == 0xFF:
+                    val = True
+                    valid_register = True
+
+                    request.send_response()
+
+                    self.set_coil(address=address, value=val)
+                else:
+                    request.send_exception(Const.ILLEGAL_DATA_VALUE)
+            elif reg_type == 'HREGS':
+                valid_register = True
+                val = request.data_as_registers(signed=False)[0]
+
+                request.send_response()
+
+                self.set_hreg(address=address, value=val)
+            else:
+                pass
+
+            if valid_register:
+                self._set_changed_register(reg_type=reg_type,
+                                           address=address,
+                                           value=val)
+        else:
+            request.send_exception(Const.ILLEGAL_DATA_ADDRESS)
 
 
 class TCP(object):
