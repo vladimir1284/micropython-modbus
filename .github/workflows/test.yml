@@ -35,7 +35,11 @@ jobs:
         if [ -f requirements-deploy.txt ]; then pip install -r requirements-deploy.txt; fi
     - name: Execute tests
       run: |
-        RUN_UNITTESTS=1 docker compose up --exit-code-from micropython
+        # RUN_UNITTESTS=1 docker compose up --exit-code-from micropython
+        docker build --tag micropython-test --file Dockerfile.tests
+    - name: Run Client/Host example
+      run: |
+        docker compose up --build --exit-code-from micropython-host
     - name: Build package
       run: |
         changelog2version \
