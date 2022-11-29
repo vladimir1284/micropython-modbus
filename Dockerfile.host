@@ -1,0 +1,15 @@
+# Build image
+# $ docker build -t micropython-host -f Dockerfile.host .
+#
+# Run image
+# $ docker run -it --rm --name micropython-host micropython-host
+
+FROM micropython/unix:v1.18
+
+COPY ./ /home
+COPY umodbus /root/.micropython/lib/umodbus
+
+RUN micropython-dev -m upip install micropython-ulogging
+RUN micropython-dev -m upip install micropython-urequests
+
+CMD [ "micropython-dev", "-m", "examples/tcp_host_example.py" ]
