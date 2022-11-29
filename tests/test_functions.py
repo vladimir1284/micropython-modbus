@@ -127,6 +127,9 @@ class TestFunctions(unittest.TestCase):
         with self.assertRaises(ValueError):
             functions.write_single_coil(output_address=69, output_value='on')
 
+        with self.assertRaises(ValueError):
+            functions.write_single_coil(output_address=69, output_value=0xFF01)
+
     def test_write_single_register(self) -> None:
         """
         Test creation of Modbus Protocol Data Unit for single registers writing
