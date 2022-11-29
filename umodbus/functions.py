@@ -112,7 +112,7 @@ def write_single_coil(output_address: int,
     :returns:   Packed Modbus message
     :rtype:     bytes
     """
-    if output_value not in [0x0000, 0xFF00, True]:
+    if output_value not in [0x0000, 0xFF00, False, True, 0, 1]:
         raise ValueError('Illegal coil value')
 
     if output_value not in [0x0000, 0xFF00]:
