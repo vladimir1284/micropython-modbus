@@ -9,10 +9,10 @@ modbus script
 import time
 
 # custom packages
-from .serial import Serial
-from .tcp import TCPServer
-from . import const as ModbusConst
-from urequests import request
+# from .serial import Serial
+# from .tcp import TCPServer
+# from . import const as ModbusConst
+# from urequests import request
 
 # typing not natively supported on MicroPython
 from .typing import List, Optional
@@ -475,6 +475,7 @@ class Modbus(object):
 
         return result
 
+    '''
     def process(self) -> bool:
         """
         Process the modbus requests.
@@ -611,6 +612,7 @@ class Modbus(object):
                                            value=val)
         else:
             request.send_exception(ModbusConst.ILLEGAL_DATA_ADDRESS)
+    '''
 
     def setup_registers(self,
                         registers: dict = dict(),
@@ -656,6 +658,7 @@ class Modbus(object):
                     pass
 
 
+'''
 class ModbusRTU(Modbus):
     def __init__(self,
                  addr,
@@ -676,8 +679,9 @@ class ModbusRTU(Modbus):
                    ctrl_pin=ctrl_pin),
             [addr]
         )
+'''
 
-
+'''
 class ModbusTCP(Modbus):
     def __init__(self):
         super().__init__(
@@ -697,3 +701,4 @@ class ModbusTCP(Modbus):
             return self._itf.get_is_bound()
         except Exception:
             return False
+'''
