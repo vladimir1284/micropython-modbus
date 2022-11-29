@@ -14,10 +14,10 @@ Using and testing this `micropython-modbus` library
 	- [Pull container](#pull-container)
 	- [Spin up container](#spin-up-container)
 		- [Simple container](#simple-container)
-		- [Docker compose](#docker-compose)
 		- [Enter MicroPython REPL](#enter-micropython-repl)
+		- [Custom container for unittests](#custom-container-for-unittests)
+		- [Docker compose](#docker-compose)
 	- [Run unittests](#run-unittests)
-		- [Custom selected tests](#custom-selected-tests)
 		- [Docker compose](#docker-compose-1)
 - [MicroPython](#micropython)
 	- [TCP](#tcp-1)
@@ -123,6 +123,42 @@ docker run -it \
 micropython/unix:v1.18
 ```
 
+#### Enter MicroPython REPL
+
+Inside the container enter the REPL by running `micropython-dev`. The console
+should now look similar to this
+
+```
+root@debian:/home#
+MicroPython v1.18 on 2022-01-17; linux version
+Use Ctrl-D to exit, Ctrl-E for paste mode
+>>>
+```
+
+In order to manually execute only a specific set of tests use the following
+command  inside the container
+
+```bash
+# run all unittests defined in "tests" directory and exit with status result
+micropython-dev -c "import unittest; unittest.main('tests')"
+
+# run all tests of "TestAbsoluteTruth" defined in tests/test_absolute_truth.py
+# and exit with status result
+micropython-dev -c "import unittest; unittest.main(name='tests.test_absolute_truth', fromlist=['TestAbsoluteTruth'])"
+```
+
+#### Custom container for unittests
+
+```bash
+docker build \
+--tag micropython-test \
+--file Dockerfile.tests .
+```
+
+The unittests are executed during the building process. It will exit with a
+non-zero status on a unittest failure.
+
+<!--
 #### Docker compose
 
 The following command uses the setup defined in the `docker-compose.yaml` file
@@ -142,32 +178,7 @@ docker exec -it micropython bash
 docker stop micropython
 ```
 
-#### Enter MicroPython REPL
-
-Inside the container enter the REPL by running `micropython-dev`. The console
-should now look similar to this
-
-```
-root@debian:/home#
-MicroPython v1.18 on 2022-01-17; linux version
-Use Ctrl-D to exit, Ctrl-E for paste mode
->>>
-```
-
 ### Run unittests
-
-#### Custom selected tests
-
-Execute the following command inside the container to execute the unittests
-
-```bash
-# run all unittests defined in "tests" directory and exit with status result
-micropython-dev -c "import unittest; unittest.main('tests')"
-
-# run all tests of "TestAbsoluteTruth" defined in tests/test_absolute_truth.py
-# and exit with status result
-micropython-dev -c "import unittest; unittest.main(name='tests.test_absolute_truth', fromlist=['TestAbsoluteTruth'])"
-```
 
 #### Docker compose
 
@@ -180,6 +191,7 @@ RUN_UNITTESTS=1 docker compose up --exit-code-from micropython
 
 The return value can be collected by `echo $?`, which will be either `0` in
 case all tests passed, or `1` if one or multiple tests failed.
+-->
 
 ## MicroPython
 
