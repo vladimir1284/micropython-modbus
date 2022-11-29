@@ -158,12 +158,25 @@ docker build \
 The unittests are executed during the building process. It will exit with a
 non-zero status on a unittest failure.
 
-<!--
+The return value can be collected by `echo $?`, which will be either `0` in
+case all tests passed, or `1` if one or multiple tests failed.
+
 #### Docker compose
 
 The following command uses the setup defined in the `docker-compose.yaml` file
-to provide all required MicroPython packages and files within the container
+to act as two MicroPython devices communicating via TCP. The container
+`micropython-host` defined by `Dockerfile.host` acts as host and sets/gets
+data from the client as defined by `tcp_host_example.py`. On the other hand
+the container `micropython-client` defined by `Dockerfile.client` acts as
+client and provides data for the host as defined by `tcp_client_example.py`.
+The port defined in `tcp_host_example.py` and `tcp_client_example.py` has to
+be open and optionally exposed in the `docker-compose.yaml` file.
 
+```bash
+docker compose up --build --exit-code-from micropython-host
+```
+
+<!--
 ```bash
 # spin up container in deamon mode
 docker compose up -d

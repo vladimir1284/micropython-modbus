@@ -1,26 +1,49 @@
+#
+# build all non-image containers
+# $ docker-compose build
+# can be combined into one command to also start it afterwards
+# $ docker-compose up --build
+#
+
 version: "3.8"
 
 services:
-  micropython:
-    image: micropython/unix:v1.18
-    container_name: micropython
-    volumes:
-      - $PWD:/home
-      - $PWD/unittest.py:/root/.micropython/lib/unittest.py
-    command:
-      - /bin/bash
-      - -c
-      - |
-        micropython-dev -m upip install micropython-ulogging
-        if [ -n "${RUN_UNITTESTS}" ]; then micropython-dev -c "import unittest; unittest.main('tests')"; else tail -f /dev/null; fi
-    # See comment for correct environment variable usage
-    # https://github.com/docker/compose/issues/4189#issuecomment-274915631
-
+  micropython-client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: micropython-client
+    expose:
+      - "502"
+    ports:
+      - "502:502" # reach "micropython-client" at 172.24.0.2:502, see networks
     networks:
-      - host
+      my_bridge:
+        # fix IPv4 address to be known and in the MicroPython scripts
+        # https://docs.docker.com/compose/compose-file/#ipv4_address
+        ipv4_address: 172.24.0.2
+
+  micropython-host:
+    build:
+      context: .
+      dockerfile: Dockerfile.host
+    container_name: micropython-host
+    depends_on:
+      - micropython-client
+    networks:
+      my_bridge:
+        # fix IPv4 address to be known and in the MicroPython scripts
+        # https://docs.docker.com/compose/compose-file/#ipv4_address
+        ipv4_address: 172.24.0.3
 
 networks:
-  host:
+  my_bridge:
     # use "external: true" if the network already exists
     # check available networks with "docker network ls"
     # external: true
+    driver: bridge
+    # https://docs.docker.com/compose/compose-file/#ipam
+    ipam:
+      config:
+        - subnet: 172.24.0.0/16
+          gateway: 172.24.0.1
