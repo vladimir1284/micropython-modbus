@@ -20,9 +20,32 @@ from . import const as Const
 from . import functions
 from .common import Request
 from .common import ModbusException
+from .modbus import Modbus
 
 # typing not natively supported on MicroPython
 from .typing import List, Optional, Union
+
+
+class ModbusRTU(Modbus):
+    def __init__(self,
+                 addr,
+                 baudrate=9600,
+                 data_bits=8,
+                 stop_bits=1,
+                 parity=None,
+                 pins=None,
+                 ctrl_pin=None):
+        super().__init__(
+            # set itf to Serial object, addr_list to [addr]
+            Serial(uart_id=1,
+                   baudrate=baudrate,
+                   data_bits=data_bits,
+                   stop_bits=stop_bits,
+                   parity=parity,
+                   pins=pins,
+                   ctrl_pin=ctrl_pin),
+            [addr]
+        )
 
 
 class Serial(object):
