@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
-## [1.3.0] - 2022-11-19
+## [2.0.0] - 2022-11-30
 ### Added
 - Perform MicroPython based unittests on every `Test` workflow run
 - Add usage description of docker based MicroPython unittest framework in [USAGE](USAGE.md)
@@ -23,8 +23,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add initial test, testing the unittest itself
 - Add [unittest](unittest.py) implementation based on pfalcon's [micropython-unittest](https://github.com/pfalcon/pycopy-lib/blob/56ebf2110f3caa63a3785d439ce49b11e13c75c0/unittest/unittest.py)
 - Docstrings available for all functions of [functions.py](umodbus/functions.py), see #27
-- Typing hints availble for all functions of [functions.py](umodbus/functions.py), see #27
+- Typing hints availble for all functions of [functions.py](umodbus/functions.py), [serial.py](umodbus/serial.py) and [tcp.py](umodbus/tcp.py), , see #27
 - Unittest for [functions.py](umodbus/functions.py), see #16
+- Unittest for [const.py](umodbus/const.py), see #16
+
+### Changed
+- Define all Modbus function codes as `const()` to avoid external modifications, contributes to #18
+- Remove dependency to `Serial` and `requests` from `umodbus.modbus`, see #18
+- `ModbusRTU` class is part of [serial.py](umodbus/serial.py), see #18
+- `ModbusTCP` class is part of [tcp.py](umodbus/tcp.py), see #18
+- `ModbusRTU` and `ModbusTCP` classes and related functions removed from [modbus.py](umodbus/modbus.py), see #18
+- Imports changed from:
+    - `from umodbus.modbus import ModbusRTU` to `from umodbus.serial import ModbusRTU`
+    - `from umodbus.modbus import ModbusTCP` to `from umodbus.tcp import ModbusTCP`
 
 ### Fixed
 - `write_multiple_coils` function works as specified. Constructed outputs value was incorrect, see #22
