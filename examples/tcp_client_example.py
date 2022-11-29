@@ -14,40 +14,52 @@ the client can be defined by the user.
 """
 
 # system packages
-import network
 import time
 
 # import modbus client classes
-from umodbus.modbus import ModbusTCP
+from umodbus.tcp import ModbusTCP
+
+IS_DOCKER_MICROPYTHON = False
+try:
+    import network
+except ImportError:
+    IS_DOCKER_MICROPYTHON = True
+
 
 # ===============================================
-# connect to a network
-station = network.WLAN(network.STA_IF)
-if station.active() and station.isconnected():
-    station.disconnect()
+if IS_DOCKER_MICROPYTHON is False:
+    # connect to a network
+    station = network.WLAN(network.STA_IF)
+    if station.active() and station.isconnected():
+        station.disconnect()
+        time.sleep(1)
+    station.active(False)
     time.sleep(1)
-station.active(False)
-time.sleep(1)
-station.active(True)
+    station.active(True)
 
-station.connect('SSID', 'PASSWORD')
-time.sleep(1)
+    # station.connect('SSID', 'PASSWORD')
+    station.connect('TP-LINK_FBFC3C', 'C1FBFC3C')
+    time.sleep(1)
 
-while True:
-    print('Waiting for WiFi connection...')
-    if station.isconnected():
-        print('Connected to WiFi.')
-        print(station.ifconfig())
-        break
-    time.sleep(2)
+    while True:
+        print('Waiting for WiFi connection...')
+        if station.isconnected():
+            print('Connected to WiFi.')
+            print(station.ifconfig())
+            break
+        time.sleep(2)
 
 # ===============================================
 # TCP Slave setup
 tcp_port = 502              # port to listen to
-# set IP address of the MicroPython device explicitly
-local_ip = '192.168.4.1'    # IP address
-# or get it from the system after a connection to the network has been made
-local_ip = station.ifconfig()[0]
+
+if IS_DOCKER_MICROPYTHON:
+    local_ip = '172.24.0.2'     # static Docker IP address
+else:
+    # set IP address of the MicroPython device explicitly
+    # local_ip = '192.168.4.1'    # IP address
+    # or get it from the system after a connection to the network has been made
+    local_ip = station.ifconfig()[0]
 
 # ModbusTCP can get TCP requests from a host device to provide/set data
 client = ModbusTCP()
