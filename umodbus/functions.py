@@ -248,6 +248,16 @@ def validate_resp_data(data: bytes,
     if function_code in [Const.WRITE_SINGLE_COIL, Const.WRITE_SINGLE_REGISTER]:
         resp_addr, resp_value = struct.unpack(fmt, data)
 
+        # if bool(True) or int(1) is used as "output_value" of
+        # "write_single_coil" it will be internally converted to int(0xFF00),
+        # see Modbus specification, which is actually int(65280).
+        # Due to the non binary, but real value comparison of "value" and
+        # "resp_value", it would never match without the next two lines
+        # see #21
+        if function_code == Const.WRITE_SINGLE_COIL:
+            resp_value = bool(resp_value)
+            value = bool(value)
+
         if (address == resp_addr) and (value == resp_value):
             return True
     elif function_code in [Const.WRITE_MULTIPLE_COILS,
