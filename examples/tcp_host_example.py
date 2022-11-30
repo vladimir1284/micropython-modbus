@@ -24,6 +24,7 @@ try:
     import network
 except ImportError:
     IS_DOCKER_MICROPYTHON = True
+    import sys
 
 
 # ===============================================
@@ -198,3 +199,6 @@ time.sleep(1)
 print()
 
 print("Finished requesting/setting data on client")
+
+if IS_DOCKER_MICROPYTHON:
+    sys.exit(0)
