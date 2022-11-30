@@ -315,7 +315,7 @@ class TCP(object):
     def read_coils(self,
                    slave_addr: int,
                    starting_addr: int,
-                   coil_qty: int) -> List[bool]:
+                   coil_qty: int) -> List[bool, ...]:
         modbus_pdu = functions.read_coils(
             starting_address=starting_addr,
             quantity=coil_qty)
@@ -330,7 +330,7 @@ class TCP(object):
     def read_discrete_inputs(self,
                              slave_addr: int,
                              starting_addr: int,
-                             input_qty: int) -> List[bool]:
+                             input_qty: int) -> List[bool, ...]:
         modbus_pdu = functions.read_discrete_inputs(
             starting_address=starting_addr,
             quantity=input_qty)
@@ -346,7 +346,7 @@ class TCP(object):
                                slave_addr: int,
                                starting_addr: int,
                                register_qty: int,
-                               signed: bool = True) -> List[int]:
+                               signed: bool = True) -> Tuple[int, ...]:
         modbus_pdu = functions.read_holding_registers(
             starting_address=starting_addr,
             quantity=register_qty)
@@ -362,7 +362,7 @@ class TCP(object):
                              slave_addr: int,
                              starting_addr: int,
                              register_qty: int,
-                             signed: int = True) -> List[int]:
+                             signed: int = True) -> Tuple[int, ...]:
         modbus_pdu = functions.read_input_registers(
             starting_address=starting_addr,
             quantity=register_qty)
