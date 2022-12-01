@@ -3,6 +3,8 @@
 """Unittest for testing functions of umodbus"""
 
 import json
+from random import randint
+import struct
 import ulogging as logging
 import unittest
 from umodbus.tcp import TCP as ModbusTCPMaster
@@ -46,21 +48,139 @@ class TestTcpExample(unittest.TestCase):
                 self.assertGreaterEqual(
                     len(self._register_definitions[reg_type]), 1)
 
-    @unittest.skip('Test not yet implemented')
     def test__create_mbap_hdr(self) -> None:
-        pass
+        """Test creating a Modbus header"""
+        trans_id = randint(1, 1000)     # create a random transaction ID
+        modbus_pdu = b'\x05\x00\x7b\xff\x00'    # WRITE_SINGLE_COIL 123 to True
+        self._host.trans_id_ctr = trans_id
 
-    @unittest.skip('Test not yet implemented')
+        # 0x00 0x06 is the lenght of the Modbus Protocol Data Unit +1
+        # 0x0A is the cliend address
+        expectation = (struct.pack('>H', trans_id) + b'\x00\x00\x00\x06\x0A',
+                       trans_id)
+
+        result = self._host._create_mbap_hdr(slave_id=self._client_addr,
+                                             modbus_pdu=modbus_pdu)
+
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), len(expectation))
+        self.assertEqual(result, expectation)
+        self.assertEqual(self._host.trans_id_ctr, trans_id + 1)
+
     def test__bytes_to_bool(self) -> None:
-        pass
+        """Convert bytes list to boolean list"""
+        possibilities = [
+            (b'\x00', [False] * 8),
+            (b'\xff', [True] * 8),
+            (b'\x00\xff', [False] * 8 + [True] * 8),
+            (b'\xff\x00', [True] * 8 + [False] * 8),
+        ]
+        for pair in possibilities:
+            with self.subTest(pair=pair):
+                byte_list = pair[0]
+                expectation = pair[1]
+
+                result = self._host._bytes_to_bool(byte_list=byte_list)
+                self.assertIsInstance(result, list)
+                self.assertEqual(len(result), len(expectation))
+                self.assertTrue(all(isinstance(x, bool) for x in result))
+                self.assertEqual(result, expectation)
 
     @unittest.skip('Test not yet implemented')
     def test__to_short(self) -> None:
         pass
 
-    @unittest.skip('Test not yet implemented')
     def test__validate_resp_hdr(self) -> None:
-        pass
+        """Test response header validation"""
+        # positive path
+        # similar to @params in python
+        parameters = [
+            # (response, transaction ID, function_code, expectation)
+            # reading a single coil
+            (b'\x00\x01\x00\x00\x00\x04\x0a\x01\x01\x01', 1, 1, b'\x01\x01'),
+            (b'\x00\x02\x00\x00\x00\x04\x0a\x01\x01\x01', 2, 1, b'\x01\x01'),
+            # reading an input register
+            (b'\x00\x03\x00\x00\x00\x04\x0a\x02\x01\x00', 3, 2, b'\x01\x00'),
+            # reading a holding register
+            (
+                b'\x00\x04\x00\x00\x00\x05\x0a\x03\x02\x00\x13',
+                4,  # transaction ID
+                3,  # function code
+                b'\x02\x00\x13'
+            ),
+            # setting an input register
+            (
+                b'\x00\x05\x00\x00\x00\x05\x0a\x04\x02\xea\x0a',
+                5,  # transaction ID
+                4,  # function code
+                b'\x02\xea\x0a'
+            ),
+            # setting a single coil
+            (
+                b'\x00\x06\x00\x00\x00\x06\x0a\x05\x00\x7b\x00\x00',
+                6,  # transaction ID
+                5,  # function code
+                b'\x00\x7b\x00\x00'
+            ),
+            # setting a holding register
+            (
+                b'\x00\x07\x00\x00\x00\x06\x0a\x06\x00\x5d\x00\x14',
+                7,  # transaction ID
+                6,  # function code
+                b'\x00\x5d\x00\x14'
+            ),
+        ]
+
+        for pair in parameters:
+            with self.subTest(pair=pair):
+                response = pair[0]
+                trans_id = pair[1]
+                function_code = pair[2]
+                expectation = pair[3]
+
+                result = self._host._validate_resp_hdr(
+                    response=response,
+                    trans_id=trans_id,
+                    slave_id=self._client_addr,
+                    function_code=function_code)
+                self.test_logger.debug('result: {}, expectation: {}'.format(
+                    result, expectation))
+
+                self.assertIsInstance(result, bytes)
+                self.assertEqual(result, expectation)
+
+        # negative path, trigger asserts
+        data = {
+            #               TID                 SID FC
+            'input': b'\x00\x09\x00\x00\x00\x05\x0a\x03\x02\x00\x13',
+            'tid': 9,   # transaction ID
+            'sid': 10,  # slave ID
+            'fid': 3,   # function code, read holding register
+            'response': b'\x02\x00\x13'
+        }
+        # trigger wrong transaction ID assert
+        with self.assertRaises(ValueError):
+            self._host._validate_resp_hdr(
+                response=response,
+                trans_id=data['tid'] + 1,
+                slave_id=data['sid'],
+                function_code=data['fid'])
+
+        # trigger wrong function ID/throw Modbus exception code assert
+        with self.assertRaises(ValueError):
+            self._host._validate_resp_hdr(
+                response=response,
+                trans_id=data['tid'],
+                slave_id=data['sid'],
+                function_code=data['fid'] + 1)
+
+        # trigger wrong slave ID assert
+        with self.assertRaises(ValueError):
+            self._host._validate_resp_hdr(
+                response=response,
+                trans_id=data['tid'],
+                slave_id=data['sid'] + 1,
+                function_code=data['fid'])
 
     @unittest.skip('Test not yet implemented')
     def test__send_receive(self) -> None:
@@ -130,7 +250,7 @@ class TestTcpExample(unittest.TestCase):
             starting_addr=hreg_address,
             register_qty=register_qty)
 
-        self.test_logger.debug('Status of IST {}: {}, expectation: {}'.
+        self.test_logger.debug('Status of HREG {}: {}, expectation: {}'.
                                format(hreg_address,
                                       register_value,
                                       expectation))
@@ -259,9 +379,67 @@ class TestTcpExample(unittest.TestCase):
         self.assertTrue(all(isinstance(x, bool) for x in coil_status))
         self.assertEqual(coil_status, expectation_list)
 
-    @unittest.skip('Test not yet implemented')
     def test_write_single_register(self) -> None:
-        pass
+        """Test updating single holding register of client"""
+        hreg_address = \
+            self._register_definitions['HREGS']['EXAMPLE_HREG']['register']
+        register_qty = \
+            self._register_definitions['HREGS']['EXAMPLE_HREG']['len']
+        expectation = \
+            (self._register_definitions['HREGS']['EXAMPLE_HREG']['val'], )
+
+        #
+        # Check clean system (client register data is as initially defined)
+        #
+        # verify current state by reading holding register data
+        register_value = self._host.read_holding_registers(
+            slave_addr=self._client_addr,
+            starting_addr=hreg_address,
+            register_qty=register_qty)
+
+        self.test_logger.debug(
+            'Initial status of HREG {}: {}, expectation: {}'.format(
+                hreg_address,
+                register_value,
+                expectation))
+        self.assertIsInstance(register_value, tuple)
+        self.assertEqual(len(register_value), register_qty)
+        self.assertTrue(all(isinstance(x, int) for x in register_value))
+        self.assertEqual(register_value, expectation)
+
+        #
+        # Test setting holding register to x+1
+        #
+        # update holding register of client with a different than the current
+        # value
+        new_hreg_val = \
+            self._register_definitions['HREGS']['EXAMPLE_HREG']['val'] + 1
+
+        operation_status = self._host.write_single_register(
+            slave_addr=self._client_addr,
+            register_address=hreg_address,
+            register_value=new_hreg_val,
+            signed=False)
+        self.test_logger.debug(
+            '1. Result of setting HREG {} to {}: {}, expectation: {}'.format(
+                hreg_address, new_hreg_val, operation_status, (new_hreg_val, )))
+        self.assertIsInstance(operation_status, bool)
+        self.assertTrue(operation_status)
+
+        # verify setting of state by reading data back again
+        register_value = self._host.read_holding_registers(
+            slave_addr=self._client_addr,
+            starting_addr=hreg_address,
+            register_qty=register_qty)
+
+        self.test_logger.debug('1. Status of HREG {}: {}, expectation: {}'.
+                               format(hreg_address,
+                                      register_value,
+                                      expectation))
+        self.assertIsInstance(register_value, tuple)
+        self.assertEqual(len(register_value), register_qty)
+        self.assertTrue(all(isinstance(x, int) for x in register_value))
+        self.assertEqual(register_value, (new_hreg_val, ))
 
     @unittest.skip('Test not yet implemented')
     def test_write_multiple_coils(self) -> None:
