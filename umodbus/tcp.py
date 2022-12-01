@@ -225,7 +225,16 @@ class TCP(object):
 
         return mbap_hdr, trans_id
 
-    def _bytes_to_bool(self, byte_list: bytes) -> List[bool]:
+    def _bytes_to_bool(self, byte_list: bytes) -> List[bool, ...]:
+        """
+        Convert bytes to list of boolean values
+
+        :param      byte_list:  The byte list
+        :type       byte_list:  bytes
+
+        :returns:   Boolean representation
+        :rtype:     List[bool, ...]
+        """
         bool_list = []
         for index, byte in enumerate(byte_list):
             bool_list.extend([bool(byte & (1 << n)) for n in range(8)])
@@ -265,13 +274,13 @@ class TCP(object):
             '>HHHBB', response[:Const.MBAP_HDR_LENGTH + 1])
 
         if (trans_id != rec_tid):
-            raise ValueError('wrong transaction Id')
+            raise ValueError('wrong transaction ID')
 
         if (rec_pid != 0):
-            raise ValueError('invalid protocol Id')
+            raise ValueError('invalid protocol ID')
 
         if (slave_id != rec_uid):
-            raise ValueError('wrong slave Id')
+            raise ValueError('wrong slave ID')
 
         if (rec_fc == (function_code + Const.ERROR_BIAS)):
             raise ValueError('slave returned exception code: {:d}'.
