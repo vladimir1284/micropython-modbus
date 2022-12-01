@@ -7,9 +7,10 @@
 
 FROM micropython/unix:v1.18
 
-COPY ./ /home
-COPY umodbus /root/.micropython/lib/umodbus
-COPY unittest.py /root/.micropython/lib/unittest.py
+# use "volumes" in docker-compose file to remove need of rebuilding
+# COPY ./ /home
+# COPY umodbus /root/.micropython/lib/umodbus
+# COPY unittest.py /root/.micropython/lib/unittest.py
 
 RUN micropython-dev -m upip install micropython-ulogging
 RUN micropython-dev -m upip install micropython-urequests

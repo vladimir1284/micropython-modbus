@@ -13,6 +13,9 @@ services:
       context: .
       dockerfile: Dockerfile.client
     container_name: micropython-client
+    volumes:
+      - ./:/home
+      - ./umodbus:/root/.micropython/lib/umodbus
     expose:
       - "502"
     ports:
@@ -28,6 +31,9 @@ services:
       context: .
       dockerfile: Dockerfile.host
     container_name: micropython-host
+    volumes:
+      - ./:/home
+      - ./umodbus:/root/.micropython/lib/umodbus
     depends_on:
       - micropython-client
     networks:
