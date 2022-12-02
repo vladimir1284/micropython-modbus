@@ -186,14 +186,12 @@ class TestTcpExample(unittest.TestCase):
     def test__send_receive(self) -> None:
         pass
 
-    def test_read_coils(self) -> None:
-        """Test reading coils of client"""
+    def test_read_coils_single(self) -> None:
+        """Test reading sinlge coil of client"""
         coil_address = \
             self._register_definitions['COILS']['EXAMPLE_COIL']['register']
         coil_qty = self._register_definitions['COILS']['EXAMPLE_COIL']['len']
-        expectation_list = [
-            False, False, False, False, False, False, False, False
-        ]
+        expectation_list = [False] * 8 * coil_qty
         expectation_list[0] = \
             bool(self._register_definitions['COILS']['EXAMPLE_COIL']['val'])
 

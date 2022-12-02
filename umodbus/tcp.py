@@ -325,6 +325,19 @@ class TCP(object):
                    slave_addr: int,
                    starting_addr: int,
                    coil_qty: int) -> List[bool, ...]:
+        """
+        Read coils (COILS).
+
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The coil starting address
+        :type       starting_addr:  int
+        :param      coil_qty:       The amount of coils to read
+        :type       coil_qty:       int
+
+        :returns:   State of read coils as list
+        :rtype:     List[bool, ...]
+        """
         modbus_pdu = functions.read_coils(
             starting_address=starting_addr,
             quantity=coil_qty)
@@ -340,6 +353,19 @@ class TCP(object):
                              slave_addr: int,
                              starting_addr: int,
                              input_qty: int) -> List[bool, ...]:
+        """
+        Read discrete inputs (ISTS).
+
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The discrete input starting address
+        :type       starting_addr:  int
+        :param      input_qty:      The amount of discrete inputs to read
+        :type       input_qty:      int
+
+        :returns:   State of read discrete inputs as list
+        :rtype:     List[bool, ...]
+        """
         modbus_pdu = functions.read_discrete_inputs(
             starting_address=starting_addr,
             quantity=input_qty)
@@ -356,6 +382,21 @@ class TCP(object):
                                starting_addr: int,
                                register_qty: int,
                                signed: bool = True) -> Tuple[int, ...]:
+        """
+        Read holding registers (HREGS.
+
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The holding register starting address
+        :type       starting_addr:  int
+        :param      register_qty:   The amount of holding registers to read
+        :type       register_qty:   int
+        :param      signed:         Indicates if signed
+        :type       signed:         bool
+
+        :returns:   State of read holding register as tuple
+        :rtype:     Tuple[int, ...]
+        """
         modbus_pdu = functions.read_holding_registers(
             starting_address=starting_addr,
             quantity=register_qty)
@@ -371,7 +412,22 @@ class TCP(object):
                              slave_addr: int,
                              starting_addr: int,
                              register_qty: int,
-                             signed: int = True) -> Tuple[int, ...]:
+                             signed: bool = True) -> Tuple[int, ...]:
+        """
+        Read input registers (IREGS).
+
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The input register starting address
+        :type       starting_addr:  int
+        :param      register_qty:   The amount of input registers to read
+        :type       register_qty:   int
+        :param      signed:         Indicates if signed
+        :type       signed:         bool
+
+        :returns:   State of read input register as tuple
+        :rtype:     Tuple[int, ...]
+        """
         modbus_pdu = functions.read_input_registers(
             starting_address=starting_addr,
             quantity=register_qty)
@@ -423,6 +479,21 @@ class TCP(object):
                               register_address: int,
                               register_value: int,
                               signed: bool = True) -> bool:
+        """
+        Update a single register.
+
+        :param      slave_addr:        The slave address
+        :type       slave_addr:        int
+        :param      register_address:  The register address
+        :type       register_address:  int
+        :param      register_value:    The register value
+        :type       register_value:    int
+        :param      signed:            Indicates if signed
+        :type       signed:            bool
+
+        :returns:   Result of operation
+        :rtype:     bool
+        """
         modbus_pdu = functions.write_single_register(
             register_address=register_address,
             register_value=register_value,
