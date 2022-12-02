@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add initial test, testing the unittest itself
 - Add [unittest](unittest.py) implementation based on pfalcon's [micropython-unittest](https://github.com/pfalcon/pycopy-lib/blob/56ebf2110f3caa63a3785d439ce49b11e13c75c0/unittest/unittest.py)
 - Docstrings available for all functions of [functions.py](umodbus/functions.py), see #27
-- Typing hints availble for all functions of [functions.py](umodbus/functions.py), [serial.py](umodbus/serial.py) and [tcp.py](umodbus/tcp.py), see #27
+- Typing hints available for all functions of [functions.py](umodbus/functions.py), [serial.py](umodbus/serial.py) and [tcp.py](umodbus/tcp.py), see #27
 - Unittest for [functions.py](umodbus/functions.py), see #16
 - Unittest for [const.py](umodbus/const.py), see #16
 

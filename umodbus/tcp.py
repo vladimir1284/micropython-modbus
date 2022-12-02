@@ -383,7 +383,7 @@ class TCP(object):
                                register_qty: int,
                                signed: bool = True) -> Tuple[int, ...]:
         """
-        Read holding registers (HREGS.
+        Read holding registers (HREGS).
 
         :param      slave_addr:     The slave address
         :type       slave_addr:     int
