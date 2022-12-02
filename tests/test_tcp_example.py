@@ -38,6 +38,8 @@ class TestTcpExample(unittest.TestCase):
             self._register_definitions = json.load(file)
 
     def test_setup(self) -> None:
+        """Test successful setup of ModbusTCPMaster and the defined register"""
+        self.assertEqual(self._host.trans_id_ctr, 0)
         self.assertIsInstance(self._register_definitions, dict)
 
         for reg_type in ['COILS', 'HREGS', 'ISTS', 'IREGS']:

@@ -14,6 +14,3 @@ FROM micropython/unix:v1.18
 
 RUN micropython-dev -m upip install micropython-ulogging
 RUN micropython-dev -m upip install micropython-urequests
-# RUN micropython-dev -c "import unittest; unittest.main(name='tests.test_tcp_example', fromlist=['TestTcpExample'])"
-
-# ENTRYPOINT ["/bin/bash", "-c"]

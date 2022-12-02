@@ -15,6 +15,7 @@ Using and testing this `micropython-modbus` library
 	- [Spin up container](#spin-up-container)
 		- [Simple container](#simple-container)
 		- [Enter MicroPython REPL](#enter-micropython-repl)
+		- [Manually run unittests](#manually-run-unittests)
 		- [Custom container for unittests](#custom-container-for-unittests)
 		- [Docker compose](#docker-compose)
 			- [Test for TCP example](#test-for-tcp-example)
@@ -111,7 +112,7 @@ docker pull micropython/unix:v1.18
 
 #### Simple container
 
-Use this command for your first tests, or to run some MicroPython commands in
+Use this command for your first tests or to run some MicroPython commands in
 a simple REPL
 
 ```bash
@@ -134,8 +135,10 @@ Use Ctrl-D to exit, Ctrl-E for paste mode
 >>>
 ```
 
+#### Manually run unittests
+
 In order to manually execute only a specific set of tests use the following
-command  inside the container
+command inside the container
 
 ```bash
 # run all unittests defined in "tests" directory and exit with status result
@@ -155,17 +158,18 @@ docker build \
 ```
 
 The unittests are executed during the building process. It will exit with a
-non-zero status on a unittest failure.
+non-zero status in case of a unittest failure.
 
-The return value can be collected by `echo $?`, which will be either `0` in
-case all tests passed, or `1` if one or multiple tests failed.
+The return value can be collected by `echo $?` (on Linux based systems), which
+will be either `0` in case all tests passed, or `1` if one or multiple tests
+failed.
 
 #### Docker compose
 
 The following command uses the setup defined in the `docker-compose.yaml` file
 to act as two MicroPython devices communicating via TCP. The container
 `micropython-host` defined by `Dockerfile.host` acts as host and sets/gets
-data from the client as defined by `tcp_host_example.py`. On the other hand
+data at/from the client as defined by `tcp_host_example.py`. On the other hand
 the container `micropython-client` defined by `Dockerfile.client` acts as
 client and provides data for the host as defined by `tcp_client_example.py`.
 The port defined in `tcp_host_example.py` and `tcp_client_example.py` has to
