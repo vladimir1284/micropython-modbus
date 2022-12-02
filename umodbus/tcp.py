@@ -225,15 +225,15 @@ class TCP(object):
 
         return mbap_hdr, trans_id
 
-    def _bytes_to_bool(self, byte_list: bytes) -> List[bool, ...]:
+    def _bytes_to_bool(self, byte_list: bytes) -> List[bool]:
         """
         Convert bytes to list of boolean values
 
         :param      byte_list:  The byte list
         :type       byte_list:  bytes
 
-        :returns:   Boolean representation
-        :rtype:     List[bool, ...]
+        :returns:   Boolean representation, multiple of 8
+        :rtype:     List[bool]
         """
         bool_list = []
         for index, byte in enumerate(byte_list):
@@ -324,7 +324,7 @@ class TCP(object):
     def read_coils(self,
                    slave_addr: int,
                    starting_addr: int,
-                   coil_qty: int) -> List[bool, ...]:
+                   coil_qty: int) -> List[bool]:
         """
         Read coils (COILS).
 
@@ -336,7 +336,7 @@ class TCP(object):
         :type       coil_qty:       int
 
         :returns:   State of read coils as list
-        :rtype:     List[bool, ...]
+        :rtype:     List[bool]
         """
         modbus_pdu = functions.read_coils(
             starting_address=starting_addr,
@@ -352,7 +352,7 @@ class TCP(object):
     def read_discrete_inputs(self,
                              slave_addr: int,
                              starting_addr: int,
-                             input_qty: int) -> List[bool, ...]:
+                             input_qty: int) -> List[bool]:
         """
         Read discrete inputs (ISTS).
 
@@ -364,7 +364,7 @@ class TCP(object):
         :type       input_qty:      int
 
         :returns:   State of read discrete inputs as list
-        :rtype:     List[bool, ...]
+        :rtype:     List[bool]
         """
         modbus_pdu = functions.read_discrete_inputs(
             starting_address=starting_addr,
