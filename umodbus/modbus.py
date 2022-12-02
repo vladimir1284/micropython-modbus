@@ -513,4 +513,3 @@ class Modbus(object):
                             pass
                 else:
                     pass
-
