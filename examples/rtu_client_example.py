@@ -15,7 +15,7 @@ communication speed can be defined by the user.
 """
 
 # import modbus client classes
-from umodbus.modbus import ModbusRTU
+from umodbus.serial import ModbusRTU
 
 # ===============================================
 # RTU Slave setup

@@ -228,6 +228,7 @@ of this library.
 
 * **sfera-labs** - *Initial work* - [giampiero7][ref-sferalabs-exo-sense]
 * **pycom** - *Initial Modbus work* - [pycom-modbus][ref-pycom-modbus]
+* **pfalcon** - *Initial MicroPython unittest module* - [micropython-unittest][ref-pfalcon-unittest]:
 
 <!-- Links -->
 [ref-sferalabs-exo-sense]: https://github.com/sfera-labs/exo-sense-py-modbus
@@ -238,3 +239,4 @@ of this library.
 [ref-myevse-be]: https://brainelectronics.de/
 [ref-myevse-tindie]: https://www.tindie.com/stores/brainelectronics/
 [ref-giampiero7]: https://github.com/giampiero7
+[ref-pfalcon-unittest]: https://github.com/pfalcon/pycopy-lib/blob/56ebf2110f3caa63a3785d439ce49b11e13c75c0/unittest/unittest.py

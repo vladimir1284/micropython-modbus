@@ -14,40 +14,52 @@ the client can be defined by the user.
 """
 
 # system packages
-import network
 import time
 
 # import modbus host classes
-# from umodbus.modbus import ModbusTCP
 from umodbus.tcp import TCP as ModbusTCPMaster
 
+IS_DOCKER_MICROPYTHON = False
+try:
+    import network
+except ImportError:
+    IS_DOCKER_MICROPYTHON = True
+    import sys
+
+
 # ===============================================
-# connect to a network
-station = network.WLAN(network.STA_IF)
-if station.active() and station.isconnected():
-    station.disconnect()
+if IS_DOCKER_MICROPYTHON is False:
+    # connect to a network
+    station = network.WLAN(network.STA_IF)
+    if station.active() and station.isconnected():
+        station.disconnect()
+        time.sleep(1)
+    station.active(False)
     time.sleep(1)
-station.active(False)
-time.sleep(1)
-station.active(True)
+    station.active(True)
 
-station.connect('SSID', 'PASSWORD')
-time.sleep(1)
+    # station.connect('SSID', 'PASSWORD')
+    station.connect('TP-LINK_FBFC3C', 'C1FBFC3C')
+    time.sleep(1)
 
-while True:
-    print('Waiting for WiFi connection...')
-    if station.isconnected():
-        print('Connected to WiFi.')
-        print(station.ifconfig())
-        break
-    time.sleep(2)
+    while True:
+        print('Waiting for WiFi connection...')
+        if station.isconnected():
+            print('Connected to WiFi.')
+            print(station.ifconfig())
+            break
+        time.sleep(2)
 
 # ===============================================
 # TCP Slave setup
 slave_tcp_port = 502            # port to listen to
 slave_addr = 10                 # bus address of client
+
 # set IP address of the MicroPython device acting as client (slave)
-slave_ip = '192.168.178.69'     # IP address
+if IS_DOCKER_MICROPYTHON:
+    slave_ip = '172.24.0.2'     # static Docker IP address
+else:
+    slave_ip = '192.168.178.69'     # IP address
 
 # TCP Master setup
 # act as host, get Modbus data via TCP from a client device
@@ -187,3 +199,6 @@ time.sleep(1)
 print()
 
 print("Finished requesting/setting data on client")
+
+if IS_DOCKER_MICROPYTHON:
+    sys.exit(0)

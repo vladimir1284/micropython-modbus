@@ -1,0 +1,18 @@
+# Build image
+# $ docker build -t micropython-test -f Dockerfile.tests .
+# if a unittest fails, it will exit with non-zero code
+#
+# Run image, only possible if all tests passed
+# $ docker run -it --rm --name micropython-test micropython-test
+
+FROM micropython/unix:v1.18
+
+COPY ./ /home
+COPY umodbus /root/.micropython/lib/umodbus
+COPY unittest.py /root/.micropython/lib/unittest.py
+
+RUN micropython-dev -m upip install micropython-ulogging
+RUN micropython-dev -m upip install micropython-urequests
+RUN micropython-dev -c "import unittest; unittest.main('tests')"
+
+ENTRYPOINT ["/bin/bash"]
