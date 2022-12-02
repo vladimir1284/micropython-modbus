@@ -85,7 +85,7 @@ network and install them via `upip` as follows
 
 ```python
 import upip
-upip.install('micropython-brainelectronics-helper')
+upip.install('micropython-brainelectronics-helpers')
 ```
 
 or check the README of the
