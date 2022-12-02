@@ -15,19 +15,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
-## [2.0.0] - 2022-11-30
+## [2.0.0] - 2022-12-02
 ### Added
 - Perform MicroPython based unittests on every `Test` workflow run
 - Add usage description of docker based MicroPython unittest framework in [USAGE](USAGE.md)
 - Add [docker compose file](docker-compose.yaml) based in MicroPython 1.18 image
+- Add [TCP client Dockerfile](Dockerfile.client), [TCP host Dockerfile](Dockerfile.host), [unittest Dockerfile](Dockerfile.tests) and [TCP unittest specific Dockerfile](Dockerfile.test_tcp_example). All based on MicroPython 1.18 image
 - Add initial test, testing the unittest itself
 - Add [unittest](unittest.py) implementation based on pfalcon's [micropython-unittest](https://github.com/pfalcon/pycopy-lib/blob/56ebf2110f3caa63a3785d439ce49b11e13c75c0/unittest/unittest.py)
 - Docstrings available for all functions of [functions.py](umodbus/functions.py), see #27
-- Typing hints availble for all functions of [functions.py](umodbus/functions.py), [serial.py](umodbus/serial.py) and [tcp.py](umodbus/tcp.py), , see #27
+- Typing hints availble for all functions of [functions.py](umodbus/functions.py), [serial.py](umodbus/serial.py) and [tcp.py](umodbus/tcp.py), see #27
 - Unittest for [functions.py](umodbus/functions.py), see #16
 - Unittest for [const.py](umodbus/const.py), see #16
 
 ### Changed
+- Use default values for all registers defined in the [example JSON](examples/example.json)
+- [TCP host example](examples/tcp_host_example.py) and [TCP client example](examples/tcp_client_example.py) define a static IP address and skip further WiFi setup steps in case a Docker usage is detected by a failing import of the `network` module, contributes to #16
 - Define all Modbus function codes as `const()` to avoid external modifications, contributes to #18
 - Remove dependency to `Serial` and `requests` from `umodbus.modbus`, see #18
 - `ModbusRTU` class is part of [serial.py](umodbus/serial.py), see #18
@@ -140,9 +143,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/1.3.0...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.0.0...develop
 
-[1.3.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.3.0
+[2.0.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.0.0
 [1.2.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.2.0
 [1.1.1]: https://github.com/brainelectronics/micropython-modbus/tree/1.1.1
 [1.1.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.1.0
