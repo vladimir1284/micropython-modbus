@@ -17,8 +17,7 @@ Using and testing this `micropython-modbus` library
 		- [Enter MicroPython REPL](#enter-micropython-repl)
 		- [Custom container for unittests](#custom-container-for-unittests)
 		- [Docker compose](#docker-compose)
-	- [Run unittests](#run-unittests)
-		- [Docker compose](#docker-compose-1)
+			- [Test for TCP example](#test-for-tcp-example)
 - [MicroPython](#micropython)
 	- [TCP](#tcp-1)
 		- [Client](#client)
@@ -176,35 +175,14 @@ be open and optionally exposed in the `docker-compose.yaml` file.
 docker compose up --build --exit-code-from micropython-host
 ```
 
-<!--
-```bash
-# spin up container in deamon mode
-docker compose up -d
+The option `--build` can be skipped on the second run, to avoid rebuilds of
+the containers. All "dynamic" data is shared via `volumes`
 
-# list all running containers
-docker ps
-
-# log into the micropython container afterwards
-docker exec -it micropython bash
-
-# finally stop the micropython container again
-docker stop micropython
-```
-
-### Run unittests
-
-#### Docker compose
-
-Spin up the container with the following command to execute the tests and
-report it's result back to the host machine.
+##### Test for TCP example
 
 ```bash
-RUN_UNITTESTS=1 docker compose up --exit-code-from micropython
+docker compose -f docker-compose-tcp-test.yaml up --build --exit-code-from micropython-host
 ```
-
-The return value can be collected by `echo $?`, which will be either `0` in
-case all tests passed, or `1` if one or multiple tests failed.
--->
 
 ## MicroPython
 
