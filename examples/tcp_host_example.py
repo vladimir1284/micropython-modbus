@@ -73,6 +73,11 @@ host = ModbusTCPMaster(
 # commond slave register setup, to be used with the Master example above
 register_definitions = {
     "COILS": {
+        "RESET_REGISTER_DATA_COIL": {
+            "register": 42,
+            "len": 1,
+            "val": 0
+        },
         "EXAMPLE_COIL": {
             "register": 123,
             "len": 1,
@@ -194,6 +199,19 @@ register_value = host.read_input_registers(
     register_qty=register_qty,
     signed=False)
 print('Status of IREG {}: {}'.format(ireg_address, register_value))
+time.sleep(1)
+
+# reset all registers back to their default values on the client
+# WRITE COILS
+print('Resetting register data to default values...')
+coil_address = \
+    register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['register']
+new_coil_val = True
+operation_status = host.write_single_coil(
+    slave_addr=slave_addr,
+    output_address=coil_address,
+    output_value=new_coil_val)
+print('Result of setting COIL {}: {}'.format(coil_address, operation_status))
 time.sleep(1)
 
 print()
