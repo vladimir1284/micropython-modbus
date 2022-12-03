@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
-## [2.0.0] - 2022-12-02
+## [2.0.0] - 2022-12-03
 ### Added
 - Perform MicroPython based unittests on every `Test` workflow run
 - Add usage description of docker based MicroPython unittest framework in [USAGE](USAGE.md)
@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unittest for [const.py](umodbus/const.py), see #16
 
 ### Changed
-- Use default values for all registers defined in the [example JSON](examples/example.json)
+- Use default values for all registers defined in the [example JSON](registers/example.json)
 - [TCP host example](examples/tcp_host_example.py) and [TCP client example](examples/tcp_client_example.py) define a static IP address and skip further WiFi setup steps in case a Docker usage is detected by a failing import of the `network` module, contributes to #16
 - Define all Modbus function codes as `const()` to avoid external modifications, contributes to #18
 - Remove dependency to `Serial` and `requests` from `umodbus.modbus`, see #18
@@ -39,9 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Imports changed from:
     - `from umodbus.modbus import ModbusRTU` to `from umodbus.serial import ModbusRTU`
     - `from umodbus.modbus import ModbusTCP` to `from umodbus.tcp import ModbusTCP`
+- `read_coils` and `read_discrete_inputs` return a list with the same length as the requested quantity instead of always 8, see #12 and #25
+- Common functions `bytes_to_bool` and `to_short` moved to [functions.py](umodbus/functions.py)
 
 ### Fixed
 - `write_multiple_coils` function works as specified. Constructed outputs value was incorrect, see #22
+- `read_coils` returns list with amount of requested coils, see #12
+- `read_holding_registers` returns list with amount of requested registers, see #25
 
 ## [1.2.0] - 2022-11-13
 ### Added
