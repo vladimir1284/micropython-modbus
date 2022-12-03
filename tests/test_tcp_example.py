@@ -489,7 +489,17 @@ class TestTcpExample(unittest.TestCase):
 
     def tearDown(self) -> None:
         """Run after every test method"""
-        pass
+        # reset the client data back to the default values
+        coil_address = \
+            self._register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['register']     # noqa: E501
+
+        operation_status = self._host.write_single_coil(
+            slave_addr=self._client_addr,
+            output_address=coil_address,
+            output_value=True)
+
+        self.assertIsInstance(operation_status, bool)
+        self.assertTrue(operation_status)
 
 
 if __name__ == '__main__':
