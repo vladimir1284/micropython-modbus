@@ -174,6 +174,7 @@ class TestTcpExample(unittest.TestCase):
 
     def test_read_coils_single(self) -> None:
         """Test reading sinlge coil of client"""
+        # read coil with state ON/True
         coil_address = \
             self._register_definitions['COILS']['EXAMPLE_COIL']['register']
         coil_qty = self._register_definitions['COILS']['EXAMPLE_COIL']['len']
@@ -190,6 +191,77 @@ class TestTcpExample(unittest.TestCase):
                                format(coil_address,
                                       coil_status,
                                       expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        self.assertEqual(coil_status, expectation_list)
+
+        # read coil with state OFF/False
+        coil_address = \
+            self._register_definitions['COILS']['EXAMPLE_COIL_OFF']['register']
+        coil_qty = \
+            self._register_definitions['COILS']['EXAMPLE_COIL_OFF']['len']
+        expectation_list = [bool(
+            self._register_definitions['COILS']['EXAMPLE_COIL_OFF']['val']
+        )]
+
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug('Status of COIL {}: {}, expectation: {}'.
+                               format(coil_address,
+                                      coil_status,
+                                      expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        self.assertEqual(coil_status, expectation_list)
+
+    def test_read_coils_multiple(self) -> None:
+        """Test reading multiple coils of client"""
+        coil_address = \
+            self._register_definitions['COILS']['EXAMPLE_COIL_MIXED']['register']     # noqa: E501
+        coil_qty = \
+            self._register_definitions['COILS']['EXAMPLE_COIL_MIXED']['len']
+        expectation_list = list(
+            map(bool,
+                self._register_definitions['COILS']['EXAMPLE_COIL_MIXED']['val']    # noqa: E501
+                )
+        )
+
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Status of COIL {} lenght {}: {}, expectation: {}'.format(
+                coil_address, coil_qty, coil_status, expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        # self.assertEqual(coil_status, expectation_list)
+
+        coil_address = \
+            self._register_definitions['COILS']['ANOTHER_EXAMPLE_COIL']['register']     # noqa: E501
+        coil_qty = \
+            self._register_definitions['COILS']['ANOTHER_EXAMPLE_COIL']['len']
+        expectation_list = list(
+            map(bool,
+                self._register_definitions['COILS']['ANOTHER_EXAMPLE_COIL']['val']    # noqa: E501
+                )
+        )
+
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Status of COIL {} lenght {}: {}, expectation: {}'.format(
+                coil_address, coil_qty, coil_status, expectation_list))
         self.assertIsInstance(coil_status, list)
         self.assertEqual(len(coil_status), coil_qty)
         self.assertTrue(all(isinstance(x, bool) for x in coil_status))
@@ -218,7 +290,7 @@ class TestTcpExample(unittest.TestCase):
         self.assertTrue(all(isinstance(x, bool) for x in input_status))
         self.assertEqual(input_status, expectation_list)
 
-    def test_read_holding_registers(self) -> None:
+    def test_read_holding_registers_single(self) -> None:
         """Test reading holding registers of client"""
         hreg_address = \
             self._register_definitions['HREGS']['EXAMPLE_HREG']['register']
@@ -236,6 +308,29 @@ class TestTcpExample(unittest.TestCase):
                                format(hreg_address,
                                       register_value,
                                       expectation))
+        self.assertIsInstance(register_value, tuple)
+        self.assertEqual(len(register_value), register_qty)
+        self.assertTrue(all(isinstance(x, int) for x in register_value))
+        self.assertEqual(register_value, expectation)
+
+    def test_read_holding_registers_multiple(self) -> None:
+        """Test reading multiple holding registers of client"""
+        hreg_address = \
+            self._register_definitions['HREGS']['ANOTHER_EXAMPLE_HREG']['register']     # noqa: E501
+        register_qty = \
+            self._register_definitions['HREGS']['ANOTHER_EXAMPLE_HREG']['len']
+        expectation = tuple(
+            self._register_definitions['HREGS']['ANOTHER_EXAMPLE_HREG']['val']
+        )
+
+        register_value = self._host.read_holding_registers(
+            slave_addr=self._client_addr,
+            starting_addr=hreg_address,
+            register_qty=register_qty)
+
+        self.test_logger.debug(
+            'Status of HREG {} length {}: {}, expectation: {}'.format(
+                hreg_address, register_qty, register_value, expectation))
         self.assertIsInstance(register_value, tuple)
         self.assertEqual(len(register_value), register_qty)
         self.assertTrue(all(isinstance(x, int) for x in register_value))
@@ -271,9 +366,6 @@ class TestTcpExample(unittest.TestCase):
             self._register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['register']     # noqa: E501
         coil_qty = \
             self._register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['len']  # noqa: E501
-        expectation_list = [bool(
-            self._register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['val']  # noqa: E501
-        )]
 
         operation_status = self._host.write_single_coil(
             slave_addr=self._client_addr,

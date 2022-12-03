@@ -15,7 +15,7 @@ import struct
 from . import const as Const
 
 # typing not natively supported on MicroPython
-from .typing import List, Union
+from .typing import List, Optional, Union
 
 
 def read_coils(starting_address: int, quantity: int) -> bytes:
