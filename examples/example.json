@@ -1,5 +1,13 @@
 {
     "COILS": {
+        "RESET_REGISTER_DATA_COIL": {
+            "register": 42,
+            "len": 1,
+            "val": 0,
+            "description": "Set this COIL to true to reset all register values back to the default state/value",
+            "range": "",
+            "unit": ""
+        },
         "EXAMPLE_COIL": {
             "register": 123,
             "len": 1,

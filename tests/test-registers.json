@@ -1,5 +1,13 @@
 {
     "COILS": {
+        "RESET_REGISTER_DATA_COIL": {
+            "register": 42,
+            "len": 1,
+            "val": 0,
+            "description": "Reset all registers back to the default value, Coils (setter+getter) [0, 1]",
+            "range": "",
+            "unit": ""
+        },
         "EXAMPLE_COIL": {
             "register": 123,
             "len": 1,
