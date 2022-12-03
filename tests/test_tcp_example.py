@@ -283,6 +283,44 @@ class TestTcpExample(unittest.TestCase):
         self.assertTrue(all(isinstance(x, int) for x in register_value))
         self.assertEqual(register_value, expectation)
 
+    def test_reset_client_data(self) -> None:
+        """Test resettig client data to default"""
+        coil_address = \
+            self._register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['register']     # noqa: E501
+        coil_qty = \
+            self._register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['len']  # noqa: E501
+        expectation_list = [False] * 8 * coil_qty
+        expectation_list[0] = bool(
+            self._register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['val']  # noqa: E501
+        )
+
+        operation_status = self._host.write_single_coil(
+            slave_addr=self._client_addr,
+            output_address=coil_address,
+            output_value=True)
+
+        self.test_logger.debug(
+            'Result of setting COIL {} to {}: {}, expectation: {}'.format(
+                coil_address, True, operation_status, True))
+        self.assertIsInstance(operation_status, bool)
+        self.assertTrue(operation_status)
+
+        # The coil value is actually True for a very short time
+
+        # verify setting of state by reading data back again
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Status of COIL {}: {}, expectation: {}'.format(
+                coil_address, coil_status, expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), 8)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        self.assertEqual(coil_status, expectation_list)
+
     def test_write_single_coil(self) -> None:
         """Test updating single coil of client"""
         coil_address = \
