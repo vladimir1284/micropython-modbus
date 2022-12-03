@@ -59,7 +59,7 @@ the [modules submodule](modules)
 
 ```bash
 python modules/read_device_info_registers.py \
---file=examples/example.json \
+--file=registers/example.json \
 --connection=tcp \
 --address=192.168.178.69 \
 --port=502 \
@@ -73,14 +73,14 @@ Or use the even more convenient wrapper script for the wrapper.
 
 ```bash
 cd examples
-sh read_registers_tcp.sh 192.168.178.69 example.json 502
+sh read_registers_tcp.sh 192.168.178.69 ../registers/example.json 502
 ```
 
 #### Write data
 
 ```bash
 python modules/write_device_info_registers.py \
---file=examples/set-example.json \
+--file=registers/set-example.json \
 --connection=tcp \
 --address=192.168.178.69 \
 --port=502 \
@@ -94,7 +94,7 @@ Or use the even more convenient wrapper script for the wrapper.
 
 ```bash
 cd examples
-sh write_registers_tcp.sh 192.168.178.69 set-example.json 502
+sh write_registers_tcp.sh 192.168.178.69 ../registers/set-example.json 502
 ```
 
 ## Docker development environment

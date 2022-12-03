@@ -189,7 +189,7 @@ Act as client, provide Modbus data via RTU or TCP to a host device.
 See [Modbus TCP Client example](examples/tcp_client_example.py) and
 [Modbus RTU Client example](examples/rtu_client_example.py)
 
-Both examples are using [example register definitions](examples/example.json)
+Both examples are using [example register definitions](registers/example.json)
 
 Use the provided example scripts [read RTU](examples/read_registers_rtu.sh) or
 [read TCP](examples/read_registers_tcp.sh) to read the data from the devices.
