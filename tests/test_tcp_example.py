@@ -69,29 +69,6 @@ class TestTcpExample(unittest.TestCase):
         self.assertEqual(result, expectation)
         self.assertEqual(self._host.trans_id_ctr, trans_id + 1)
 
-    def test__bytes_to_bool(self) -> None:
-        """Convert bytes list to boolean list"""
-        possibilities = [
-            (b'\x00', [False] * 8),
-            (b'\xff', [True] * 8),
-            (b'\x00\xff', [False] * 8 + [True] * 8),
-            (b'\xff\x00', [True] * 8 + [False] * 8),
-        ]
-        for pair in possibilities:
-            with self.subTest(pair=pair):
-                byte_list = pair[0]
-                expectation = pair[1]
-
-                result = self._host._bytes_to_bool(byte_list=byte_list)
-                self.assertIsInstance(result, list)
-                self.assertEqual(len(result), len(expectation))
-                self.assertTrue(all(isinstance(x, bool) for x in result))
-                self.assertEqual(result, expectation)
-
-    @unittest.skip('Test not yet implemented')
-    def test__to_short(self) -> None:
-        pass
-
     def test__validate_resp_hdr(self) -> None:
         """Test response header validation"""
         # positive path
@@ -193,9 +170,9 @@ class TestTcpExample(unittest.TestCase):
         coil_address = \
             self._register_definitions['COILS']['EXAMPLE_COIL']['register']
         coil_qty = self._register_definitions['COILS']['EXAMPLE_COIL']['len']
-        expectation_list = [False] * 8 * coil_qty
-        expectation_list[0] = \
+        expectation_list = [
             bool(self._register_definitions['COILS']['EXAMPLE_COIL']['val'])
+        ]
 
         coil_status = self._host.read_coils(
             slave_addr=self._client_addr,
@@ -207,7 +184,7 @@ class TestTcpExample(unittest.TestCase):
                                       coil_status,
                                       expectation_list))
         self.assertIsInstance(coil_status, list)
-        self.assertEqual(len(coil_status), 8)
+        self.assertEqual(len(coil_status), coil_qty)
         self.assertTrue(all(isinstance(x, bool) for x in coil_status))
         self.assertEqual(coil_status, expectation_list)
 
@@ -217,10 +194,8 @@ class TestTcpExample(unittest.TestCase):
             self._register_definitions['ISTS']['EXAMPLE_ISTS']['register']
         input_qty = self._register_definitions['ISTS']['EXAMPLE_ISTS']['len']
         expectation_list = [
-            False, False, False, False, False, False, False, False
-        ]
-        expectation_list[0] = \
             bool(self._register_definitions['ISTS']['EXAMPLE_ISTS']['val'])
+        ]
 
         input_status = self._host.read_discrete_inputs(
             slave_addr=self._client_addr,
@@ -232,7 +207,7 @@ class TestTcpExample(unittest.TestCase):
                                       input_status,
                                       expectation_list))
         self.assertIsInstance(input_status, list)
-        self.assertEqual(len(input_status), 8)
+        self.assertEqual(len(input_status), input_qty)
         self.assertTrue(all(isinstance(x, bool) for x in input_status))
         self.assertEqual(input_status, expectation_list)
 
@@ -289,10 +264,9 @@ class TestTcpExample(unittest.TestCase):
             self._register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['register']     # noqa: E501
         coil_qty = \
             self._register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['len']  # noqa: E501
-        expectation_list = [False] * 8 * coil_qty
-        expectation_list[0] = bool(
+        expectation_list = [bool(
             self._register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['val']  # noqa: E501
-        )
+        )]
 
         operation_status = self._host.write_single_coil(
             slave_addr=self._client_addr,
@@ -301,7 +275,7 @@ class TestTcpExample(unittest.TestCase):
 
         self.test_logger.debug(
             'Result of setting COIL {} to {}: {}, expectation: {}'.format(
-                coil_address, True, operation_status, True))
+                coil_address, True, operation_status, [True]))
         self.assertIsInstance(operation_status, bool)
         self.assertTrue(operation_status)
 
@@ -315,11 +289,11 @@ class TestTcpExample(unittest.TestCase):
 
         self.test_logger.debug(
             'Status of COIL {}: {}, expectation: {}'.format(
-                coil_address, coil_status, expectation_list))
+                coil_address, coil_status, [False]))
         self.assertIsInstance(coil_status, list)
-        self.assertEqual(len(coil_status), 8)
+        self.assertEqual(len(coil_status), coil_qty)
         self.assertTrue(all(isinstance(x, bool) for x in coil_status))
-        self.assertEqual(coil_status, expectation_list)
+        self.assertEqual(coil_status, [False])
 
     def test_write_single_coil(self) -> None:
         """Test updating single coil of client"""
@@ -327,10 +301,8 @@ class TestTcpExample(unittest.TestCase):
             self._register_definitions['COILS']['EXAMPLE_COIL']['register']
         coil_qty = self._register_definitions['COILS']['EXAMPLE_COIL']['len']
         expectation_list = [
-            False, False, False, False, False, False, False, False
-        ]
-        expectation_list[0] = \
             bool(self._register_definitions['COILS']['EXAMPLE_COIL']['val'])
+        ]
 
         #
         # Check clean system (client register data is as initially defined)
@@ -347,7 +319,7 @@ class TestTcpExample(unittest.TestCase):
                 coil_status,
                 expectation_list))
         self.assertIsInstance(coil_status, list)
-        self.assertEqual(len(coil_status), 8)
+        self.assertEqual(len(coil_status), coil_qty)
         self.assertTrue(all(isinstance(x, bool) for x in coil_status))
         self.assertEqual(coil_status, expectation_list)
 
@@ -380,7 +352,7 @@ class TestTcpExample(unittest.TestCase):
                                       coil_status,
                                       expectation_list))
         self.assertIsInstance(coil_status, list)
-        self.assertEqual(len(coil_status), 8)
+        self.assertEqual(len(coil_status), coil_qty)
         self.assertTrue(all(isinstance(x, bool) for x in coil_status))
         self.assertEqual(coil_status, expectation_list)
 
@@ -413,7 +385,7 @@ class TestTcpExample(unittest.TestCase):
                                       coil_status,
                                       expectation_list))
         self.assertIsInstance(coil_status, list)
-        self.assertEqual(len(coil_status), 8)
+        self.assertEqual(len(coil_status), coil_qty)
         self.assertTrue(all(isinstance(x, bool) for x in coil_status))
         self.assertEqual(coil_status, expectation_list)
 
