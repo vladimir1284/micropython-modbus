@@ -34,7 +34,7 @@ class TestTcpExample(unittest.TestCase):
             slave_port=self._client_tcp_port,
             timeout=5.0)
 
-        test_register_file = 'tests/test-registers.json'
+        test_register_file = 'registers/example.json'
         try:
             with open(test_register_file, 'r') as file:
                 self._register_definitions = json.load(file)

@@ -24,6 +24,7 @@ try:
     import network
 except ImportError:
     IS_DOCKER_MICROPYTHON = True
+    import json
 
 
 # ===============================================
@@ -108,13 +109,12 @@ register_definitions = {
     }
 }
 
-"""
 # alternatively the register definitions can also be loaded from a JSON file
-import json
-
-with open('registers/example.json', 'r') as file:
-    register_definitions = json.load(file)
-"""
+# this is always done if Docker is used for testing purpose in order to keep
+# the client registers in sync with the test registers
+if IS_DOCKER_MICROPYTHON:
+    with open('registers/example.json', 'r') as file:
+        register_definitions = json.load(file)
 
 print('Setting up registers ...')
 # use the defined values of each register type provided by register_definitions

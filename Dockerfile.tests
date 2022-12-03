@@ -9,7 +9,7 @@ FROM micropython/unix:v1.18
 
 COPY ./ /home
 # keep examples and tests registers JSON file easily in sync
-COPY examples/example.json /home/tests/test-registers.json
+COPY registers/example.json /home/tests/test-registers.json
 COPY umodbus /root/.micropython/lib/umodbus
 COPY unittest.py /root/.micropython/lib/unittest.py
 
