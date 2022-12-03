@@ -34,8 +34,15 @@ class TestTcpExample(unittest.TestCase):
             slave_port=self._client_tcp_port,
             timeout=5.0)
 
-        with open('tests/test-registers.json', 'r') as file:
-            self._register_definitions = json.load(file)
+        test_register_file = 'tests/test-registers.json'
+        try:
+            with open(test_register_file, 'r') as file:
+                self._register_definitions = json.load(file)
+        except Exception as e:
+            self.test_logger.error(
+                'Is the test register file available at {}?'.format(
+                    test_register_file))
+            raise e
 
     def test_setup(self) -> None:
         """Test successful setup of ModbusTCPMaster and the defined register"""
