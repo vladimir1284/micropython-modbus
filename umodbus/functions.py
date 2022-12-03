@@ -343,6 +343,34 @@ def exception_response(function_code: int, exception_code: int) -> bytes:
     return struct.pack('>BB', Const.ERROR_BIAS + function_code, exception_code)
 
 
+def bytes_to_bool(byte_list: bytes, bit_qty: Optional[int] = 1) -> List[bool]:
+    """
+    Convert bytes to list of boolean values
+
+    :param      byte_list:  The byte list
+    :type       byte_list:  bytes
+    :param      bit_qty:    Amount of bits received
+    :type       bit_qty:    Optional[int]
+
+    :returns:   Boolean representation
+    :rtype:     List[bool]
+    """
+    # evil hack for missing keyword support in MicroPython format()
+    fmt = '{:0' + str(bit_qty) + 'b}'
+
+    bool_list = [bool(int(x)) for x in fmt.format(list(byte_list)[0])]
+
+    # invert list due to byte order
+    return bool_list[::-1]
+
+
+def to_short(byte_array: bytearray, signed: bool = True) -> bytes:
+    response_quantity = int(len(byte_array) / 2)
+    fmt = '>' + (('h' if signed else 'H') * response_quantity)
+
+    return struct.unpack(fmt, byte_array)
+
+
 def float_to_bin(num: float) -> bin:
     """
     Convert floating point value to binary
