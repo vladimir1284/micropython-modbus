@@ -390,6 +390,81 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result, b'\x81\x02')
 
+    def test_bytes_to_bool(self) -> None:
+        """Convert bytes list to boolean list"""
+        possibilities = [
+            # response, qty, expectation
+            (b'\x00', 1, [False]),
+            (b'\x01', 1, [True]),
+
+            (b'\x00', 2, [False, False]),
+            (b'\x01', 2, [True, False]),
+            (b'\x02', 2, [False, True]),
+            (b'\x03', 2, [True, True]),
+
+            (b'\x00', 3, [False, False, False]),
+            (b'\x01', 3, [True, False, False]),
+            (b'\x02', 3, [False, True, False]),
+            (b'\x03', 3, [True, True, False]),
+            (b'\x04', 3, [False, False, True]),
+            (b'\x05', 3, [True, False, True]),
+            (b'\x06', 3, [False, True, True]),
+            (b'\x07', 3, [True, True, True]),
+
+            (b'\x00', 4, [False, False, False, False]),
+            # (b'\x05', 4, [False, True, False, True]),
+            (b'\x05', 4, [True, False, True, False]),
+            (b'\x0A', 4, [False, True, False, True]),
+            (b'\x0F', 4, [True, True, True, True]),
+
+            (b'\x0A', 5, [False, True, False, True, False]),
+        ]
+        for pair in possibilities:
+            with self.subTest(pair=pair):
+                byte_list = pair[0]
+                bit_qty = pair[1]
+                expectation = pair[2]
+
+                result = functions.bytes_to_bool(byte_list=byte_list,
+                                                 bit_qty=bit_qty)
+                self.assertIsInstance(result, list)
+                self.assertEqual(len(result), len(expectation))
+                self.assertTrue(all(isinstance(x, bool) for x in result))
+                self.assertEqual(result, expectation)
+
+    def test_to_short(self) -> None:
+        """Convert bytes list to integer tuple"""
+        possibilities = [
+            # response, signed, expectation
+            (b'\x00\x00', True, (0,)),
+            (b'\x00\x14', True, (20,)),
+
+            (b'\x00\x00\x00\x00', True, (0, 0)),
+            (b'\x00\x00\x00\x07', True, (0, 7)),
+            (b'\x00\x17\x00\x00', True, (23, 0)),
+            (b'\x00\x0c\x00\x13', True, (12, 19)),
+
+            (b'\x00\x00\x00\x00\x00\x00', True, (0, 0, 0)),
+            (b'\x00\x09\x00\x00\x00\x00', True, (9, 0, 0)),
+            (b'\x00\x00\x00\x01\x00\x00', True, (0, 1, 0)),
+            (b'\x00\x00\x00\x00\x00\x07', True, (0, 0, 7)),
+            (b'\x00\x1d\x00\x26\x00\x00', True, (29, 38, 0)),
+            (b'\x00\x11\x00\x00\x00\x04', True, (17, 0, 4)),
+            (b'\x09\x29\x00\x25\x11\x5c', True, (2345, 37, 4444)),
+        ]
+        for pair in possibilities:
+            with self.subTest(pair=pair):
+                byte_array = pair[0]
+                signed = pair[1]
+                expectation = pair[2]
+
+                result = functions.to_short(byte_array=byte_array,
+                                            signed=signed)
+                self.assertIsInstance(result, tuple)
+                self.assertEqual(len(result), len(expectation))
+                self.assertTrue(all(isinstance(x, int) for x in result))
+                self.assertEqual(result, expectation)
+
     def test_float_to_bin(self) -> None:
         """Test conversion of float to bin according to IEEE 754"""
         float_val = 10.27
