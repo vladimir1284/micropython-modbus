@@ -74,6 +74,11 @@ if not is_bound:
 # commond slave register setup, to be used with the Master example above
 register_definitions = {
     "COILS": {
+        "RESET_REGISTER_DATA_COIL": {
+            "register": 42,
+            "len": 1,
+            "val": 0
+        },
         "EXAMPLE_COIL": {
             "register": 123,
             "len": 1,
@@ -120,9 +125,17 @@ print('Register setup done')
 
 print('Serving as TCP client on {}:{}'.format(local_ip, tcp_port))
 
+reset_data_register = \
+    register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['register']
+
 while True:
     try:
         result = client.process()
+        if reset_data_register in client.coils:
+            if client.get_coil(address=reset_data_register):
+                print('Resetting register data to default values ...')
+                client.setup_registers(registers=register_definitions)
+                print('Default values restored')
     except KeyboardInterrupt:
         print('KeyboardInterrupt, stopping TCP client...')
         break
