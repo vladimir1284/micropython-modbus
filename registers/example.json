@@ -15,6 +15,30 @@
             "description": "Example COILS register, Coils (setter+getter) [0, 1]",
             "range": "",
             "unit": ""
+        },
+        "EXAMPLE_COIL_OFF": {
+            "register": 124,
+            "len": 1,
+            "val": 0,
+            "description": "Example COILS register, Coils (setter+getter) [0, 1]",
+            "range": "",
+            "unit": ""
+        },
+        "EXAMPLE_COIL_MIXED": {
+            "register": 125,
+            "len": 2,
+            "val": [1, 0],
+            "description": "Example COILS registers with length of 2, Coils (setter+getter) [0, 1]",
+            "range": "",
+            "unit": ""
+        },
+        "ANOTHER_EXAMPLE_COIL": {
+            "register": 126,
+            "len": 3,
+            "val": [0, 1, 0],
+            "description": "Example COILS registers with length of 3, Coils (setter+getter) [0, 1]",
+            "range": "",
+            "unit": ""
         }
     },
     "HREGS": {
@@ -23,6 +47,14 @@
             "len": 1,
             "val": 19,
             "description": "Example HREGS register, Hregs (setter+getter) [0, 65535]",
+            "range": "",
+            "unit": ""
+        },
+        "ANOTHER_EXAMPLE_HREG": {
+            "register": 94,
+            "len": 3,
+            "val": [29, 38, 0],
+            "description": "Example HREGS registers with length of 3, Hregs (setter+getter) [0, 65535]",
             "range": "",
             "unit": ""
         }
