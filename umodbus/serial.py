@@ -87,21 +87,6 @@ class Serial(object):
 
         return struct.pack('<H', crc)
 
-    def _bytes_to_bool(self, byte_list):
-        bool_list = []
-
-        for index, byte in enumerate(byte_list):
-            bool_list.extend([bool(byte & (1 << n)) for n in range(8)])
-
-        return bool_list
-
-    def _to_short(self, byte_array, signed=True):
-        response_quantity = int(len(byte_array) / 2)
-
-        fmt = '>' + (('h' if signed else 'H') * response_quantity)
-
-        return struct.unpack(fmt, byte_array)
-
     def _exit_read(self, response):
         if response[1] >= Const.ERROR_BIAS:
             if len(response) < Const.ERROR_RESP_LEN:
@@ -287,7 +272,8 @@ class Serial(object):
         resp_data = self._send_receive(modbus_pdu=modbus_pdu,
                                        slave_addr=slave_addr,
                                        count=True)
-        status_pdu = self._bytes_to_bool(byte_list=resp_data)
+        status_pdu = functions.bytes_to_bool(byte_list=resp_data,
+                                             bit_qty=coil_qty)
 
         return status_pdu
 
@@ -302,7 +288,8 @@ class Serial(object):
         resp_data = self._send_receive(modbus_pdu=modbus_pdu,
                                        slave_addr=slave_addr,
                                        count=True)
-        status_pdu = self._bytes_to_bool(byte_list=resp_data)
+        status_pdu = functions.bytes_to_bool(byte_list=resp_data,
+                                             bit_qty=input_qty)
 
         return status_pdu
 
@@ -318,7 +305,8 @@ class Serial(object):
         resp_data = self._send_receive(modbus_pdu=modbus_pdu,
                                        slave_addr=slave_addr,
                                        count=True)
-        register_value = self._to_short(byte_array=resp_data, signed=signed)
+        register_value = functions.to_short(byte_array=resp_data,
+                                            signed=signed)
 
         return register_value
 
@@ -334,7 +322,8 @@ class Serial(object):
         resp_data = self._send_receive(modbus_pdu=modbus_pdu,
                                        slave_addr=slave_addr,
                                        count=True)
-        register_value = self._to_short(byte_array=resp_data, signed=signed)
+        register_value = functions.to_short(byte_array=resp_data,
+                                            signed=signed)
 
         return register_value
 

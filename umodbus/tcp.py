@@ -225,28 +225,6 @@ class TCP(object):
 
         return mbap_hdr, trans_id
 
-    def _bytes_to_bool(self, byte_list: bytes) -> List[bool]:
-        """
-        Convert bytes to list of boolean values
-
-        :param      byte_list:  The byte list
-        :type       byte_list:  bytes
-
-        :returns:   Boolean representation, multiple of 8
-        :rtype:     List[bool]
-        """
-        bool_list = []
-        for index, byte in enumerate(byte_list):
-            bool_list.extend([bool(byte & (1 << n)) for n in range(8)])
-
-        return bool_list
-
-    def _to_short(self, byte_array: bytearray, signed: bool = True) -> bytes:
-        response_quantity = int(len(byte_array) / 2)
-        fmt = '>' + (('h' if signed else 'H') * response_quantity)
-
-        return struct.unpack(fmt, byte_array)
-
     def _validate_resp_hdr(self,
                            response: bytearray,
                            trans_id: int,
@@ -345,7 +323,8 @@ class TCP(object):
         response = self._send_receive(slave_id=slave_addr,
                                       modbus_pdu=modbus_pdu,
                                       count=True)
-        status_pdu = self._bytes_to_bool(byte_list=response)
+        status_pdu = functions.bytes_to_bool(byte_list=response,
+                                             bit_qty=coil_qty)
 
         return status_pdu
 
@@ -373,7 +352,8 @@ class TCP(object):
         response = self._send_receive(slave_id=slave_addr,
                                       modbus_pdu=modbus_pdu,
                                       count=True)
-        status_pdu = self._bytes_to_bool(byte_list=response)
+        status_pdu = functions.bytes_to_bool(byte_list=response,
+                                             bit_qty=input_qty)
 
         return status_pdu
 
@@ -404,7 +384,7 @@ class TCP(object):
         response = self._send_receive(slave_id=slave_addr,
                                       modbus_pdu=modbus_pdu,
                                       count=True)
-        register_value = self._to_short(byte_array=response, signed=signed)
+        register_value = functions.to_short(byte_array=response, signed=signed)
 
         return register_value
 
@@ -435,7 +415,7 @@ class TCP(object):
         response = self._send_receive(slave_id=slave_addr,
                                       modbus_pdu=modbus_pdu,
                                       count=True)
-        register_value = self._to_short(byte_array=response, signed=signed)
+        register_value = functions.to_short(byte_array=response, signed=signed)
 
         return register_value
 
