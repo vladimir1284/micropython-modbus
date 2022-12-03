@@ -364,7 +364,18 @@ def bytes_to_bool(byte_list: bytes, bit_qty: Optional[int] = 1) -> List[bool]:
     return bool_list[::-1]
 
 
-def to_short(byte_array: bytearray, signed: bool = True) -> bytes:
+def to_short(byte_array: bytes, signed: bool = True) -> bytes:
+    """
+    Convert bytes to tuple of integer values
+
+    :param      byte_array:  The byte array
+    :type       byte_array:  bytes
+    :param      signed:      Indicates if signed
+    :type       signed:      bool
+
+    :returns:   Integer representation
+    :rtype:     bytes
+    """
     response_quantity = int(len(byte_array) / 2)
     fmt = '>' + (('h' if signed else 'H') * response_quantity)
 
