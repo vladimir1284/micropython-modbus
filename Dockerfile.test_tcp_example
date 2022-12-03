@@ -1,0 +1,16 @@
+# Build image
+# $ docker build -t micropython-tcp-example -f Dockerfile.test_tcp_example .
+# if a command fails, it will exit with non-zero code
+#
+# Run image, only possible if all tests passed
+# $ docker run -it --rm --name micropython-tcp-example micropython-tcp-example
+
+FROM micropython/unix:v1.18
+
+# use "volumes" in docker-compose file to remove need of rebuilding
+# COPY ./ /home
+# COPY umodbus /root/.micropython/lib/umodbus
+# COPY unittest.py /root/.micropython/lib/unittest.py
+
+RUN micropython-dev -m upip install micropython-ulogging
+RUN micropython-dev -m upip install micropython-urequests

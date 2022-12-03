@@ -20,6 +20,7 @@ ignore = D107, D400, E501, W504, D204
 # Specify a list of mappings of files and the codes that should be ignored for the entirety of the file.
 per-file-ignores =
     tests/*:D101,D102,D104
+    umodbus/const.py:F821
 
 # Provide a comma-separated list of glob patterns to exclude from checks.
 exclude =
@@ -42,6 +43,7 @@ exclude =
     # example testing folder before going live
     thinking
     .idea
+    .bak
     # custom scripts, not being part of the distribution
     libs_external
     modules

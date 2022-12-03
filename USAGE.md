@@ -6,10 +6,19 @@ Using and testing this `micropython-modbus` library
 
 <!-- MarkdownTOC -->
 
-- [Development environment](#development-environment)
+- [Classic development environment](#classic-development-environment)
 	- [TCP](#tcp)
 		- [Read data](#read-data)
 		- [Write data](#write-data)
+- [Docker development environment](#docker-development-environment)
+	- [Pull container](#pull-container)
+	- [Spin up container](#spin-up-container)
+		- [Simple container](#simple-container)
+		- [Enter MicroPython REPL](#enter-micropython-repl)
+		- [Manually run unittests](#manually-run-unittests)
+		- [Custom container for unittests](#custom-container-for-unittests)
+		- [Docker compose](#docker-compose)
+			- [Test for TCP example](#test-for-tcp-example)
 - [MicroPython](#micropython)
 	- [TCP](#tcp-1)
 		- [Client](#client)
@@ -21,7 +30,7 @@ Using and testing this `micropython-modbus` library
 The onwards described steps assume a successful setup as described in
 [SETUP.md](SETUP.md)
 
-## Development environment
+## Classic development environment
 
 This section describes the necessary steps on the computer to get ready to
 test and run the examples.
@@ -50,7 +59,7 @@ the [modules submodule](modules)
 
 ```bash
 python modules/read_device_info_registers.py \
---file=examples/example.json \
+--file=registers/example.json \
 --connection=tcp \
 --address=192.168.178.69 \
 --port=502 \
@@ -64,14 +73,14 @@ Or use the even more convenient wrapper script for the wrapper.
 
 ```bash
 cd examples
-sh read_registers_tcp.sh 192.168.178.69 example.json 502
+sh read_registers_tcp.sh 192.168.178.69 ../registers/example.json 502
 ```
 
 #### Write data
 
 ```bash
 python modules/write_device_info_registers.py \
---file=examples/set-example.json \
+--file=registers/set-example.json \
 --connection=tcp \
 --address=192.168.178.69 \
 --port=502 \
@@ -85,7 +94,98 @@ Or use the even more convenient wrapper script for the wrapper.
 
 ```bash
 cd examples
-sh write_registers_tcp.sh 192.168.178.69 set-example.json 502
+sh write_registers_tcp.sh 192.168.178.69 ../registers/set-example.json 502
+```
+
+## Docker development environment
+
+### Pull container
+
+Checkout the available
+[MicroPython containers](https://hub.docker.com/r/micropython/unix/tags)
+
+```bash
+docker pull micropython/unix:v1.18
+```
+
+### Spin up container
+
+#### Simple container
+
+Use this command for your first tests or to run some MicroPython commands in
+a simple REPL
+
+```bash
+docker run -it \
+--name micropython-1.18 \
+--network=host \
+--entrypoint bash \
+micropython/unix:v1.18
+```
+
+#### Enter MicroPython REPL
+
+Inside the container enter the REPL by running `micropython-dev`. The console
+should now look similar to this
+
+```
+root@debian:/home#
+MicroPython v1.18 on 2022-01-17; linux version
+Use Ctrl-D to exit, Ctrl-E for paste mode
+>>>
+```
+
+#### Manually run unittests
+
+In order to manually execute only a specific set of tests use the following
+command inside the container
+
+```bash
+# run all unittests defined in "tests" directory and exit with status result
+micropython-dev -c "import unittest; unittest.main('tests')"
+
+# run all tests of "TestAbsoluteTruth" defined in tests/test_absolute_truth.py
+# and exit with status result
+micropython-dev -c "import unittest; unittest.main(name='tests.test_absolute_truth', fromlist=['TestAbsoluteTruth'])"
+```
+
+#### Custom container for unittests
+
+```bash
+docker build \
+--tag micropython-test \
+--file Dockerfile.tests .
+```
+
+The unittests are executed during the building process. It will exit with a
+non-zero status in case of a unittest failure.
+
+The return value can be collected by `echo $?` (on Linux based systems), which
+will be either `0` in case all tests passed, or `1` if one or multiple tests
+failed.
+
+#### Docker compose
+
+The following command uses the setup defined in the `docker-compose.yaml` file
+to act as two MicroPython devices communicating via TCP. The container
+`micropython-host` defined by `Dockerfile.host` acts as host and sets/gets
+data at/from the client as defined by `tcp_host_example.py`. On the other hand
+the container `micropython-client` defined by `Dockerfile.client` acts as
+client and provides data for the host as defined by `tcp_client_example.py`.
+The port defined in `tcp_host_example.py` and `tcp_client_example.py` has to
+be open and optionally exposed in the `docker-compose.yaml` file.
+
+```bash
+docker compose up --build --exit-code-from micropython-host
+```
+
+The option `--build` can be skipped on the second run, to avoid rebuilds of
+the containers. All "dynamic" data is shared via `volumes`
+
+##### Test for TCP example
+
+```bash
+docker compose -f docker-compose-tcp-test.yaml up --build --exit-code-from micropython-host
 ```
 
 ## MicroPython

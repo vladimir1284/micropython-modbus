@@ -1,0 +1,82 @@
+{
+    "COILS": {
+        "RESET_REGISTER_DATA_COIL": {
+            "register": 42,
+            "len": 1,
+            "val": 0,
+            "description": "Set this COIL to true to reset all register values back to the default state/value",
+            "range": "",
+            "unit": ""
+        },
+        "EXAMPLE_COIL": {
+            "register": 123,
+            "len": 1,
+            "val": 1,
+            "description": "Example COILS register, Coils (setter+getter) [0, 1]",
+            "range": "",
+            "unit": ""
+        },
+        "EXAMPLE_COIL_OFF": {
+            "register": 124,
+            "len": 1,
+            "val": 0,
+            "description": "Example COILS register, Coils (setter+getter) [0, 1]",
+            "range": "",
+            "unit": ""
+        },
+        "EXAMPLE_COIL_MIXED": {
+            "register": 125,
+            "len": 2,
+            "val": [1, 0],
+            "description": "Example COILS registers with length of 2, Coils (setter+getter) [0, 1]",
+            "range": "",
+            "unit": ""
+        },
+        "ANOTHER_EXAMPLE_COIL": {
+            "register": 126,
+            "len": 3,
+            "val": [0, 1, 0],
+            "description": "Example COILS registers with length of 3, Coils (setter+getter) [0, 1]",
+            "range": "",
+            "unit": ""
+        }
+    },
+    "HREGS": {
+        "EXAMPLE_HREG": {
+            "register": 93,
+            "len": 1,
+            "val": 19,
+            "description": "Example HREGS register, Hregs (setter+getter) [0, 65535]",
+            "range": "",
+            "unit": ""
+        },
+        "ANOTHER_EXAMPLE_HREG": {
+            "register": 94,
+            "len": 3,
+            "val": [29, 38, 0],
+            "description": "Example HREGS registers with length of 3, Hregs (setter+getter) [0, 65535]",
+            "range": "",
+            "unit": ""
+        }
+    },
+    "ISTS": {
+        "EXAMPLE_ISTS": {
+            "register": 67,
+            "len": 1,
+            "val": 0,
+            "description": "Example ISTS register, Ists (only getter) [0, 1]",
+            "range": "",
+            "unit": ""
+        }
+    },
+    "IREGS": {
+        "EXAMPLE_IREG": {
+            "register": 10,
+            "len": 1,
+            "val": 60001,
+            "description": "Example IREGS register, Iregs (only getter) [0, 65535]",
+            "range": "",
+            "unit": ""
+        }
+    }
+}

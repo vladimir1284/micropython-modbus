@@ -2,8 +2,8 @@
 # title         :write_registers_tcp.sh
 # description   :Write Modbus registers via TCP based on register JSON
 # author        :brainelectronics
-# date          :20221112
-# version       :0.1.0
+# date          :20221203
+# version       :0.1.1
 # usage         :sh write_registers_tcp.sh \
 #                192.168.178.69 \
 #                set-example.json \
@@ -18,7 +18,7 @@ register_file_path=$2
 modbus_port=$3
 
 if [[ -z "$register_file_path" ]]; then
-    register_file_path=set-example.json
+    register_file_path=../registers/set-example.json
     echo "No register file given, using default at $register_file_path"
 fi
 
