@@ -88,17 +88,17 @@ CRC16_TABLE = (
     0x4100, 0x81C1, 0x8081, 0x4040
 )
 
-""" Code to generate the CRC-16 lookup table:
-def generate_crc16_table():
-    crc_table = []
-    for byte in range(256):
-        crc = 0x0000
-        for _ in range(8):
-            if (byte ^ crc) & 0x0001:
-                crc = (crc >> 1) ^ 0xa001
-            else:
-                crc >>= 1
-            byte >>= 1
-        crc_table.append(crc)
-    return crc_table
-"""
+
+# Code to generate the CRC-16 lookup table:
+# def generate_crc16_table():
+#     crc_table = []
+#     for byte in range(256):
+#         crc = 0x0000
+#         for _ in range(8):
+#             if (byte ^ crc) & 0x0001:
+#                 crc = (crc >> 1) ^ 0xa001
+#             else:
+#                 crc >>= 1
+#             byte >>= 1
+#         crc_table.append(crc)
+#     return crc_table
