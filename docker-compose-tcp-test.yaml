@@ -42,7 +42,7 @@ services:
       - /bin/bash
       - -c
       - |
-        micropython-dev -c "import unittest; unittest.main(name='tests.test_tcp_example', fromlist=['TestTcpExample'])"
+        micropython-dev -c "import mpy_unittest as unittest; unittest.main(name='tests.test_tcp_example', fromlist=['TestTcpExample'])"
     networks:
       my_bridge:
         # fix IPv4 address to be known and in the MicroPython scripts
