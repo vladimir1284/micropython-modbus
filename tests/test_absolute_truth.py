@@ -4,7 +4,7 @@
 
 # import sys
 import ulogging as logging
-import unittest
+import mpy_unittest as unittest
 
 
 class TestAbsoluteTruth(unittest.TestCase):

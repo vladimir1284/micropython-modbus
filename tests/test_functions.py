@@ -3,7 +3,7 @@
 """Unittest for testing functions of umodbus"""
 
 import ulogging as logging
-import unittest
+import mpy_unittest as unittest
 from umodbus import functions
 from umodbus import const as Const
 

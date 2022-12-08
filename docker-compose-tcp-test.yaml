@@ -35,7 +35,7 @@ services:
     volumes:
       - ./:/home
       - ./umodbus:/root/.micropython/lib/umodbus
-      - ./unittest.py:/root/.micropython/lib/unittest.py
+      - ./mpy_unittest.py:/root/.micropython/lib/mpy_unittest.py
     depends_on:
       - micropython-client
     command:

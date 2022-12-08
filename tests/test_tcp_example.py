@@ -6,7 +6,7 @@ import json
 from random import randint
 import struct
 import ulogging as logging
-import unittest
+import mpy_unittest as unittest
 from umodbus.tcp import TCP as ModbusTCPMaster
 
 
