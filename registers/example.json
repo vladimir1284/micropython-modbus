@@ -67,6 +67,22 @@
             "description": "Example ISTS register, Ists (only getter) [0, 1]",
             "range": "",
             "unit": ""
+        },
+        "EXAMPLE_ISTS_MIXED": {
+            "register": 68,
+            "len": 2,
+            "val": [1, 0],
+            "description": "Example ISTS registers with length of 2, Ists (only getter) [0, 1]",
+            "range": "",
+            "unit": ""
+        },
+        "ANOTHER_EXAMPLE_ISTS": {
+            "register": 69,
+            "len": 3,
+            "val": [0, 1, 0],
+            "description": "Example ISTS registers with length of 3, Ists (only getter) [0, 1]",
+            "range": "",
+            "unit": ""
         }
     },
     "IREGS": {

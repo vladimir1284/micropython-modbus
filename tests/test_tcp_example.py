@@ -267,7 +267,7 @@ class TestTcpExample(unittest.TestCase):
         self.assertTrue(all(isinstance(x, bool) for x in coil_status))
         self.assertEqual(coil_status, expectation_list)
 
-    def test_read_discrete_inputs(self) -> None:
+    def test_read_discrete_inputs_single(self) -> None:
         """Test reading discrete inputs of client"""
         ist_address = \
             self._register_definitions['ISTS']['EXAMPLE_ISTS']['register']
@@ -285,6 +285,48 @@ class TestTcpExample(unittest.TestCase):
                                format(ist_address,
                                       input_status,
                                       expectation_list))
+        self.assertIsInstance(input_status, list)
+        self.assertEqual(len(input_status), input_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in input_status))
+        self.assertEqual(input_status, expectation_list)
+
+    def test_read_discrete_inputs_multiple(self) -> None:
+        """Test reading multiple discrete inputs of client"""
+        ist_address = \
+            self._register_definitions['ISTS']['EXAMPLE_ISTS_MIXED']['register']     # noqa: E501
+        input_qty = \
+            self._register_definitions['ISTS']['EXAMPLE_ISTS_MIXED']['len']
+        expectation_list = \
+            self._register_definitions['ISTS']['EXAMPLE_ISTS_MIXED']['val']
+
+        input_status = self._host.read_discrete_inputs(
+            slave_addr=self._client_addr,
+            starting_addr=ist_address,
+            input_qty=input_qty)
+
+        self.test_logger.debug(
+            'Status of IST {} length {}: {}, expectation: {}'.format(
+                ist_address, input_qty, input_status, expectation_list))
+        self.assertIsInstance(input_status, list)
+        self.assertEqual(len(input_status), input_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in input_status))
+        # self.assertEqual(input_status, expectation_list)
+
+        ist_address = \
+            self._register_definitions['ISTS']['ANOTHER_EXAMPLE_ISTS']['register']     # noqa: E501
+        input_qty = \
+            self._register_definitions['ISTS']['ANOTHER_EXAMPLE_ISTS']['len']
+        expectation_list = \
+            self._register_definitions['ISTS']['ANOTHER_EXAMPLE_ISTS']['val']
+
+        input_status = self._host.read_discrete_inputs(
+            slave_addr=self._client_addr,
+            starting_addr=ist_address,
+            input_qty=input_qty)
+
+        self.test_logger.debug(
+            'Status of IST {} length {}: {}, expectation: {}'.format(
+                ist_address, input_qty, input_status, expectation_list))
         self.assertIsInstance(input_status, list)
         self.assertEqual(len(input_status), input_qty)
         self.assertTrue(all(isinstance(x, bool) for x in input_status))
@@ -544,7 +586,7 @@ class TestTcpExample(unittest.TestCase):
         self.test_logger.debug('1. Status of HREG {}: {}, expectation: {}'.
                                format(hreg_address,
                                       register_value,
-                                      expectation))
+                                      new_hreg_val))
         self.assertIsInstance(register_value, tuple)
         self.assertEqual(len(register_value), register_qty)
         self.assertTrue(all(isinstance(x, int) for x in register_value))
