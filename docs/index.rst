@@ -12,6 +12,7 @@ Contents
    USAGE
    CONTRIBUTING
    umodbus
+   UPGRADE
    changelog_link
 
 Indices and tables
