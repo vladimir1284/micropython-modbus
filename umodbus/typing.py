@@ -10,6 +10,14 @@ https://github.com/micropython/micropython-lib/blob/3d779b8ceab5b65b9f70accbcbb1
 """
 
 
+class _Subscriptable():
+    def __getitem__(self, item):
+        return None
+
+
+_subscriptable = _Subscriptable()
+
+
 class Any:
     pass
 
@@ -22,12 +30,10 @@ class ClassVar:
     pass
 
 
-class Union:
-    pass
+Union = _subscriptable
 
 
-class Optional:
-    pass
+Optional = _subscriptable
 
 
 class Generic:
@@ -114,12 +120,10 @@ class ByteString:
     pass
 
 
-class Tuple:
-    pass
+Tuple = _subscriptable
 
 
-class List:
-    pass
+List = _subscriptable
 
 
 class Deque:
@@ -162,8 +166,7 @@ class AsyncContextManager:
     pass
 
 
-class Dict:
-    pass
+Dict = _subscriptable
 
 
 class DefaultDict:

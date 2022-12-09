@@ -14,40 +14,53 @@ the client can be defined by the user.
 """
 
 # system packages
-import network
 import time
 
 # import modbus client classes
-from umodbus.modbus import ModbusTCP
+from umodbus.tcp import ModbusTCP
+
+IS_DOCKER_MICROPYTHON = False
+try:
+    import network
+except ImportError:
+    IS_DOCKER_MICROPYTHON = True
+    import json
+
 
 # ===============================================
-# connect to a network
-station = network.WLAN(network.STA_IF)
-if station.active() and station.isconnected():
-    station.disconnect()
+if IS_DOCKER_MICROPYTHON is False:
+    # connect to a network
+    station = network.WLAN(network.STA_IF)
+    if station.active() and station.isconnected():
+        station.disconnect()
+        time.sleep(1)
+    station.active(False)
     time.sleep(1)
-station.active(False)
-time.sleep(1)
-station.active(True)
+    station.active(True)
 
-station.connect('SSID', 'PASSWORD')
-time.sleep(1)
+    # station.connect('SSID', 'PASSWORD')
+    station.connect('TP-LINK_FBFC3C', 'C1FBFC3C')
+    time.sleep(1)
 
-while True:
-    print('Waiting for WiFi connection...')
-    if station.isconnected():
-        print('Connected to WiFi.')
-        print(station.ifconfig())
-        break
-    time.sleep(2)
+    while True:
+        print('Waiting for WiFi connection...')
+        if station.isconnected():
+            print('Connected to WiFi.')
+            print(station.ifconfig())
+            break
+        time.sleep(2)
 
 # ===============================================
 # TCP Slave setup
 tcp_port = 502              # port to listen to
-# set IP address of the MicroPython device explicitly
-local_ip = '192.168.4.1'    # IP address
-# or get it from the system after a connection to the network has been made
-local_ip = station.ifconfig()[0]
+
+if IS_DOCKER_MICROPYTHON:
+    local_ip = '172.24.0.2'     # static Docker IP address
+else:
+    # set IP address of the MicroPython device explicitly
+    # local_ip = '192.168.4.1'    # IP address
+    # or get it from the system after a connection to the network has been made
+    local_ip = station.ifconfig()[0]
 
 # ModbusTCP can get TCP requests from a host device to provide/set data
 client = ModbusTCP()
@@ -62,6 +75,11 @@ if not is_bound:
 # commond slave register setup, to be used with the Master example above
 register_definitions = {
     "COILS": {
+        "RESET_REGISTER_DATA_COIL": {
+            "register": 42,
+            "len": 1,
+            "val": 0
+        },
         "EXAMPLE_COIL": {
             "register": 123,
             "len": 1,
@@ -91,13 +109,12 @@ register_definitions = {
     }
 }
 
-"""
 # alternatively the register definitions can also be loaded from a JSON file
-import json
-
-with open('registers/example.json', 'r') as file:
-    register_definitions = json.load(file)
-"""
+# this is always done if Docker is used for testing purpose in order to keep
+# the client registers in sync with the test registers
+if IS_DOCKER_MICROPYTHON:
+    with open('registers/example.json', 'r') as file:
+        register_definitions = json.load(file)
 
 print('Setting up registers ...')
 # use the defined values of each register type provided by register_definitions
@@ -108,9 +125,17 @@ print('Register setup done')
 
 print('Serving as TCP client on {}:{}'.format(local_ip, tcp_port))
 
+reset_data_register = \
+    register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['register']
+
 while True:
     try:
         result = client.process()
+        if reset_data_register in client.coils:
+            if client.get_coil(address=reset_data_register):
+                print('Resetting register data to default values ...')
+                client.setup_registers(registers=register_definitions)
+                print('Default values restored')
     except KeyboardInterrupt:
         print('KeyboardInterrupt, stopping TCP client...')
         break

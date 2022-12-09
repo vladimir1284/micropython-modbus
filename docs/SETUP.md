@@ -4,18 +4,6 @@ Setup the development environment and the MicroPython board
 
 ---------------
 
-<!-- MarkdownTOC -->
-
-- [Development environment](#development-environment)
-	- [Update submodule](#update-submodule)
-	- [Install required tools](#install-required-tools)
-- [MicroPython](#micropython)
-	- [Flash firmware](#flash-firmware)
-	- [Install package with pip](#install-package-with-pip)
-	- [Without network connection](#without-network-connection)
-
-<!-- /MarkdownTOC -->
-
 ## Development environment
 
 This section describes the necessary steps on the computer to get ready to
@@ -68,7 +56,7 @@ ready to test and run the examples.
 ### Flash firmware
 
 Flash the [MicroPython firmware][ref-upy-firmware-download] to the MicroPython
-board with this call
+board with this call in case a ESP32 is used.
 
 ```bash
 esptool.py --chip esp32 --port /dev/tty.SLAB_USBtoUART erase_flash
@@ -86,7 +74,8 @@ station.connect('SSID', 'PASSWORD')
 station.isconnected()
 ```
 
-and install this lib on the MicroPython device like this
+and install this lib with all its dependencies on the MicroPython device like
+this
 
 ```python
 import upip
@@ -95,8 +84,8 @@ upip.install('micropython-modbus')
 
 ### Without network connection
 
-Copy the module to the MicroPython board and import them as shown below
-using [Remote MicroPython shell][ref-remote-upy-shell]
+Copy all files of the [umodbus module][ref-umodbus-module] to the MicroPython
+board using [Remote MicroPython shell][ref-remote-upy-shell]
 
 Open the remote shell with the following command. Additionally use `-b 115200`
 in case no CP210x is used but a CH34x.
@@ -114,7 +103,55 @@ mkdir /pyboard/lib/umodbus
 cp umodbus/* /pyboard/lib/umodbus
 ```
 
+As this package depends on [`micropython-urequests`][ref-urequests] to perform
+TCP requests those files have to be copied as well to the MicroPython board.
+This is of course only necessary if TCP connection are used, in case only
+serial (RTU )Modbus communication is used this step can be skipped.
+
+### Additional MicroPython packages
+
+To use this package with the provided [`boot.py`][ref-package-boot-file] and
+[`main.py`][ref-package-boot-file] file, additional modules are required,
+which are not part of this repo/package.
+
+```bash
+rshell -p /dev/tty.SLAB_USBtoUART --editor nano
+```
+
+#### Install additional package with pip
+
+Again connect to a network and install the additional package on the
+MicroPython device with
+
+```python
+import upip
+upip.install('micropython-modbus')
+```
+
+#### Without network connection
+
+To install the additional modules on the device, download the
+[brainelectronics MicroPython Helpers repo][ref-github-be-mircopython-modules]
+and copy them to the device.
+
+Perform the following command to copy all files and folders to the device
+
+```bash
+mkdir /pyboard/lib/be_helpers
+
+cp be_helpers/* /pyboard/lib/be_helpers
+```
+
+Additionally check the latest instructions of the
+[brainelectronics MicroPython modules][ref-github-be-mircopython-modules]
+README for further instructions.
+
 <!-- Links -->
 [ref-github-be-python-modules]: https://github.com/brainelectronics/python-modules
 [ref-upy-firmware-download]: https://micropython.org/download/
 [ref-remote-upy-shell]: https://github.com/dhylands/rshell
+[ref-umodbus-module]: https://github.com/brainelectronics/micropython-modbus/tree/develop/umodbus
+[ref-urequests]: https://micropython.org/pi/urequests/urequests-0.6.tar.gz
+[ref-package-boot-file]: https://github.com/brainelectronics/micropython-modbus/blob/c45d6cc334b4adf0e0ffd9152c8f08724e1902d9/boot.py
+[ref-package-main-file]: https://github.com/brainelectronics/micropython-modbus/blob/c45d6cc334b4adf0e0ffd9152c8f08724e1902d9/main.py
+[ref-github-be-mircopython-modules]: https://github.com/brainelectronics/micropython-modules

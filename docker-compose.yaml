@@ -1,0 +1,55 @@
+#
+# build all non-image containers
+# $ docker-compose build
+# can be combined into one command to also start it afterwards
+# $ docker-compose up --build
+#
+
+version: "3.8"
+
+services:
+  micropython-client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: micropython-client
+    volumes:
+      - ./:/home
+      - ./umodbus:/root/.micropython/lib/umodbus
+    expose:
+      - "502"
+    ports:
+      - "502:502" # reach "micropython-client" at 172.24.0.2:502, see networks
+    networks:
+      my_bridge:
+        # fix IPv4 address to be known and in the MicroPython scripts
+        # https://docs.docker.com/compose/compose-file/#ipv4_address
+        ipv4_address: 172.24.0.2
+
+  micropython-host:
+    build:
+      context: .
+      dockerfile: Dockerfile.host
+    container_name: micropython-host
+    volumes:
+      - ./:/home
+      - ./umodbus:/root/.micropython/lib/umodbus
+    depends_on:
+      - micropython-client
+    networks:
+      my_bridge:
+        # fix IPv4 address to be known and in the MicroPython scripts
+        # https://docs.docker.com/compose/compose-file/#ipv4_address
+        ipv4_address: 172.24.0.3
+
+networks:
+  my_bridge:
+    # use "external: true" if the network already exists
+    # check available networks with "docker network ls"
+    # external: true
+    driver: bridge
+    # https://docs.docker.com/compose/compose-file/#ipam
+    ipam:
+      config:
+        - subnet: 172.24.0.0/16
+          gateway: 172.24.0.1
