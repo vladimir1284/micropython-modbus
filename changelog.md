@@ -22,11 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add [docker compose file](docker-compose.yaml) based in MicroPython 1.18 image
 - Add [TCP client Dockerfile](Dockerfile.client), [TCP host Dockerfile](Dockerfile.host), [unittest Dockerfile](Dockerfile.tests) and [TCP unittest specific Dockerfile](Dockerfile.test_tcp_example). All based on MicroPython 1.18 image
 - Add initial test, testing the unittest itself
-- Add [unittest](unittest.py) implementation based on pfalcon's [micropython-unittest](https://github.com/pfalcon/pycopy-lib/blob/56ebf2110f3caa63a3785d439ce49b11e13c75c0/unittest/unittest.py)
+- Add [unittest](mpy_unittest.py) implementation based on pfalcon's [micropython-unittest](https://github.com/pfalcon/pycopy-lib/blob/56ebf2110f3caa63a3785d439ce49b11e13c75c0/unittest/unittest.py)
 - Docstrings available for all functions of [functions.py](umodbus/functions.py), see #27
 - Typing hints available for all functions of [functions.py](umodbus/functions.py), [serial.py](umodbus/serial.py) and [tcp.py](umodbus/tcp.py), see #27
 - Unittest for [functions.py](umodbus/functions.py), see #16
 - Unittest for [const.py](umodbus/const.py), see #16
+- [.readthedocs.yaml](.readthedocs.yaml) for Read The Docs, contributes to #26
 
 ### Changed
 - Use default values for all registers defined in the [example JSON](registers/example.json)
@@ -41,9 +42,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `from umodbus.modbus import ModbusTCP` to `from umodbus.tcp import ModbusTCP`
 - `read_coils` and `read_discrete_inputs` return a list with the same length as the requested quantity instead of always 8, see #12 and #25
 - Common functions `bytes_to_bool` and `to_short` moved to [functions.py](umodbus/functions.py)
+- Use HTTPS URL instead of SSH for submodule
+- Cleanup of root [README](README.md), content moved to [SETUP](docs/SETUP.md) and [USAGE](docs/USAGE.md), contributes to #30
+- Moved [SETUP](docs/SETUP.md) and [USAGE](docs/USAGE.md) into [docs](docs) folder, see #26 contributes to #30
+- Use `False` or `0` as default values for registers without a specific initial value in [modbus.py](umodbus/modbus.py)
 
 ### Fixed
-- `write_multiple_coils` function works as specified. Constructed outputs value was incorrect, see #22
 - `read_coils` returns list with amount of requested coils, see #12
 - `read_holding_registers` returns list with amount of requested registers, see #25
 
