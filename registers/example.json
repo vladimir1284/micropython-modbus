@@ -93,6 +93,14 @@
             "description": "Example IREGS register, Iregs (only getter) [0, 65535]",
             "range": "",
             "unit": ""
+        },
+        "ANOTHER_EXAMPLE_IREG": {
+            "register": 11,
+            "len": 3,
+            "val": [59123, 0, 390],
+            "description": "Example IREGS registers with length of 3, Iregs (only getter) [0, 65535]",
+            "range": "",
+            "unit": ""
         }
     }
 }

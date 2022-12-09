@@ -378,7 +378,7 @@ class TestTcpExample(unittest.TestCase):
         self.assertTrue(all(isinstance(x, int) for x in register_value))
         self.assertEqual(register_value, expectation)
 
-    def test_read_input_registers(self) -> None:
+    def test_read_input_registers_single(self) -> None:
         """Test reading input registers of client"""
         ireg_address = \
             self._register_definitions['IREGS']['EXAMPLE_IREG']['register']
@@ -397,6 +397,30 @@ class TestTcpExample(unittest.TestCase):
                                format(ireg_address,
                                       register_value,
                                       expectation))
+        self.assertIsInstance(register_value, tuple)
+        self.assertEqual(len(register_value), register_qty)
+        self.assertTrue(all(isinstance(x, int) for x in register_value))
+        self.assertEqual(register_value, expectation)
+
+    def test_read_input_registers_multiple(self) -> None:
+        """Test reading multiple input registers of client"""
+        ireg_address = \
+            self._register_definitions['IREGS']['ANOTHER_EXAMPLE_IREG']['register']     # noqa: E501
+        register_qty = \
+            self._register_definitions['IREGS']['ANOTHER_EXAMPLE_IREG']['len']
+        expectation = tuple(
+            self._register_definitions['IREGS']['ANOTHER_EXAMPLE_IREG']['val']
+        )
+
+        register_value = self._host.read_input_registers(
+            slave_addr=self._client_addr,
+            starting_addr=ireg_address,
+            register_qty=register_qty,
+            signed=False)
+
+        self.test_logger.debug(
+            'Status of IREG {} length {}: {}, expectation: {}'.format(
+                ireg_address, register_qty, register_value, expectation))
         self.assertIsInstance(register_value, tuple)
         self.assertEqual(len(register_value), register_qty)
         self.assertTrue(all(isinstance(x, int) for x in register_value))
