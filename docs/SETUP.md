@@ -151,7 +151,7 @@ README for further instructions.
 [ref-upy-firmware-download]: https://micropython.org/download/
 [ref-remote-upy-shell]: https://github.com/dhylands/rshell
 [ref-umodbus-module]: https://github.com/brainelectronics/micropython-modbus/tree/develop/umodbus
-[ref-urequests]: https://pypi.org/project/micropython-urequests/
+[ref-urequests]: https://micropython.org/pi/urequests/urequests-0.6.tar.gz
 [ref-package-boot-file]: https://github.com/brainelectronics/micropython-modbus/blob/c45d6cc334b4adf0e0ffd9152c8f08724e1902d9/boot.py
 [ref-package-main-file]: https://github.com/brainelectronics/micropython-modbus/blob/c45d6cc334b4adf0e0ffd9152c8f08724e1902d9/main.py
 [ref-github-be-mircopython-modules]: https://github.com/brainelectronics/micropython-modules
