@@ -5,6 +5,8 @@
 ![MicroPython](https://img.shields.io/badge/micropython-Ok-green.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/brainelectronics/micropython-modbus/actions/workflows/release.yml/badge.svg)](https://github.com/brainelectronics/micropython-modbus/actions/workflows/release.yml)
+[![Test Python package](https://github.com/brainelectronics/micropython-modbus/actions/workflows/test.yml/badge.svg)](https://github.com/brainelectronics/micropython-modbus/actions/workflows/test.yml)
+[![Documentation Status](https://readthedocs.org/projects/micropython-modbus/badge/?version=latest)](https://micropython-modbus.readthedocs.io/en/latest/?badge=latest)
 
 MicroPython ModBus TCP and RTU library supporting client and host mode
 
