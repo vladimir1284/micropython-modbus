@@ -110,6 +110,35 @@ would look like
 }
 ```
 
+In order to act as client/slave device the same structure can be used. If no
+`val` element is found in the structure the default values are
+
+| Type | Function Code | Default value |
+| ---- | ------------- | ------------- |
+| COILS | 0x01 | False (0x0) |
+| ISTS | 0x02 | False (0x0) |
+| HREGS | 0x03 | 0 |
+| IREGS | 0x04 | 0 |
+
+The value of multiple registers can be set like this
+
+```python
+{
+    "HREGS": {          # this key shall contain all holding registers
+        "HREG_NAME": {  # custom name of a holding register
+            "register": 93,     # register address of the holding register
+            "len": 3,           # amount of registers to request aka quantity
+            "val": [29, 38, 0]  # used to set a register
+        }
+    }
+}
+```
+
+> :warning: As of version 2.0.0 of this package it is not possible to request
+only the holding register 94, which would hold `38` in the above example.
+This is a bug (non implemented feature) of the client/slave implementation.
+For further details check [#35](https://github.com/brainelectronics/micropython-modbus/issues/35)
+
 #### Detailed key explanation
 
 The onwards described key explanations are valid for COIL, HREG, IST and IREG
@@ -135,6 +164,25 @@ of the register as summarized in the table below.
 | ISTS | 0x02 | 0x1 to 0x7D0 (2000) |
 | HREGS | 0x03 | 0x1 to 0x7D (125) |
 | IREGS | 0x04 | 0x1 to 0x7D (125) |
+
+In order to read 5 coils starting at 124 use the following dictionary aka
+config
+
+```python
+{
+    "COILS": {          # this key shall contain all coils
+        "COIL_NAME": {  # custom name of a coil
+            "register": 124,    # register address of the coil
+            "len": 5            # amount of registers to request aka quantity
+        }
+    }
+}
+```
+
+The output will be a list of 5 elements like `[True, False, False, True, True]`
+depending on the actual device coil states of course.
+
+
 
 ##### Value
 
