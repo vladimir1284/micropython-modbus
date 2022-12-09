@@ -27,7 +27,7 @@ class Modbus(object):
         for reg_type in self._available_register_types:
             self._register_dict[reg_type] = dict()
         self._default_vals = dict(zip(self._available_register_types,
-                                      [True, 999, 999, True]))
+                                      [False, 0, 0, False]))
 
         # registers which can be set by remote device
         self._changeable_register_types = ['COILS', 'HREGS']
