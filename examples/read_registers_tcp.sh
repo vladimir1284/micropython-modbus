@@ -2,8 +2,8 @@
 # title         :read_registers_tcp.sh
 # description   :Read Modbus registers via TCP based on register JSON
 # author        :brainelectronics
-# date          :20220708
-# version       :0.1.0
+# date          :20221203
+# version       :0.1.1
 # usage         :sh read_registers_tcp.sh \
 #                192.168.178.188 \
 #                example.json \
@@ -18,7 +18,7 @@ register_file_path=$2
 modbus_port=$3
 
 if [[ -z "$register_file_path" ]]; then
-    register_file_path=example.json
+    register_file_path=../registers/example.json
     echo "No register file given, using default at $register_file_path"
 fi
 

@@ -2,7 +2,6 @@
 .DS_Store
 .DS_Store?
 pymakr.conf
-tests/
 config/config*.py
 thinking/
 *.bin

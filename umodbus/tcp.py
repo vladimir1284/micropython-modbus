@@ -9,7 +9,7 @@
 #
 
 # system packages
-import random
+# import random
 import struct
 import socket
 import time
@@ -19,11 +19,178 @@ from . import functions
 from . import const as Const
 from .common import Request
 from .common import ModbusException
+from .modbus import Modbus
+from urequests import request
+
+# typing not natively supported on MicroPython
+from .typing import List, Optional, Tuple, Union
+
+
+class ModbusTCP(Modbus):
+    def __init__(self):
+        super().__init__(
+            # set itf to TCPServer object, addr_list to None
+            TCPServer(),
+            None
+        )
+
+    def bind(self,
+             local_ip: str,
+             local_port: int = 502,
+             max_connections: int = 10) -> None:
+        self._itf.bind(local_ip, local_port, max_connections)
+
+    def get_bound_status(self) -> bool:
+        try:
+            return self._itf.get_is_bound()
+        except Exception:
+            return False
+
+    def process(self) -> bool:
+        """
+        Process the modbus requests.
+
+        :returns:   Result of processing, True on success, False otherwise
+        :rtype:     bool
+        """
+        reg_type = None
+        req_type = None
+
+        request = self._itf.get_request(unit_addr_list=self._addr_list,
+                                        timeout=0)
+        if request is None:
+            return False
+
+        if request.function == Const.READ_COILS:
+            # Coils (setter+getter) [0, 1]
+            # function 01 - read single register
+            reg_type = 'COILS'
+            req_type = 'READ'
+        elif request.function == Const.READ_DISCRETE_INPUTS:
+            # Ists (only getter) [0, 1]
+            # function 02 - read input status (discrete inputs/digital input)
+            reg_type = 'ISTS'
+            req_type = 'READ'
+        elif request.function == Const.READ_HOLDING_REGISTERS:
+            # Hregs (setter+getter) [0, 65535]
+            # function 03 - read holding register
+            reg_type = 'HREGS'
+            req_type = 'READ'
+        elif request.function == Const.READ_INPUT_REGISTER:
+            # Iregs (only getter) [0, 65535]
+            # function 04 - read input registers
+            reg_type = 'IREGS'
+            req_type = 'READ'
+        elif request.function == Const.WRITE_SINGLE_COIL:
+            # Coils (setter+getter) [0, 1]
+            # function 05 - write single register
+            reg_type = 'COILS'
+            req_type = 'WRITE'
+        elif request.function == Const.WRITE_SINGLE_REGISTER:
+            # Hregs (setter+getter) [0, 65535]
+            # function 06 - write holding register
+            reg_type = 'HREGS'
+            req_type = 'WRITE'
+        else:
+            request.send_exception(Const.ILLEGAL_FUNCTION)
+
+        if reg_type:
+            if req_type == 'READ':
+                self._process_read_access(request=request, reg_type=reg_type)
+            elif req_type == 'WRITE':
+                self._process_write_access(request=request, reg_type=reg_type)
+
+        return True
+
+    def _create_response(self, request: request, reg_type: str):
+        """
+        Create a response.
+
+        :param      request:   The request
+        :type       request:   request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
+
+        :returns:   Values of this register
+        :rtype:     Union[bool, int, List[int], List[bool]]
+        """
+        if type(self._register_dict[reg_type][request.register_addr]) is list:
+            return self._register_dict[reg_type][request.register_addr]
+        else:
+            return [self._register_dict[reg_type][request.register_addr]]
+
+    def _process_read_access(self, request: request, reg_type: str) -> None:
+        """
+        Process read access to register
+
+        :param      request:   The request
+        :type       request:   request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
+        """
+        if request.register_addr in self._register_dict[reg_type]:
+            vals = self._create_response(request=request, reg_type=reg_type)
+            request.send_response(vals)
+        else:
+            request.send_exception(Const.ILLEGAL_DATA_ADDRESS)
+
+    def _process_write_access(self, request: request, reg_type: str) -> None:
+        """
+        Process write access to register
+
+        :param      request:   The request
+        :type       request:   request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
+        """
+        address = request.register_addr
+        val = 0
+        valid_register = False
+
+        if address in self._register_dict[reg_type]:
+            if reg_type == 'COILS':
+                val = request.data[0]
+                if val == 0x00:
+                    val = False
+                    valid_register = True
+
+                    request.send_response()
+
+                    self.set_coil(address=address, value=val)
+                elif val == 0xFF:
+                    val = True
+                    valid_register = True
+
+                    request.send_response()
+
+                    self.set_coil(address=address, value=val)
+                else:
+                    request.send_exception(Const.ILLEGAL_DATA_VALUE)
+            elif reg_type == 'HREGS':
+                valid_register = True
+                val = request.data_as_registers(signed=False)[0]
+
+                request.send_response()
+
+                self.set_hreg(address=address, value=val)
+            else:
+                pass
+
+            if valid_register:
+                self._set_changed_register(reg_type=reg_type,
+                                           address=address,
+                                           value=val)
+        else:
+            request.send_exception(Const.ILLEGAL_DATA_ADDRESS)
 
 
 class TCP(object):
-    def __init__(self, slave_ip, slave_port=502, timeout=5):
+    def __init__(self,
+                 slave_ip: str,
+                 slave_port: int = 502,
+                 timeout: float = 5.0):
         self._sock = socket.socket()
+        self.trans_id_ctr = 0
 
         # print(socket.getaddrinfo(slave_ip, slave_port))
         # [(2, 1, 0, '192.168.178.47', ('192.168.178.47', 502))]
@@ -31,167 +198,340 @@ class TCP(object):
 
         self._sock.settimeout(timeout)
 
-    def _create_mbap_hdr(self, slave_id, modbus_pdu):
+    def _create_mbap_hdr(self,
+                         slave_id: int,
+                         modbus_pdu: bytes) -> Tuple[bytes, int]:
+        """
+        Create a Modbus header.
+
+        :param      slave_id:    The slave identifier
+        :type       slave_id:    int
+        :param      modbus_pdu:  The modbus Protocol Data Unit
+        :type       modbus_pdu:  bytes
+
+        :returns:   Modbus header and unique transaction ID
+        :rtype:     Tuple[bytes, int]
+        """
         # only available on WiPy
         # trans_id = machine.rng() & 0xFFFF
         # use builtin function to generate random 24 bit integer
-        trans_id = random.getrandbits(24) & 0xFFFF
+        # trans_id = random.getrandbits(24) & 0xFFFF
+        # use incrementing counter as it's faster
+        trans_id = self.trans_id_ctr
+        self.trans_id_ctr += 1
 
-        mbap_hdr = struct.pack('>HHHB', trans_id, 0, len(modbus_pdu) + 1, slave_id)
+        mbap_hdr = struct.pack(
+            '>HHHB', trans_id, 0, len(modbus_pdu) + 1, slave_id)
 
         return mbap_hdr, trans_id
 
-    def _bytes_to_bool(self, byte_list):
-        bool_list = []
-        for index, byte in enumerate(byte_list):
-            bool_list.extend([bool(byte & (1 << n)) for n in range(8)])
-
-        return bool_list
-
-    def _to_short(self, byte_array, signed=True):
-        response_quantity = int(len(byte_array) / 2)
-        fmt = '>' + (('h' if signed else 'H') * response_quantity)
-
-        return struct.unpack(fmt, byte_array)
-
     def _validate_resp_hdr(self,
-                           response,
-                           trans_id,
-                           slave_id,
-                           function_code,
-                           count=False):
-        rec_tid, rec_pid, rec_len, rec_uid, rec_fc = struct.unpack('>HHHBB', response[:Const.MBAP_HDR_LENGTH + 1])
+                           response: bytearray,
+                           trans_id: int,
+                           slave_id: int,
+                           function_code: int,
+                           count: bool = False) -> bytes:
+        """
+        Validate the response header.
+
+        :param      response:       The response
+        :type       response:       bytearray
+        :param      trans_id:       The transaction identifier
+        :type       trans_id:       int
+        :param      slave_id:       The slave identifier
+        :type       slave_id:       int
+        :param      function_code:  The function code
+        :type       function_code:  int
+        :param      count:          The count
+        :type       count:          bool
+
+        :returns:   Modbus response content
+        :rtype:     bytes
+        """
+        rec_tid, rec_pid, rec_len, rec_uid, rec_fc = struct.unpack(
+            '>HHHBB', response[:Const.MBAP_HDR_LENGTH + 1])
+
         if (trans_id != rec_tid):
-            raise ValueError('wrong transaction Id')
+            raise ValueError('wrong transaction ID')
 
         if (rec_pid != 0):
-            raise ValueError('invalid protocol Id')
+            raise ValueError('invalid protocol ID')
 
         if (slave_id != rec_uid):
-            raise ValueError('wrong slave Id')
+            raise ValueError('wrong slave ID')
 
         if (rec_fc == (function_code + Const.ERROR_BIAS)):
             raise ValueError('slave returned exception code: {:d}'.
                              format(rec_fc))
 
-        hdr_length = (Const.MBAP_HDR_LENGTH + 2) if count else (Const.MBAP_HDR_LENGTH + 1)
+        hdr_length = (Const.MBAP_HDR_LENGTH + 2) if count else \
+            (Const.MBAP_HDR_LENGTH + 1)
 
         return response[hdr_length:]
 
-    def _send_receive(self, slave_id, modbus_pdu, count):
-        mbap_hdr, trans_id = self._create_mbap_hdr(slave_id, modbus_pdu)
+    def _send_receive(self,
+                      slave_id: int,
+                      modbus_pdu: bytes,
+                      count: bool) -> bytes:
+        """
+        Send a modbus message and receive the reponse.
+
+        :param      slave_id:    The slave identifier
+        :type       slave_id:    int
+        :param      modbus_pdu:  The modbus PDU
+        :type       modbus_pdu:  bytes
+        :param      count:       The count
+        :type       count:       bool
+
+        :returns:   Modbus data
+        :rtype:     bytes
+        """
+        mbap_hdr, trans_id = self._create_mbap_hdr(slave_id=slave_id,
+                                                   modbus_pdu=modbus_pdu)
         self._sock.send(mbap_hdr + modbus_pdu)
 
         response = self._sock.recv(256)
-        modbus_data = self._validate_resp_hdr(response,
-                                              trans_id,
-                                              slave_id,
-                                              modbus_pdu[0],
-                                              count)
+        modbus_data = self._validate_resp_hdr(response=response,
+                                              trans_id=trans_id,
+                                              slave_id=slave_id,
+                                              function_code=modbus_pdu[0],
+                                              count=count)
 
         return modbus_data
 
-    def read_coils(self, slave_addr, starting_addr, coil_qty):
-        modbus_pdu = functions.read_coils(starting_addr, coil_qty)
+    def read_coils(self,
+                   slave_addr: int,
+                   starting_addr: int,
+                   coil_qty: int) -> List[bool]:
+        """
+        Read coils (COILS).
 
-        response = self._send_receive(slave_addr, modbus_pdu, True)
-        status_pdu = self._bytes_to_bool(response)
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The coil starting address
+        :type       starting_addr:  int
+        :param      coil_qty:       The amount of coils to read
+        :type       coil_qty:       int
+
+        :returns:   State of read coils as list
+        :rtype:     List[bool]
+        """
+        modbus_pdu = functions.read_coils(
+            starting_address=starting_addr,
+            quantity=coil_qty)
+
+        response = self._send_receive(slave_id=slave_addr,
+                                      modbus_pdu=modbus_pdu,
+                                      count=True)
+        status_pdu = functions.bytes_to_bool(byte_list=response,
+                                             bit_qty=coil_qty)
 
         return status_pdu
 
-    def read_discrete_inputs(self, slave_addr, starting_addr, input_qty):
-        modbus_pdu = functions.read_discrete_inputs(starting_addr, input_qty)
+    def read_discrete_inputs(self,
+                             slave_addr: int,
+                             starting_addr: int,
+                             input_qty: int) -> List[bool]:
+        """
+        Read discrete inputs (ISTS).
 
-        response = self._send_receive(slave_addr, modbus_pdu, True)
-        status_pdu = self._bytes_to_bool(response)
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The discrete input starting address
+        :type       starting_addr:  int
+        :param      input_qty:      The amount of discrete inputs to read
+        :type       input_qty:      int
+
+        :returns:   State of read discrete inputs as list
+        :rtype:     List[bool]
+        """
+        modbus_pdu = functions.read_discrete_inputs(
+            starting_address=starting_addr,
+            quantity=input_qty)
+
+        response = self._send_receive(slave_id=slave_addr,
+                                      modbus_pdu=modbus_pdu,
+                                      count=True)
+        status_pdu = functions.bytes_to_bool(byte_list=response,
+                                             bit_qty=input_qty)
 
         return status_pdu
 
     def read_holding_registers(self,
-                               slave_addr,
-                               starting_addr,
-                               register_qty,
-                               signed=True):
-        modbus_pdu = functions.read_holding_registers(starting_addr,
-                                                      register_qty)
+                               slave_addr: int,
+                               starting_addr: int,
+                               register_qty: int,
+                               signed: bool = True) -> Tuple[int, ...]:
+        """
+        Read holding registers (HREGS).
 
-        response = self._send_receive(slave_addr, modbus_pdu, True)
-        register_value = self._to_short(response, signed)
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The holding register starting address
+        :type       starting_addr:  int
+        :param      register_qty:   The amount of holding registers to read
+        :type       register_qty:   int
+        :param      signed:         Indicates if signed
+        :type       signed:         bool
+
+        :returns:   State of read holding register as tuple
+        :rtype:     Tuple[int, ...]
+        """
+        modbus_pdu = functions.read_holding_registers(
+            starting_address=starting_addr,
+            quantity=register_qty)
+
+        response = self._send_receive(slave_id=slave_addr,
+                                      modbus_pdu=modbus_pdu,
+                                      count=True)
+        register_value = functions.to_short(byte_array=response, signed=signed)
 
         return register_value
 
     def read_input_registers(self,
-                             slave_addr,
-                             starting_addr,
-                             register_qty,
-                             signed=True):
-        modbus_pdu = functions.read_input_registers(starting_addr,
-                                                    register_qty)
+                             slave_addr: int,
+                             starting_addr: int,
+                             register_qty: int,
+                             signed: bool = True) -> Tuple[int, ...]:
+        """
+        Read input registers (IREGS).
 
-        response = self._send_receive(slave_addr, modbus_pdu, True)
-        register_value = self._to_short(response, signed)
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The input register starting address
+        :type       starting_addr:  int
+        :param      register_qty:   The amount of input registers to read
+        :type       register_qty:   int
+        :param      signed:         Indicates if signed
+        :type       signed:         bool
+
+        :returns:   State of read input register as tuple
+        :rtype:     Tuple[int, ...]
+        """
+        modbus_pdu = functions.read_input_registers(
+            starting_address=starting_addr,
+            quantity=register_qty)
+
+        response = self._send_receive(slave_id=slave_addr,
+                                      modbus_pdu=modbus_pdu,
+                                      count=True)
+        register_value = functions.to_short(byte_array=response, signed=signed)
 
         return register_value
 
-    def write_single_coil(self, slave_addr, output_address, output_value):
-        modbus_pdu = functions.write_single_coil(output_address, output_value)
+    def write_single_coil(self,
+                          slave_addr: int,
+                          output_address: int,
+                          output_value: Union[int, bool]) -> bool:
+        """
+        Update a single coil.
 
-        response = self._send_receive(slave_addr, modbus_pdu, False)
-        operation_status = functions.validate_resp_data(response,
-                                                        Const.WRITE_SINGLE_COIL,
-                                                        output_address,
-                                                        value=output_value,
-                                                        signed=False)
+        :param      slave_addr:      The slave address
+        :type       slave_addr:      int
+        :param      output_address:  The output address
+        :type       output_address:  int
+        :param      output_value:    The output value
+        :type       output_value:    Union[int, bool]
+
+        :returns:   Result of operation
+        :rtype:     bool
+        """
+        modbus_pdu = functions.write_single_coil(output_address=output_address,
+                                                 output_value=output_value)
+
+        response = self._send_receive(slave_id=slave_addr,
+                                      modbus_pdu=modbus_pdu,
+                                      count=False)
+        if response is None:
+            return False
+
+        operation_status = functions.validate_resp_data(
+            data=response,
+            function_code=Const.WRITE_SINGLE_COIL,
+            address=output_address,
+            value=output_value,
+            signed=False)
 
         return operation_status
 
     def write_single_register(self,
-                              slave_addr,
-                              register_address,
-                              register_value,
-                              signed=True):
-        modbus_pdu = functions.write_single_register(register_address,
-                                                     register_value,
-                                                     signed)
+                              slave_addr: int,
+                              register_address: int,
+                              register_value: int,
+                              signed: bool = True) -> bool:
+        """
+        Update a single register.
 
-        response = self._send_receive(slave_addr, modbus_pdu, False)
-        operation_status = functions.validate_resp_data(response,
-                                                        Const.WRITE_SINGLE_REGISTER,
-                                                        register_address,
-                                                        value=register_value,
-                                                        signed=signed)
+        :param      slave_addr:        The slave address
+        :type       slave_addr:        int
+        :param      register_address:  The register address
+        :type       register_address:  int
+        :param      register_value:    The register value
+        :type       register_value:    int
+        :param      signed:            Indicates if signed
+        :type       signed:            bool
+
+        :returns:   Result of operation
+        :rtype:     bool
+        """
+        modbus_pdu = functions.write_single_register(
+            register_address=register_address,
+            register_value=register_value,
+            signed=signed)
+
+        response = self._send_receive(slave_id=slave_addr,
+                                      modbus_pdu=modbus_pdu,
+                                      count=False)
+        operation_status = functions.validate_resp_data(
+            data=response,
+            function_code=Const.WRITE_SINGLE_REGISTER,
+            address=register_address,
+            value=register_value,
+            signed=signed)
 
         return operation_status
 
     def write_multiple_coils(self,
-                             slave_addr,
-                             starting_address,
-                             output_values):
-        modbus_pdu = functions.write_multiple_coils(starting_address,
-                                                    output_values)
+                             slave_addr: int,
+                             starting_address: int,
+                             output_values: List[int, bool]) -> bool:
+        modbus_pdu = functions.write_multiple_coils(
+            starting_address=starting_address,
+            value_list=output_values)
 
-        response = self._send_receive(slave_addr, modbus_pdu, False)
-        operation_status = functions.validate_resp_data(response,
-                                                        Const.WRITE_MULTIPLE_COILS,
-                                                        starting_address,
-                                                        quantity=len(output_values))
+        response = self._send_receive(slave_id=slave_addr,
+                                      modbus_pdu=modbus_pdu,
+                                      count=False)
+        operation_status = functions.validate_resp_data(
+            data=response,
+            function_code=Const.WRITE_MULTIPLE_COILS,
+            address=starting_address,
+            quantity=len(output_values))
 
         return operation_status
 
     def write_multiple_registers(self,
-                                 slave_addr,
-                                 starting_address,
-                                 register_values,
-                                 signed=True):
-        modbus_pdu = functions.write_multiple_registers(starting_address,
-                                                        register_values,
-                                                        signed)
+                                 slave_addr: int,
+                                 starting_address: int,
+                                 register_values: List[int],
+                                 signed=True) -> bool:
+        modbus_pdu = functions.write_multiple_registers(
+            starting_address=starting_address,
+            register_values=register_values,
+            signed=signed)
 
-        response = self._send_receive(slave_addr, modbus_pdu, False)
-        operation_status = functions.validate_resp_data(response,
-                                                        Const.WRITE_MULTIPLE_REGISTERS,
-                                                        starting_address,
-                                                        quantity=len(register_values))
+        response = self._send_receive(slave_id=slave_addr,
+                                      modbus_pdu=modbus_pdu,
+                                      count=False)
+        operation_status = functions.validate_resp_data(
+            data=response,
+            function_code=Const.WRITE_MULTIPLE_REGISTERS,
+            address=starting_address,
+            quantity=len(register_values),
+            # this fixes
+            # https://github.com/brainelectronics/micropython-modbus/issues/23
+            # signed=signed
+        )
 
         return operation_status
 
@@ -202,10 +542,13 @@ class TCPServer(object):
         self._client_sock = None
         self._is_bound = False
 
-    def get_is_bound(self):
+    def get_is_bound(self) -> bool:
         return self._is_bound
 
-    def bind(self, local_ip, local_port=502, max_connections=10):
+    def bind(self,
+             local_ip: str,
+             local_port: int = 502,
+             max_connections: int = 10):
         if self._client_sock:
             self._client_sock.close()
 
@@ -222,20 +565,20 @@ class TCPServer(object):
 
         self._is_bound = True
 
-    def _send(self, modbus_pdu, slave_addr):
+    def _send(self, modbus_pdu: bytes, slave_addr: int) -> None:
         size = len(modbus_pdu)
         fmt = 'B' * size
         adu = struct.pack('>HHHB' + fmt, self._req_tid, 0, size + 1, slave_addr, *modbus_pdu)
         self._client_sock.send(adu)
 
     def send_response(self,
-                      slave_addr,
-                      function_code,
-                      request_register_addr,
-                      request_register_qty,
-                      request_data,
-                      values=None,
-                      signed=True):
+                      slave_addr: int,
+                      function_code: int,
+                      request_register_addr: int,
+                      request_register_qty: int,
+                      request_data: list,
+                      values: Optional[list] = None,
+                      signed: bool = True) -> None:
         modbus_pdu = functions.response(function_code,
                                         request_register_addr,
                                         request_register_qty,
@@ -245,14 +588,16 @@ class TCPServer(object):
         self._send(modbus_pdu, slave_addr)
 
     def send_exception_response(self,
-                                slave_addr,
-                                function_code,
-                                exception_code):
+                                slave_addr: int,
+                                function_code: int,
+                                exception_code: int) -> None:
         modbus_pdu = functions.exception_response(function_code,
                                                   exception_code)
         self._send(modbus_pdu, slave_addr)
 
-    def _accept_request(self, accept_timeout, unit_addr_list):
+    def _accept_request(self,
+                        accept_timeout: float,
+                        unit_addr_list: list) -> None:
         self._sock.settimeout(accept_timeout)
         new_client_sock = None
 
@@ -310,7 +655,7 @@ class TCPServer(object):
                                              e.exception_code)
                 return None
 
-    def get_request(self, unit_addr_list=None, timeout=None):
+    def get_request(self, unit_addr_list=None, timeout=None) -> None:
         if self._sock is None:
             raise Exception('Modbus TCP server not bound')
 

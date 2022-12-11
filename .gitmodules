@@ -1,3 +1,6 @@
 [submodule "modules"]
 	path = modules
-	url = git@github.com:brainelectronics/python-modules.git
+	# changed to https due to RTD build issue
+	# see https://github.com/readthedocs/readthedocs.org/issues/4043
+	# url = git@github.com:brainelectronics/python-modules.git
+	url = https://github.com/brainelectronics/python-modules.git
