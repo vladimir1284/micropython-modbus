@@ -14,9 +14,13 @@ import struct
 # custom packages
 from . import const as Const
 
+# typing not natively supported on MicroPython
+from .typing import Optional
+
 
 class Request(object):
-    def __init__(self, interface, data):
+    """Deconstruct request data received via TCP or Serial"""
+    def __init__(self, interface, data: bytearray) -> None:
         self._itf = interface
         self.unit_addr = data[0]
         self.function, self.register_addr = struct.unpack_from('>BH', data, 1)
@@ -65,7 +69,17 @@ class Request(object):
             self.quantity = None
             self.data = data[4:]
 
-    def send_response(self, values=None, signed=True):
+    def send_response(self,
+                      values: Optional[list] = None,
+                      signed: bool = True) -> None:
+        """
+        Send a response via the configured interface.
+
+        :param      values:  The values
+        :type       values:  Optional[list]
+        :param      signed:  Indicates if signed values are used
+        :type       signed:  bool
+        """
         self._itf.send_response(self.unit_addr,
                                 self.function,
                                 self.register_addr,
@@ -74,12 +88,19 @@ class Request(object):
                                 values,
                                 signed)
 
-    def send_exception(self, exception_code):
+    def send_exception(self, exception_code: int) -> None:
+        """
+        Send an exception response.
+
+        :param      exception_code:  The exception code
+        :type       exception_code:  int
+        """
         self._itf.send_exception_response(self.unit_addr,
                                           self.function,
                                           exception_code)
 
-    def data_as_bits(self):
+    """
+    def data_as_bits(self) -> List[int]:
         bits = []
 
         for byte in self.data:
@@ -88,8 +109,20 @@ class Request(object):
 
                 if len(bits) == self.quantity:
                     return bits
+    """
 
-    def data_as_registers(self, signed=True):
+    def data_as_registers(self, signed: bool = True) -> bytes:
+        """
+        Convert bytes to tuple of integer values
+
+        :param      byte_array:  The byte array
+        :type       byte_array:  bytes
+        :param      signed:      Indicates if signed
+        :type       signed:      bool
+
+        :returns:   Integer representation
+        :rtype:     bytes
+        """
         qty = self.quantity if (self.quantity is not None) else 1
         fmt = ('h' if signed else 'H') * qty
 
@@ -97,6 +130,7 @@ class Request(object):
 
 
 class ModbusException(Exception):
-    def __init__(self, function_code, exception_code):
+    """Exception for signaling modbus errors"""
+    def __init__(self, function_code: int, exception_code: int) -> None:
         self.function_code = function_code
         self.exception_code = exception_code
