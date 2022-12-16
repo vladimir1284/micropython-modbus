@@ -63,7 +63,7 @@ class TestTcpExample(unittest.TestCase):
         modbus_pdu = b'\x05\x00\x7b\xff\x00'    # WRITE_SINGLE_COIL 123 to True
         self._host.trans_id_ctr = trans_id
 
-        # 0x00 0x06 is the lenght of the Modbus Protocol Data Unit +1
+        # 0x00 0x06 is the length of the Modbus Protocol Data Unit +1
         # 0x0A is the cliend address
         expectation = (struct.pack('>H', trans_id) + b'\x00\x00\x00\x06\x0A',
                        trans_id)
@@ -237,12 +237,12 @@ class TestTcpExample(unittest.TestCase):
             coil_qty=coil_qty)
 
         self.test_logger.debug(
-            'Status of COIL {} lenght {}: {}, expectation: {}'.format(
+            'Status of COIL {} length {}: {}, expectation: {}'.format(
                 coil_address, coil_qty, coil_status, expectation_list))
         self.assertIsInstance(coil_status, list)
         self.assertEqual(len(coil_status), coil_qty)
         self.assertTrue(all(isinstance(x, bool) for x in coil_status))
-        # self.assertEqual(coil_status, expectation_list)
+        self.assertEqual(coil_status, expectation_list)
 
         coil_address = \
             self._register_definitions['COILS']['ANOTHER_EXAMPLE_COIL']['register']     # noqa: E501
@@ -260,7 +260,28 @@ class TestTcpExample(unittest.TestCase):
             coil_qty=coil_qty)
 
         self.test_logger.debug(
-            'Status of COIL {} lenght {}: {}, expectation: {}'.format(
+            'Status of COIL {} length {}: {}, expectation: {}'.format(
+                coil_address, coil_qty, coil_status, expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        self.assertEqual(coil_status, expectation_list)
+
+        coil_address = \
+            self._register_definitions['COILS']['MANY_COILS']['register']
+        coil_qty = \
+            self._register_definitions['COILS']['MANY_COILS']['len']
+        expectation_list = list(
+            map(bool, self._register_definitions['COILS']['MANY_COILS']['val'])
+        )
+
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Status of COIL {} length {}: {}, expectation: {}'.format(
                 coil_address, coil_qty, coil_status, expectation_list))
         self.assertIsInstance(coil_status, list)
         self.assertEqual(len(coil_status), coil_qty)
