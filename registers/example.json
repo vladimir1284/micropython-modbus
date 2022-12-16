@@ -39,6 +39,18 @@
             "description": "Example COILS registers with length of 3, Coils (setter+getter) [0, 1]",
             "range": "",
             "unit": ""
+        },
+        "MANY_COILS": {
+            "register": 150,
+            "len": 19,
+            "val": [
+                1, 0, 1, 1, 0, 0, 1, 1,
+                1, 1, 0, 1, 0, 1, 1, 0,
+                1, 0, 1
+            ],
+            "description": "Example COILS registers with length of 19, representing Modbus_Application_Protocol_V1_1b3 Read Coils example, Coils (setter+getter) [0, 1]",
+            "range": "",
+            "unit": ""
         }
     },
     "HREGS": {

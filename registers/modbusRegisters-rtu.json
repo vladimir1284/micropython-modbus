@@ -1,0 +1,77 @@
+{
+    "COILS": {
+        "COIL_101": {
+            "register": 101,
+            "len": 1,
+            "description": "COIL 101",
+            "range": "",
+            "unit": ""
+        },
+        "COIL_102": {
+            "register": 102,
+            "len": 1,
+            "description": "COIL 102",
+            "range": "",
+            "unit": ""
+        }
+    },
+    "HREGS": {
+        "HREG_101": {
+            "register": 101,
+            "len": 1,
+            "description": "HREG 101",
+            "range": "",
+            "unit": ""
+        },
+        "HREG_102": {
+            "register": 102,
+            "len": 1,
+            "description": "HREG 102",
+            "range": "",
+            "unit": ""
+        }
+    },
+    "ISTS": {
+        "IST_101": {
+            "register": 101,
+            "len": 1,
+            "description": "IST 101",
+            "range": "",
+            "unit": ""
+        },
+        "IST_102": {
+            "register": 102,
+            "len": 1,
+            "description": "IST 102",
+            "range": "",
+            "unit": ""
+        }
+    },
+    "IREGS": {
+        "IREG_101": {
+            "register": 101,
+            "len": 1,
+            "description": "IREG 101",
+            "range": "",
+            "unit": ""
+        },
+        "IREG_102": {
+            "register": 102,
+            "len": 1,
+            "description": "IREG 102",
+            "range": "",
+            "unit": ""
+        }
+    },
+    "META": {
+        "created": "07.08.2021",
+        "modified": "07.08.2021"
+    },
+    "CONNECTION": {
+        "type": "rtu",
+        "unit": 10,
+        "address": "/dev/tty.wchusbserial1420",
+        "baudrate": 9600,
+        "mode": "master"
+    }
+}
