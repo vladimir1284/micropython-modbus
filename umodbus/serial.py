@@ -23,18 +23,36 @@ from .common import ModbusException
 from .modbus import Modbus
 
 # typing not natively supported on MicroPython
-from .typing import List, Optional, Union
+from .typing import List, Optional, Tuple, Union
 
 
 class ModbusRTU(Modbus):
+    """
+    Modbus RTU client class
+
+    :param      addr:        The address of this device on the bus
+    :type       addr:        int
+    :param      baudrate:    The baudrate, default 9600
+    :type       baudrate:    int
+    :param      data_bits:   The data bits, default 8
+    :type       data_bits:   int
+    :param      stop_bits:   The stop bits, default 1
+    :type       stop_bits:   int
+    :param      parity:      The parity, default None
+    :type       parity:      Optional[int]
+    :param      pins:        The pins as list [TX, RX]
+    :type       pins:        List[int, int]
+    :param      ctrl_pin:    The control pin
+    :type       ctrl_pin:    int
+    """
     def __init__(self,
-                 addr,
-                 baudrate=9600,
-                 data_bits=8,
-                 stop_bits=1,
-                 parity=None,
-                 pins=None,
-                 ctrl_pin=None):
+                 addr: int,
+                 baudrate: int = 9600,
+                 data_bits: int = 8,
+                 stop_bits: int = 1,
+                 parity: Optional[int] = None,
+                 pins: List[int, int] = None,
+                 ctrl_pin: int = None):
         super().__init__(
             # set itf to Serial object, addr_list to [addr]
             Serial(uart_id=1,
@@ -57,6 +75,24 @@ class Serial(object):
                  parity=None,
                  pins: List[int, int] = None,
                  ctrl_pin: int = None):
+        """
+        Setup Serial/RTU Modbus
+
+        :param      uart_id:     The ID of the used UART
+        :type       uart_id:     int
+        :param      baudrate:    The baudrate, default 9600
+        :type       baudrate:    int
+        :param      data_bits:   The data bits, default 8
+        :type       data_bits:   int
+        :param      stop_bits:   The stop bits, default 1
+        :type       stop_bits:   int
+        :param      parity:      The parity, default None
+        :type       parity:      Optional[int]
+        :param      pins:        The pins as list [TX, RX]
+        :type       pins:        List[int, int]
+        :param      ctrl_pin:    The control pin
+        :type       ctrl_pin:    int
+        """
         self._uart = UART(uart_id,
                           baudrate=baudrate,
                           bits=data_bits,
@@ -79,7 +115,16 @@ class Serial(object):
         else:
             self._t35chars = 1750   # 1750us (approx. 1.75ms)
 
-    def _calculate_crc16(self, data):
+    def _calculate_crc16(self, data: bytearray) -> bytes:
+        """
+        Calculates the CRC16.
+
+        :param      data:        The data
+        :type       data:        bytearray
+
+        :returns:   The crc 16.
+        :rtype:     bytes
+        """
         crc = 0xFFFF
 
         for char in data:
@@ -87,7 +132,16 @@ class Serial(object):
 
         return struct.pack('<H', crc)
 
-    def _exit_read(self, response):
+    def _exit_read(self, response: bytearray) -> bool:
+        """
+        Return on modbus read error
+
+        :param      response:    The response
+        :type       response:    bytearray
+
+        :returns:   State of basic read response evaluation
+        :rtype:     bool
+        """
         if response[1] >= Const.ERROR_BIAS:
             if len(response) < Const.ERROR_RESP_LEN:
                 return False
@@ -122,7 +176,16 @@ class Serial(object):
 
         return response
 
-    def _uart_read_frame(self, timeout: Optional[int] = None):
+    def _uart_read_frame(self, timeout: Optional[int] = None) -> bytearray:
+        """
+        Read a Modbus frame
+
+        :param      timeout:  The timeout
+        :type       timeout:  Optional[int]
+
+        :returns:   Received message
+        :rtype:     bytearray
+        """
         received_bytes = bytearray()
 
         # set timeout to at least twice the time between two frames in case the
@@ -266,6 +329,19 @@ class Serial(object):
                    slave_addr: int,
                    starting_addr: int,
                    coil_qty: int) -> List[bool]:
+        """
+        Read coils (COILS).
+
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The coil starting address
+        :type       starting_addr:  int
+        :param      coil_qty:       The amount of coils to read
+        :type       coil_qty:       int
+
+        :returns:   State of read coils as list
+        :rtype:     List[bool]
+        """
         modbus_pdu = functions.read_coils(starting_address=starting_addr,
                                           quantity=coil_qty)
 
@@ -281,6 +357,19 @@ class Serial(object):
                              slave_addr: int,
                              starting_addr: int,
                              input_qty: int) -> List[bool]:
+        """
+        Read discrete inputs (ISTS).
+
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The discrete input starting address
+        :type       starting_addr:  int
+        :param      input_qty:      The amount of discrete inputs to read
+        :type       input_qty:      int
+
+        :returns:   State of read discrete inputs as list
+        :rtype:     List[bool]
+        """
         modbus_pdu = functions.read_discrete_inputs(
             starting_address=starting_addr,
             quantity=input_qty)
@@ -297,7 +386,22 @@ class Serial(object):
                                slave_addr: int,
                                starting_addr: int,
                                register_qty: int,
-                               signed: bool = True) -> List[int]:
+                               signed: bool = True) -> Tuple[int, ...]:
+        """
+        Read holding registers (HREGS).
+
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The holding register starting address
+        :type       starting_addr:  int
+        :param      register_qty:   The amount of holding registers to read
+        :type       register_qty:   int
+        :param      signed:         Indicates if signed
+        :type       signed:         bool
+
+        :returns:   State of read holding register as tuple
+        :rtype:     Tuple[int, ...]
+        """
         modbus_pdu = functions.read_holding_registers(
             starting_address=starting_addr,
             quantity=register_qty)
@@ -314,7 +418,22 @@ class Serial(object):
                              slave_addr: int,
                              starting_addr: int,
                              register_qty: int,
-                             signed: bool = True) -> List[int]:
+                             signed: bool = True) -> Tuple[int, ...]:
+        """
+        Read input registers (IREGS).
+
+        :param      slave_addr:     The slave address
+        :type       slave_addr:     int
+        :param      starting_addr:  The input register starting address
+        :type       starting_addr:  int
+        :param      register_qty:   The amount of input registers to read
+        :type       register_qty:   int
+        :param      signed:         Indicates if signed
+        :type       signed:         bool
+
+        :returns:   State of read input register as tuple
+        :rtype:     Tuple[int, ...]
+        """
         modbus_pdu = functions.read_input_registers(
             starting_address=starting_addr,
             quantity=register_qty)
@@ -364,6 +483,21 @@ class Serial(object):
                               register_address: int,
                               register_value: int,
                               signed=True) -> bool:
+        """
+        Update a single register.
+
+        :param      slave_addr:        The slave address
+        :type       slave_addr:        int
+        :param      register_address:  The register address
+        :type       register_address:  int
+        :param      register_value:    The register value
+        :type       register_value:    int
+        :param      signed:            Indicates if signed
+        :type       signed:            bool
+
+        :returns:   Result of operation
+        :rtype:     bool
+        """
         modbus_pdu = functions.write_single_register(register_address,
                                                      register_value,
                                                      signed)
@@ -383,7 +517,20 @@ class Serial(object):
     def write_multiple_coils(self,
                              slave_addr: int,
                              starting_address: int,
-                             output_values: List[int, bool]) -> bool:
+                             output_values: List[Union[int, bool]]) -> bool:
+        """
+        Update multiple coils.
+
+        :param      slave_addr:        The slave address
+        :type       slave_addr:        int
+        :param      starting_address:  The address of the first coil
+        :type       starting_address:  int
+        :param      output_values:     The output values
+        :type       output_values:     List[Union[int, bool]]
+
+        :returns:   Result of operation
+        :rtype:     bool
+        """
         modbus_pdu = functions.write_multiple_coils(
             starting_address=starting_address,
             value_list=output_values)
@@ -404,6 +551,21 @@ class Serial(object):
                                  starting_address: int,
                                  register_values: List[int],
                                  signed=True) -> bool:
+        """
+        Update multiple registers.
+
+        :param      slave_addr:        The slave address
+        :type       slave_addr:        int
+        :param      starting_address:  The starting address
+        :type       starting_address:  int
+        :param      register_values:   The register values
+        :type       register_values:   List[int]
+        :param      signed:            Indicates if signed
+        :type       signed:            bool
+
+        :returns:   Result of operation
+        :rtype:     bool
+        """
         modbus_pdu = functions.write_multiple_registers(
             starting_address=starting_address,
             register_values=register_values,
@@ -429,6 +591,24 @@ class Serial(object):
                       request_data: list,
                       values: Optional[list] = None,
                       signed: bool = True) -> None:
+        """
+        Send a response to a client.
+
+        :param      slave_addr:             The slave address
+        :type       slave_addr:             int
+        :param      function_code:          The function code
+        :type       function_code:          int
+        :param      request_register_addr:  The request register address
+        :type       request_register_addr:  int
+        :param      request_register_qty:   The request register qty
+        :type       request_register_qty:   int
+        :param      request_data:           The request data
+        :type       request_data:           list
+        :param      values:                 The values
+        :type       values:                 Optional[list]
+        :param      signed:                 Indicates if signed
+        :type       signed:                 bool
+        """
         modbus_pdu = functions.response(
             function_code=function_code,
             request_register_addr=request_register_addr,
@@ -443,12 +623,35 @@ class Serial(object):
                                 slave_addr: int,
                                 function_code: int,
                                 exception_code: int) -> None:
+        """
+        Send an exception response to a client.
+
+        :param      slave_addr:      The slave address
+        :type       slave_addr:      int
+        :param      function_code:   The function code
+        :type       function_code:   int
+        :param      exception_code:  The exception code
+        :type       exception_code:  int
+        """
         modbus_pdu = functions.exception_response(
             function_code=function_code,
             exception_code=exception_code)
         self._send(modbus_pdu=modbus_pdu, slave_addr=slave_addr)
 
-    def get_request(self, unit_addr_list: list, timeout: Optional[int] = None):
+    def get_request(self,
+                    unit_addr_list: List[int],
+                    timeout: Optional[int] = None) -> Union[Request, None]:
+        """
+        Check for request within the specified timeout
+
+        :param      unit_addr_list:  The unit address list
+        :type       unit_addr_list:  Optional[list]
+        :param      timeout:         The timeout
+        :type       timeout:         Optional[int]
+
+        :returns:   A request object or None.
+        :rtype:     Union[Request, None]
+        """
         req = self._uart_read_frame(timeout=timeout)
 
         if len(req) < 8:
