@@ -27,6 +27,7 @@ from .typing import List, Optional, Tuple, Union
 
 
 class ModbusTCP(Modbus):
+    """Modbus TCP client class"""
     def __init__(self):
         super().__init__(
             # set itf to TCPServer object, addr_list to None
@@ -38,9 +39,25 @@ class ModbusTCP(Modbus):
              local_ip: str,
              local_port: int = 502,
              max_connections: int = 10) -> None:
+        """
+        Bind IP and port for incomming requests
+
+        :param      local_ip:         IP of this device listening for requests
+        :type       local_ip:         str
+        :param      local_port:       Port of this device
+        :type       local_port:       int
+        :param      max_connections:  Number of maximum connections
+        :type       max_connections:  int
+        """
         self._itf.bind(local_ip, local_port, max_connections)
 
     def get_bound_status(self) -> bool:
+        """
+        Get the IP and port binding status.
+
+        :returns:   The bound status, True if already bound, False otherwise.
+        :rtype:     bool
+        """
         try:
             return self._itf.get_is_bound()
         except Exception:
@@ -102,7 +119,10 @@ class ModbusTCP(Modbus):
 
         return True
 
-    def _create_response(self, request: request, reg_type: str):
+    def _create_response(self,
+                         request: request,
+                         reg_type: str) -> Union[bool, int,
+                                                 List[bool], List[int]]:
         """
         Create a response.
 
@@ -185,6 +205,16 @@ class ModbusTCP(Modbus):
 
 
 class TCP(object):
+    """
+    TCP class handling socket connections and parsing the Modbus data
+
+    :param      slave_ip:    IP of this device listening for requests
+    :type       slave_ip:    str
+    :param      slave_port:  Port of this device
+    :type       slave_port:  int
+    :param      timeout:     Socket timeout in seconds
+    :type       timeout:     float
+    """
     def __init__(self,
                  slave_ip: str,
                  slave_port: int = 502,
@@ -494,7 +524,20 @@ class TCP(object):
     def write_multiple_coils(self,
                              slave_addr: int,
                              starting_address: int,
-                             output_values: List[int, bool]) -> bool:
+                             output_values: List[Union[int, bool]]) -> bool:
+        """
+        Update multiple coils.
+
+        :param      slave_addr:        The slave address
+        :type       slave_addr:        int
+        :param      starting_address:  The address of the first coil
+        :type       starting_address:  int
+        :param      output_values:     The output values
+        :type       output_values:     List[Union[int, bool]]
+
+        :returns:   Result of operation
+        :rtype:     bool
+        """
         modbus_pdu = functions.write_multiple_coils(
             starting_address=starting_address,
             value_list=output_values)
@@ -515,6 +558,21 @@ class TCP(object):
                                  starting_address: int,
                                  register_values: List[int],
                                  signed=True) -> bool:
+        """
+        Update multiple registers.
+
+        :param      slave_addr:        The slave address
+        :type       slave_addr:        int
+        :param      starting_address:  The starting address
+        :type       starting_address:  int
+        :param      register_values:   The register values
+        :type       register_values:   List[int]
+        :param      signed:            Indicates if signed
+        :type       signed:            bool
+
+        :returns:   Result of operation
+        :rtype:     bool
+        """
         modbus_pdu = functions.write_multiple_registers(
             starting_address=starting_address,
             register_values=register_values,
@@ -537,18 +595,35 @@ class TCP(object):
 
 
 class TCPServer(object):
+    """Modbus TCP host class"""
     def __init__(self):
         self._sock = None
         self._client_sock = None
         self._is_bound = False
 
     def get_is_bound(self) -> bool:
+        """
+        Get the IP and port binding status
+
+        :returns:   True if bound to IP and port, False otherwise
+        :rtype:     bool
+        """
         return self._is_bound
 
     def bind(self,
              local_ip: str,
              local_port: int = 502,
              max_connections: int = 10):
+        """
+        Bind IP and port for incomming requests
+
+        :param      local_ip:         IP of this device listening for requests
+        :type       local_ip:         str
+        :param      local_port:       Port of this device
+        :type       local_port:       int
+        :param      max_connections:  Number of maximum connections
+        :type       max_connections:  int
+        """
         if self._client_sock:
             self._client_sock.close()
 
@@ -566,6 +641,14 @@ class TCPServer(object):
         self._is_bound = True
 
     def _send(self, modbus_pdu: bytes, slave_addr: int) -> None:
+        """
+        Send Modbus Protocol Data Unit to slave
+
+        :param      modbus_pdu:  The Modbus Protocol Data Unit
+        :type       modbus_pdu:  bytes
+        :param      slave_addr:  The slave address
+        :type       slave_addr:  int
+        """
         size = len(modbus_pdu)
         fmt = 'B' * size
         adu = struct.pack('>HHHB' + fmt, self._req_tid, 0, size + 1, slave_addr, *modbus_pdu)
@@ -579,6 +662,24 @@ class TCPServer(object):
                       request_data: list,
                       values: Optional[list] = None,
                       signed: bool = True) -> None:
+        """
+        Send a response to a client.
+
+        :param      slave_addr:             The slave address
+        :type       slave_addr:             int
+        :param      function_code:          The function code
+        :type       function_code:          int
+        :param      request_register_addr:  The request register address
+        :type       request_register_addr:  int
+        :param      request_register_qty:   The request register qty
+        :type       request_register_qty:   int
+        :param      request_data:           The request data
+        :type       request_data:           list
+        :param      values:                 The values
+        :type       values:                 Optional[list]
+        :param      signed:                 Indicates if signed
+        :type       signed:                 bool
+        """
         modbus_pdu = functions.response(function_code,
                                         request_register_addr,
                                         request_register_qty,
@@ -591,13 +692,31 @@ class TCPServer(object):
                                 slave_addr: int,
                                 function_code: int,
                                 exception_code: int) -> None:
+        """
+        Send an exception response to a client.
+
+        :param      slave_addr:      The slave address
+        :type       slave_addr:      int
+        :param      function_code:   The function code
+        :type       function_code:   int
+        :param      exception_code:  The exception code
+        :type       exception_code:  int
+        """
         modbus_pdu = functions.exception_response(function_code,
                                                   exception_code)
         self._send(modbus_pdu, slave_addr)
 
     def _accept_request(self,
                         accept_timeout: float,
-                        unit_addr_list: list) -> None:
+                        unit_addr_list: list) -> Union[Request, None]:
+        """
+        Accept, read and decode a socket based request
+
+        :param      accept_timeout:  The socket accept timeout
+        :type       accept_timeout:  float
+        :param      unit_addr_list:  The unit address list
+        :type       unit_addr_list:  list
+        """
         self._sock.settimeout(accept_timeout)
         new_client_sock = None
 
@@ -655,7 +774,22 @@ class TCPServer(object):
                                              e.exception_code)
                 return None
 
-    def get_request(self, unit_addr_list=None, timeout=None) -> None:
+    def get_request(self,
+                    unit_addr_list: Optional[list] = None,
+                    timeout: int = None) -> Union[Request, None]:
+        """
+        Check for request within the specified timeout
+
+        :param      unit_addr_list:  The unit address list
+        :type       unit_addr_list:  Optional[list]
+        :param      timeout:         The timeout
+        :type       timeout:         int
+
+        :returns:   A request object or None.
+        :rtype:     Union[Request, None]
+
+        :raises     Exception:       If no socket is configured and bound
+        """
         if self._sock is None:
             raise Exception('Modbus TCP server not bound')
 
