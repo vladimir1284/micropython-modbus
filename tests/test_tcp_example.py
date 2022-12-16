@@ -355,6 +355,34 @@ class TestTcpExample(unittest.TestCase):
 
     def test_read_holding_registers_single(self) -> None:
         """Test reading holding registers of client"""
+        # read holding register with negative value
+        hreg_address = \
+            self._register_definitions['HREGS']['EXAMPLE_HREG_NEGATIVE']['register']    # noqa: E501
+        register_qty = \
+            self._register_definitions['HREGS']['EXAMPLE_HREG_NEGATIVE']['len']
+
+        setup_val = \
+            self._register_definitions['HREGS']['EXAMPLE_HREG_NEGATIVE']['val']
+        # ensure the register value defined in the JSON is really negative
+        self.assertLessEqual(setup_val, -1)
+
+        expectation = (setup_val, )     # tuple is returned
+
+        register_value = self._host.read_holding_registers(
+            slave_addr=self._client_addr,
+            starting_addr=hreg_address,
+            register_qty=register_qty)
+
+        self.test_logger.debug('Status of HREG {}: {}, expectation: {}'.
+                               format(hreg_address,
+                                      register_value,
+                                      expectation))
+        self.assertIsInstance(register_value, tuple)
+        self.assertEqual(len(register_value), register_qty)
+        self.assertTrue(all(isinstance(x, int) for x in register_value))
+        self.assertEqual(register_value, expectation)
+
+        # read holding register with positive value
         hreg_address = \
             self._register_definitions['HREGS']['EXAMPLE_HREG']['register']
         register_qty = \
