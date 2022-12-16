@@ -586,9 +586,7 @@ class TCP(object):
             function_code=Const.WRITE_MULTIPLE_REGISTERS,
             address=starting_address,
             quantity=len(register_values),
-            # this fixes
-            # https://github.com/brainelectronics/micropython-modbus/issues/23
-            # signed=signed
+            signed=signed
         )
 
         return operation_status

@@ -578,7 +578,8 @@ class Serial(object):
             data=resp_data,
             function_code=Const.WRITE_MULTIPLE_REGISTERS,
             address=starting_address,
-            quantity=len(register_values)
+            quantity=len(register_values),
+            signed=signed
         )
 
         return operation_status
