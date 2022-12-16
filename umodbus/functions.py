@@ -152,14 +152,14 @@ def write_single_register(register_address: int,
 
 
 def write_multiple_coils(starting_address: int,
-                         value_list: List[int, bool]) -> bytes:
+                         value_list: List[Union[int, bool]]) -> bytes:
     """
     Create Modbus message to update multiple coils
 
     :param      starting_address:  The starting address
     :type       starting_address:  int
     :param      value_list:        The list of output values
-    :type       value_list:        List[int, bool]
+    :type       value_list:        List[Union[int, bool]]
 
     :returns:   Packed Modbus message
     :rtype:     bytes
@@ -273,9 +273,28 @@ def validate_resp_data(data: bytes,
 def response(function_code: int,
              request_register_addr: int,
              request_register_qty: int,
-             request_data,
-             value_list=None,
-             signed=True):
+             request_data: list,
+             value_list: Optional[list] = None,
+             signed: bool = True) -> bytes:
+    """
+    Construct a Modbus response Protocol Data Unit
+
+    :param      function_code:          The function code
+    :type       function_code:          int
+    :param      request_register_addr:  The request register address
+    :type       request_register_addr:  int
+    :param      request_register_qty:   The request register qty
+    :type       request_register_qty:   int
+    :param      request_data:           The request data
+    :type       request_data:           list
+    :param      value_list:             The values
+    :type       value_list:             Optional[list]
+    :param      signed:                 Indicates if signed
+    :type       signed:                 bool
+
+    :returns:   Protocol data unit
+    :rtype:     bytes
+    """
     if function_code in [Const.READ_COILS, Const.READ_DISCRETE_INPUTS]:
         sectioned_list = [value_list[i:i + 8] for i in range(0, len(value_list), 8)]    # noqa: E501
 
