@@ -54,6 +54,14 @@
         }
     },
     "HREGS": {
+        "EXAMPLE_HREG_NEGATIVE": {
+            "register": 92,
+            "len": 1,
+            "val": -29,
+            "description": "Example HREGS register, Hregs (setter+getter) [0, 65535]",
+            "range": "",
+            "unit": ""
+        },
         "EXAMPLE_HREG": {
             "register": 93,
             "len": 1,
