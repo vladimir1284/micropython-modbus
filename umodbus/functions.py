@@ -302,6 +302,7 @@ def response(function_code: int,
         for index, byte in enumerate(sectioned_list):
             # see https://github.com/brainelectronics/micropython-modbus/issues/22
             # output = sum(v << i for i, v in enumerate(byte))
+            # see https://github.com/brainelectronics/micropython-modbus/issues/38
             output = 0
             for bit in byte:
                 output = (output << 1) | bit
@@ -374,13 +375,22 @@ def bytes_to_bool(byte_list: bytes, bit_qty: Optional[int] = 1) -> List[bool]:
     :returns:   Boolean representation
     :rtype:     List[bool]
     """
-    # evil hack for missing keyword support in MicroPython format()
-    fmt = '{:0' + str(bit_qty) + 'b}'
+    bool_list = []
 
-    bool_list = [bool(int(x)) for x in fmt.format(list(byte_list)[0])]
+    for index, byte in enumerate(byte_list):
+        this_qty = bit_qty
 
-    # invert list due to byte order
-    return bool_list[::-1]
+        if this_qty >= 8:
+            this_qty = 8
+
+        # evil hack for missing keyword support in MicroPython format()
+        fmt = '{:0' + str(this_qty) + 'b}'
+
+        bool_list.extend([bool(int(x)) for x in fmt.format(byte)])
+
+        bit_qty -= 8
+
+    return bool_list
 
 
 def to_short(byte_array: bytes, signed: bool = True) -> bytes:
