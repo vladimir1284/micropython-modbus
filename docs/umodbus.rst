@@ -4,25 +4,28 @@ micropython-modbus API
 .. autosummary::
    :toctree: generated
 
-umodbus.common module
+Common module
 ---------------------------------
 
 .. automodule:: umodbus.common
    :members:
+   :private-members:
    :show-inheritance:
 
-umodbus.const module
+Modbus Constants
 ---------------------------------
 
 .. automodule:: umodbus.const
    :members:
+   :private-members:
    :show-inheritance:
 
-umodbus.functions module
+Common functions
 ---------------------------------
 
 .. automodule:: umodbus.functions
    :members:
+   :private-members:
    :show-inheritance:
 
 umodbus.modbus module
@@ -30,18 +33,21 @@ umodbus.modbus module
 
 .. automodule:: umodbus.modbus
    :members:
+   :private-members:
    :show-inheritance:
 
-umodbus.serial module
+Serial
 ---------------------------------
 
 .. automodule:: umodbus.serial
    :members:
+   :private-members:
    :show-inheritance:
 
-umodbus.tcp module
+TCP
 ---------------------------------
 
 .. automodule:: umodbus.tcp
    :members:
+   :private-members:
    :show-inheritance:
