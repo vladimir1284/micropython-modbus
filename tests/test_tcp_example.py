@@ -789,6 +789,71 @@ class TestTcpExample(unittest.TestCase):
         # https://github.com/brainelectronics/micropython-modbus/issues/38
         # self.assertEqual(coil_status, expectation_list)
 
+    def test_write_multiple_registers(self) -> None:
+        """Test updating multiple holding register of client"""
+        hreg_address = \
+            self._register_definitions['HREGS']['ANOTHER_EXAMPLE_HREG']['register']     # noqa: E501
+        register_qty = \
+            self._register_definitions['HREGS']['ANOTHER_EXAMPLE_HREG']['len']
+        expectation = tuple(
+            self._register_definitions['HREGS']['ANOTHER_EXAMPLE_HREG']['val']
+        )
+
+        #
+        # Check clean system (client register data is as initially defined)
+        #
+        # verify current state by reading holding register data
+        register_value = self._host.read_holding_registers(
+            slave_addr=self._client_addr,
+            starting_addr=hreg_address,
+            register_qty=register_qty)
+
+        self.test_logger.debug(
+            'Initial status of HREG {} length {}: {}, expectation: {}'.format(
+                hreg_address, register_qty, register_value, expectation))
+        self.assertIsInstance(register_value, tuple)
+        self.assertEqual(len(register_value), register_qty)
+        self.assertTrue(all(isinstance(x, int) for x in register_value))
+        self.assertEqual(register_value, expectation)
+
+        #
+        # Test setting multiple holding registers to random values
+        #
+        # update holding register of client with a different than the current
+        # value, but at least one negative value
+        new_hreg_vals = (
+            randint(-32768, 32767),
+            randint(-32768, -1),
+            randint(-32768, 32767),
+        )
+
+        operation_status = self._host.write_multiple_registers(
+            slave_addr=self._client_addr,
+            starting_address=hreg_address,
+            register_values=new_hreg_vals,
+            signed=True)
+        self.test_logger.debug(
+            'Result of setting HREG {} length {} to {}: {}, expectation: {}'.
+            format(
+                hreg_address, register_qty, new_hreg_vals, operation_status,
+                new_hreg_vals))
+        self.assertIsInstance(operation_status, bool)
+        self.assertTrue(operation_status)
+
+        # verify setting of state by reading data back again
+        register_value = self._host.read_holding_registers(
+            slave_addr=self._client_addr,
+            starting_addr=hreg_address,
+            register_qty=register_qty)
+
+        self.test_logger.debug(
+            'Status of HREG {} length {}: {}, expectation: {}'.format(
+                hreg_address, register_qty, register_value, new_hreg_vals))
+        self.assertIsInstance(register_value, tuple)
+        self.assertEqual(len(register_value), register_qty)
+        self.assertTrue(all(isinstance(x, int) for x in register_value))
+        self.assertEqual(register_value, new_hreg_vals)
+
     def tearDown(self) -> None:
         """Run after every test method"""
         # reset the client data back to the default values
