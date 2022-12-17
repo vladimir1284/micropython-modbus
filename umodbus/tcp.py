@@ -623,9 +623,19 @@ class TCPServer(object):
         self._client_sock = None
         self._is_bound = False
 
-    def get_is_bound(self) -> bool:
+    @property
+    def is_bound(self) -> bool:
         """
         Get the IP and port binding status
+
+        :returns:   True if bound to IP and port, False otherwise
+        :rtype:     bool
+        """
+        return self._is_bound
+
+    def get_is_bound(self) -> bool:
+        """
+        Get the IP and port binding status, legacy support.
 
         :returns:   True if bound to IP and port, False otherwise
         :rtype:     bool
