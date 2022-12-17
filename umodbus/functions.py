@@ -179,12 +179,16 @@ def write_multiple_coils(starting_address: int,
         output_value.append(output)
 
     fmt = 'B' * len(output_value)
+    quantity = len(value_list)
+    byte_count = quantity // 8
+    if quantity % 8:
+        byte_count += 1
 
     return struct.pack('>BHHB' + fmt,
                        Const.WRITE_MULTIPLE_COILS,
                        starting_address,
-                       len(value_list),     # quantity of outputs
-                       ((len(value_list) - 1) // 8) + 1,    # byte count
+                       quantity,
+                       byte_count,
                        *output_value)
 
 
