@@ -111,6 +111,7 @@ class Request(object):
                     return bits
     """
 
+    '''
     def data_as_registers(self, signed: bool = True) -> bytes:
         """
         Convert bytes to tuple of integer values
@@ -127,6 +128,7 @@ class Request(object):
         fmt = ('h' if signed else 'H') * qty
 
         return struct.unpack('>' + fmt, self.data)
+    '''
 
 
 class ModbusException(Exception):
