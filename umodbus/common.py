@@ -99,37 +99,6 @@ class Request(object):
                                           self.function,
                                           exception_code)
 
-    """
-    def data_as_bits(self) -> List[int]:
-        bits = []
-
-        for byte in self.data:
-            for i in range(0, 8):
-                bits.append((byte >> i) & 1)
-
-                if len(bits) == self.quantity:
-                    return bits
-    """
-
-    '''
-    def data_as_registers(self, signed: bool = True) -> bytes:
-        """
-        Convert bytes to tuple of integer values
-
-        :param      byte_array:  The byte array
-        :type       byte_array:  bytes
-        :param      signed:      Indicates if signed
-        :type       signed:      bool
-
-        :returns:   Integer representation
-        :rtype:     bytes
-        """
-        qty = self.quantity if (self.quantity is not None) else 1
-        fmt = ('h' if signed else 'H') * qty
-
-        return struct.unpack('>' + fmt, self.data)
-    '''
-
 
 class ModbusException(Exception):
     """Exception for signaling modbus errors"""
