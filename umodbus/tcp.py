@@ -173,54 +173,38 @@ class ModbusTCP(Modbus):
 
         if address in self._register_dict[reg_type]:
             if reg_type == 'COILS':
+                valid_register = True
+
                 if request.function == Const.WRITE_SINGLE_COIL:
                     val = request.data[0]
-                    if val == 0x00:
-                        val = False
-                        valid_register = True
-
-                        request.send_response()
-
-                        self.set_coil(address=address, value=val)
-                    elif val == 0xFF:
-                        val = True
-                        valid_register = True
-
-                        request.send_response()
-
-                        self.set_coil(address=address, value=val)
-                    else:
+                    if 0x00 < val < 0xFF:
+                        valid_register = False
                         request.send_exception(Const.ILLEGAL_DATA_VALUE)
+                    else:
+                        val = (val == 0xFF)
                 elif request.function == Const.WRITE_MULTIPLE_COILS:
-                    val = int.from_bytes(request.data, "big")
-                    bool_val = [
-                        bool(val & (1 << n)) for n in range(request.quantity)
+                    tmp = int.from_bytes(request.data, "big")
+                    val = [
+                        bool(tmp & (1 << n)) for n in range(request.quantity)
                     ]
-                    valid_register = True
 
-                    request.send_response()
-
-                    self.set_coil(address=address, value=bool_val)
+                if valid_register:
+                    self.set_coil(address=address, value=val)
             elif reg_type == 'HREGS':
+                valid_register = True
+                val = list(functions.to_short(byte_array=request.data,
+                                              signed=False))
+
                 if request.function == Const.WRITE_SINGLE_REGISTER:
-                    valid_register = True
-                    val = list(functions.to_short(byte_array=request.data,
-                                                  signed=False))[0]
-
-                    request.send_response()
-
-                    self.set_hreg(address=address, value=val)
+                    self.set_hreg(address=address, value=val[0])
                 elif request.function == Const.WRITE_MULTIPLE_REGISTERS:
-                    valid_register = True
-                    val = list(functions.to_short(byte_array=request.data,
-                                                  signed=False))
-                    request.send_response()
-
                     self.set_hreg(address=address, value=val)
             else:
-                pass
+                # nothing except holding registers or coils can be set
+                request.send_exception(Const.ILLEGAL_FUNCTION)
 
             if valid_register:
+                request.send_response()
                 self._set_changed_register(reg_type=reg_type,
                                            address=address,
                                            value=val)
