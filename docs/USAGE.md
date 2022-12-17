@@ -182,8 +182,6 @@ config
 The output will be a list of 5 elements like `[True, False, False, True, True]`
 depending on the actual device coil states of course.
 
-
-
 ##### Value
 
 The key `val` defines the value of registers to be set on the target/client
@@ -216,6 +214,119 @@ The optional key `unit` can be used to provide further details about the unit
 of the register. In case of the PWM output register example of the
 [optional range key](#optional-range) the recommended value for this key could
 be `percent`.
+
+### Register usage
+
+This section describes the usage of the following available functions
+
+ - [0x01 `read_coils`](umodbus.tcp.TCP.read_coils)
+ - [0x05 `write_single_coil`](umodbus.tcp.TCP.write_single_coil)
+ - [0x15 `write_multiple_coils`](umodbus.tcp.TCP.write_multiple_coils)
+
+based on TCP togehter with the latest provided
+[examples](https://github.com/brainelectronics/micropython-modbus/tree/develop/examples)
+
+All described functions require a successful setup of a Host communicating
+to/with a Client device which is providing the data and accepting the new data.
+
+```python
+from umodbus.tcp import TCP as ModbusTCPMaster
+
+slave_tcp_port = 502            # port to listen to
+slave_addr = 10                 # bus address of client
+slave_ip = '192.168.178.69'     # IP address, to be adjusted
+
+host = ModbusTCPMaster(
+    slave_ip=slave_ip,
+    slave_port=slave_tcp_port,
+    timeout=5)                  # optional, default 5
+```
+
+#### Coils
+
+Coils represent binary states, which can be get as and set to either `0` (off)
+or `1` (on).
+
+##### Read
+
+> The function code `0x01` is used to read from 1 to 2000 contiguous status of
+coils in a remote device.
+
+With the function [`read_coils`](umodbus.tcp.TCP.read_coils) a single coil
+status can be read.
+
+```python
+coil_address = 125
+coil_qty = 2
+coil_status = host.read_coils(
+    slave_addr=slave_addr,
+    starting_addr=coil_address,
+    coil_qty=coil_qty)
+print('Status of COIL {}: {}'.format(coil_address, coil_status))
+# Status of COIL 125:  [True, False]
+```
+
+> :warning: Please be aware of bug
+[#35](https://github.com/brainelectronics/micropython-modbus/issues/35). It is
+not possible to read a specific position within a configured list of multiple
+coils on a MicroPython Modbus TCP client device. Reading coil 126 in the above
+example will throw an error. This bug affects only devices using this package.
+Other devices work as expected and can be addressed as specified.
+
+##### Write
+
+Coils can be set with `False` or `0` to the `OFF` state and with `True` or `1`
+to the `ON` state.
+
+###### Single
+
+> The function code `0x05` is used to write a single output to either `ON` or
+`OFF` in a remote device.
+
+With the function [`write_single_coil`](umodbus.tcp.TCP.write_single_coil)
+a single coil status can be set.
+
+```python
+coil_address = 123
+new_coil_val = 0
+operation_status = host.write_single_coil(
+    slave_addr=slave_addr,
+    output_address=coil_address,
+    output_value=new_coil_val)
+print('Result of setting COIL {}: {}'.format(coil_address, operation_status))
+# Result of setting COIL 123: True
+```
+
+> :warning: Please be aware of bug
+[#15](https://github.com/brainelectronics/micropython-modbus/issues/15). It is
+not possible to write to a specific position within a configured list of multiple coils on a MicroPython Modbus TCP client device. This bug affects only
+devices using this package. Other devices work as expected and can be addressed
+as specified.
+
+###### Multiple
+
+> The function code `0x0F` is used to force each coil in a sequence of coils to
+either `ON` or `OFF` in a remote device.
+
+With the function [`write_multiple_coils`](umodbus.tcp.TCP.write_multiple_coils)
+multiple coil states can be set at once.
+
+```python
+coil_address = 126
+new_coil_vals = [1, 1, 0]
+operation_status = self._host.write_multiple_coils(
+            slave_addr=slave_addr,
+            starting_address=coil_address,
+            output_values=new_coil_vals)
+print('Result of setting COIL {}: {}'.format(coil_address, operation_status))
+# Result of setting COIL 126: True
+```
+
+> :warning: Please be aware of bug
+[#22](https://github.com/brainelectronics/micropython-modbus/issues/22). It is
+not possible to write to a specific position within a configured list of multiple coils on a MicroPython Modbus TCP client device. This bug affects only
+devices using this package. Other devices work as expected and can be addressed
+as specified.
 
 ### TCP
 
