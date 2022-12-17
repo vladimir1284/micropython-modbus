@@ -202,12 +202,21 @@ class ModbusTCP(Modbus):
 
                     self.set_coil(address=address, value=bool_val)
             elif reg_type == 'HREGS':
-                valid_register = True
-                val = request.data_as_registers(signed=False)[0]
+                if request.function == Const.WRITE_SINGLE_REGISTER:
+                    valid_register = True
+                    val = list(functions.to_short(byte_array=request.data,
+                                                  signed=False))[0]
 
-                request.send_response()
+                    request.send_response()
 
-                self.set_hreg(address=address, value=val)
+                    self.set_hreg(address=address, value=val)
+                elif request.function == Const.WRITE_MULTIPLE_REGISTERS:
+                    valid_register = True
+                    val = list(functions.to_short(byte_array=request.data,
+                                                  signed=False))
+                    request.send_response()
+
+                    self.set_hreg(address=address, value=val)
             else:
                 pass
 

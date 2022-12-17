@@ -208,17 +208,18 @@ def write_multiple_registers(starting_address: int,
     :returns:   Packed Modbus message
     :rtype:     bytes
     """
-    quantity = len(register_values)
-
-    if not (1 <= quantity <= 123):
+    if not (1 <= len(register_values) <= 123):
         raise ValueError('Invalid number of registers')
 
+    quantity = len(register_values)
+    byte_count = quantity * 2
     fmt = ('h' if signed else 'H') * quantity
+
     return struct.pack('>BHHB' + fmt,
                        Const.WRITE_MULTIPLE_REGISTERS,
                        starting_address,
                        quantity,
-                       quantity * 2,
+                       byte_count,
                        *register_values)
 
 
