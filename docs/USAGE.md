@@ -221,8 +221,12 @@ This section describes the usage of the following available functions
 
  - [0x01 `read_coils`](umodbus.tcp.TCP.read_coils)
  - [0x02 `read_discrete_inputs`](umodbus.tcp.TCP.read_discrete_inputs)
+ - [0x03 `read_holding_registers`](umodbus.tcp.TCP.read_holding_registers)
+ - [0x04 `read_input_registers`](umodbus.tcp.TCP.read_input_registers)
  - [0x05 `write_single_coil`](umodbus.tcp.TCP.write_single_coil)
- - [0x15 `write_multiple_coils`](umodbus.tcp.TCP.write_multiple_coils)
+ - [0x06 `write_single_register`](umodbus.tcp.TCP.write_single_register)
+ - [0x0F `write_multiple_coils`](umodbus.tcp.TCP.write_multiple_coils)
+ - [0x10 `write_multiple_registers`](umodbus.tcp.TCP.write_multiple_registers)
 
 based on TCP togehter with the latest provided
 [examples](https://github.com/brainelectronics/micropython-modbus/tree/develop/examples)
@@ -442,6 +446,33 @@ multiple holding registers on a MicroPython Modbus TCP client device. Setting
 holding register 95+96 to e.g. `[-12, 30001]` in the above example will throw
 an error. This bug affects only devices using this package. Other devices work
 as expected and can be addressed as specified.
+
+#### Input registers
+
+Input registers can hold values between `0` and `65535`. If supported by the
+client device, data can be marked as signed values to represent `-32768`
+through `32767`. Unlike [holding registers](#holding-registers), these cannot
+be set.
+
+##### Read
+
+> The function code `0x04` is used to read from 1 to 125 contiguous input
+registers in a remote device.
+
+With the function [`read_input_registers`](umodbus.tcp.TCP.read_input_registers)
+input registers can be read.
+
+```python
+ireg_address = 11
+register_qty = 3
+register_value = host.read_input_registers(
+    slave_addr=slave_addr,
+    starting_addr=ireg_address,
+    register_qty=register_qty,
+    signed=False)
+print('Status of IREG {}: {}'.format(ireg_address, register_value))
+# Status of IREG 11: [59123, 0, 390]
+```
 
 ### TCP
 
