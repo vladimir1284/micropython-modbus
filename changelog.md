@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable reading more than 8 coils in a row, see #36
 - Writing multiple coils in TCP, see #22
 - Writing multiple registers in TCP, see #23
+- Unit test `test_bytes_to_bool` uses MSB and LSB data correctly
 
 ## [2.0.0] - 2022-12-03
 ### Added
