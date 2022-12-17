@@ -7,55 +7,104 @@
 # see the Pycom Licence v1.0 document supplied with this file, or
 # available at https://www.pycom.io/opensource/licensing
 #
+# Description summary taken from
+# https://modbus.org/docs/Modbus_Application_Protocol_V1_1b3.pdf
 
 from micropython import const
 
 # function codes
 # defined as const(), see https://github.com/micropython/micropython/issues/573
+#: Read contiguous status of coils
 READ_COILS = const(0x01)                # COILS, [0, 1]
+#: Read contiguous status of discrete inputs
 READ_DISCRETE_INPUTS = const(0x02)      # ISTS,  [0, 1]
+#: Read the contents of a contiguous block of holding registers
 READ_HOLDING_REGISTERS = const(0x03)    # HREGS, [0, 65535]
+#: Read contiguous input registers
 READ_INPUT_REGISTER = const(0x04)       # IREGS, [0, 65535]
 
+#: Write a single coil output status to ON or OFF
 WRITE_SINGLE_COIL = const(0x05)         # COILS, [0, 1]
+#: Write a single holding register
 WRITE_SINGLE_REGISTER = const(0x06)     # HREGS, [0, 65535]
+#: Force each coil in a sequence of coils to either ON or OFF
 WRITE_MULTIPLE_COILS = const(0x0F)      # COILS, [0, 1]
+#: Write a block of contiguous registers
 WRITE_MULTIPLE_REGISTERS = const(0x10)  # HREGS, [0, 65535]
 
+"""
+Modify the contents of a specified holding register using a combination of an
+AND mask, an OR mask, and the register's current contents
+"""
 MASK_WRITE_REGISTER = const(0x16)
+"""
+Perform a combination of one read operation and one write operation in a
+single MODBUS transaction
+"""
 READ_WRITE_MULTIPLE_REGISTERS = const(0x17)
 
+#: Read the contents of a First-In-First-Out (FIFO) queue of register
 READ_FIFO_QUEUE = const(0x18)
 
+#: Perform a file record read
 READ_FILE_RECORD = const(0x14)
+#: Perform a file record write
 WRITE_FILE_RECORD = const(0x15)
 
+#: Read the contents of eight Exception Status outputs
 READ_EXCEPTION_STATUS = const(0x07)
+#: Provide series of tests for checking the communication system (serial only)
 DIAGNOSTICS = const(0x08)
+#: Get status word and an event count from the remote device com event counter
 GET_COM_EVENT_COUNTER = const(0x0B)
+#: Get a status word, event count, message count, and a field of event bytes
 GET_COM_EVENT_LOG = const(0x0C)
+#: Read the description of the type, the current status, and other informations
 REPORT_SERVER_ID = const(0x11)
+#: Encapsulated Interface Transport
 READ_DEVICE_IDENTIFICATION = const(0x2B)
 
 # exception codes
+#: Function code received in query is not an allowable action for the server
 ILLEGAL_FUNCTION = const(0x01)
+#: Data address received in query is not an allowable address for the server
 ILLEGAL_DATA_ADDRESS = const(0x02)
+#: A value contained in the query is not an allowable value for the server
 ILLEGAL_DATA_VALUE = const(0x03)
+"""
+An unrecoverable error occurred while the server was attempting to perform the
+requested action
+"""
 SERVER_DEVICE_FAILURE = const(0x04)
+#: Response is returned to prevent a timeout error from occurring in the client
 ACKNOWLEDGE = const(0x05)
+#: Server is engaged in processing a long duration program command
 SERVER_DEVICE_BUSY = const(0x06)
+#: Server attempted to read record file, but detected a parity error in memory
 MEMORY_PARITY_ERROR = const(0x08)
+"""
+Gateway was unable to allocate an internal communication path from the input
+port to the output port for processing the request
+"""
 GATEWAY_PATH_UNAVAILABLE = const(0x0A)
+#: No response was obtained from the target device
 DEVICE_FAILED_TO_RESPOND = const(0x0B)
 
-# PDU constants
+# Protocol Data Unit (PDU) constants
+#: CRC length
 CRC_LENGTH = const(0x02)
+#: Error code offset
 ERROR_BIAS = const(0x80)
+#: High Data Response length
 RESPONSE_HDR_LENGTH = const(0x02)
+#: Error response length
 ERROR_RESP_LEN = const(0x05)
+#: Fixed response length
 FIXED_RESP_LEN = const(0x08)
+#: Modbus Application Protocol High Data Response length
 MBAP_HDR_LENGTH = const(0x07)
 
+#: CRC16 lookup table
 CRC16_TABLE = (
     0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241, 0xC601,
     0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440, 0xCC01, 0x0CC0,

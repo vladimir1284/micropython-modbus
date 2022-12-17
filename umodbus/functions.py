@@ -152,14 +152,14 @@ def write_single_register(register_address: int,
 
 
 def write_multiple_coils(starting_address: int,
-                         value_list: List[int, bool]) -> bytes:
+                         value_list: List[Union[int, bool]]) -> bytes:
     """
     Create Modbus message to update multiple coils
 
     :param      starting_address:  The starting address
     :type       starting_address:  int
     :param      value_list:        The list of output values
-    :type       value_list:        List[int, bool]
+    :type       value_list:        List[Union[int, bool]]
 
     :returns:   Packed Modbus message
     :rtype:     bytes
@@ -179,12 +179,16 @@ def write_multiple_coils(starting_address: int,
         output_value.append(output)
 
     fmt = 'B' * len(output_value)
+    quantity = len(value_list)
+    byte_count = quantity // 8
+    if quantity % 8:
+        byte_count += 1
 
     return struct.pack('>BHHB' + fmt,
                        Const.WRITE_MULTIPLE_COILS,
                        starting_address,
-                       len(value_list),     # quantity of outputs
-                       ((len(value_list) - 1) // 8) + 1,    # byte count
+                       quantity,
+                       byte_count,
                        *output_value)
 
 
@@ -204,17 +208,18 @@ def write_multiple_registers(starting_address: int,
     :returns:   Packed Modbus message
     :rtype:     bytes
     """
-    quantity = len(register_values)
-
-    if not (1 <= quantity <= 123):
+    if not (1 <= len(register_values) <= 123):
         raise ValueError('Invalid number of registers')
 
+    quantity = len(register_values)
+    byte_count = quantity * 2
     fmt = ('h' if signed else 'H') * quantity
+
     return struct.pack('>BHHB' + fmt,
                        Const.WRITE_MULTIPLE_REGISTERS,
                        starting_address,
                        quantity,
-                       quantity * 2,
+                       byte_count,
                        *register_values)
 
 
@@ -273,9 +278,28 @@ def validate_resp_data(data: bytes,
 def response(function_code: int,
              request_register_addr: int,
              request_register_qty: int,
-             request_data,
-             value_list=None,
-             signed=True):
+             request_data: list,
+             value_list: Optional[list] = None,
+             signed: bool = True) -> bytes:
+    """
+    Construct a Modbus response Protocol Data Unit
+
+    :param      function_code:          The function code
+    :type       function_code:          int
+    :param      request_register_addr:  The request register address
+    :type       request_register_addr:  int
+    :param      request_register_qty:   The request register qty
+    :type       request_register_qty:   int
+    :param      request_data:           The request data
+    :type       request_data:           list
+    :param      value_list:             The values
+    :type       value_list:             Optional[list]
+    :param      signed:                 Indicates if signed
+    :type       signed:                 bool
+
+    :returns:   Protocol data unit
+    :rtype:     bytes
+    """
     if function_code in [Const.READ_COILS, Const.READ_DISCRETE_INPUTS]:
         sectioned_list = [value_list[i:i + 8] for i in range(0, len(value_list), 8)]    # noqa: E501
 
@@ -283,6 +307,7 @@ def response(function_code: int,
         for index, byte in enumerate(sectioned_list):
             # see https://github.com/brainelectronics/micropython-modbus/issues/22
             # output = sum(v << i for i, v in enumerate(byte))
+            # see https://github.com/brainelectronics/micropython-modbus/issues/38
             output = 0
             for bit in byte:
                 output = (output << 1) | bit
@@ -355,13 +380,22 @@ def bytes_to_bool(byte_list: bytes, bit_qty: Optional[int] = 1) -> List[bool]:
     :returns:   Boolean representation
     :rtype:     List[bool]
     """
-    # evil hack for missing keyword support in MicroPython format()
-    fmt = '{:0' + str(bit_qty) + 'b}'
+    bool_list = []
 
-    bool_list = [bool(int(x)) for x in fmt.format(list(byte_list)[0])]
+    for index, byte in enumerate(byte_list):
+        this_qty = bit_qty
 
-    # invert list due to byte order
-    return bool_list[::-1]
+        if this_qty >= 8:
+            this_qty = 8
+
+        # evil hack for missing keyword support in MicroPython format()
+        fmt = '{:0' + str(this_qty) + 'b}'
+
+        bool_list.extend([bool(int(x)) for x in fmt.format(byte)])
+
+        bit_qty -= 8
+
+    return bool_list
 
 
 def to_short(byte_array: bytes, signed: bool = True) -> bytes:

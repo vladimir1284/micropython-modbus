@@ -15,6 +15,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.1.0] - 2022-12-17
+### Added
+- Typing hints available for all functions of [umodbus](umodbus), see #27
+- Docstrings available for all constants, functions and classes of [umodbus](umodbus/), see #27
+- Test for reading more than 8 coils in a row to verify fix of #36
+- Test for reading single negative holding register value
+- Test for writing multiple coils to verify fix of #22
+- Test for writing multiple registers to verify fix of #23
+- Usage documentation for coil, discrete inputs, holding register and input register usage
+- Modbus TCP IP and port binding can be checked with `is_bound` property in [tcp.py](umodbus/tcp.py)
+
+### Changed
+- Reordered modules of API documentation
+- `data_as_registers` and `data_as_bits` of [common.py](umodbus/common.py) removed
+- Send illegal function code `0x01` if a register other than coil or holding register is requested to be set
+- Simplified `_process_write_access` logic of [tcp.py](umodbus/tcp.py)
+
+### Fixed
+- Typing hints of function input parameters and return values
+- Response data of multiple changed registers (`write_multiple_registers`) is validated with respect to the provided `signed` flag in [serial.py](umodbus/serial.py) and [tcp.py](umodbus/tcp.py), see #23
+- Enable reading more than 8 coils in a row, see #36
+- Writing multiple coils in TCP, see #22
+- Writing multiple registers in TCP, see #23
+- Unit test `test_bytes_to_bool` uses MSB and LSB data correctly
+
 ## [2.0.0] - 2022-12-03
 ### Added
 - Perform MicroPython based unittests on every `Test` workflow run
@@ -151,8 +176,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.0.0...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.1.0...develop
 
+[2.1.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.0
 [2.0.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.0.0
 [1.2.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.2.0
 [1.1.1]: https://github.com/brainelectronics/micropython-modbus/tree/1.1.1
