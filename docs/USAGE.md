@@ -324,8 +324,8 @@ print('Result of setting COIL {}: {}'.format(coil_address, operation_status))
 ```
 
 > :warning: Please be aware of bug
-[#22](https://github.com/brainelectronics/micropython-modbus/issues/22). It is
-not possible to write to a specific position within a configured list of multiple coils on a MicroPython Modbus TCP client device. This bug affects only
+[#35](https://github.com/brainelectronics/micropython-modbus/issues/35). It is
+not possible to write to a specific position within a configured list of multiple coils on a MicroPython Modbus TCP client device. Setting coil 127, which is `1` in the above example will throw an error. This bug affects only
 devices using this package. Other devices work as expected and can be addressed
 as specified.
 
@@ -350,8 +350,98 @@ input_status = host.read_discrete_inputs(
     starting_addr=ist_address,
     input_qty=input_qty)
 print('Status of IST {}: {}'.format(ist_address, input_status))
-# Status of IST 68:  [True, False]
+# Status of IST 68: [True, False]
 ```
+
+#### Holding registers
+
+Holding registers can be get as and set to any value between `0` and `65535`.
+If supported by the client device, data can be marked as signed values to
+represent `-32768` through `32767`.
+
+##### Read
+
+> The function code `0x03` is used to read the contents of a contiguous block
+of holding registers in a remote device.
+
+With the function
+[`read_holding_registers`](umodbus.tcp.TCP.read_holding_registers) a single
+holding register can be read.
+
+```python
+hreg_address = 94
+register_qty = 3
+register_value = host.read_holding_registers(
+    slave_addr=slave_addr,
+    starting_addr=hreg_address,
+    register_qty=register_qty,
+    signed=False)
+print('Status of HREG {}: {}'.format(hreg_address, register_value))
+# Status of HREG 94: [29, 38, 0]
+```
+
+> :warning: Please be aware of bug
+[#35](https://github.com/brainelectronics/micropython-modbus/issues/35). It is
+not possible to read a specific position within a configured list of multiple
+holding registers on a MicroPython Modbus TCP client device. Reading holding
+register 95, holding the value `38` in the above example will throw an error.
+This bug affects only devices using this package. Other devices work as
+expected and can be addressed as specified.
+
+##### Write
+
+Holding registers can be set to `0` through `65535` or `-32768` through `32767`
+in case signed values are used.
+
+###### Single
+
+> The function code `0x06` is used to write a single holding register in a
+remote device.
+
+With the function
+[`write_single_register`](umodbus.tcp.TCP.write_single_register) a single
+holding register can be set.
+
+```python
+hreg_address = 93
+new_hreg_val = 44
+operation_status = host.write_single_register(
+    slave_addr=slave_addr,
+    register_address=hreg_address,
+    register_value=new_hreg_val,
+    signed=False)
+print('Result of setting HREG {}: {}'.format(hreg_address, operation_status))
+# Result of setting HREG 93: True
+```
+
+###### Multiple
+
+> The function code `0x10` is used to write a block of contiguous registers
+(1 to 123 registers) in a remote device.
+
+With the function
+[`write_multiple_registers`](umodbus.tcp.TCP.write_multiple_registers)
+holding register can be set at once.
+
+```python
+hreg_address = 94
+new_hreg_vals = [54, -12, 30001]
+operation_status = self._host.write_multiple_registers(
+    slave_addr=slave_addr,
+    starting_address=hreg_address,
+    register_values=new_hreg_vals,
+    signed=True)
+print('Result of setting HREG {}: {}'.format(hreg_address, operation_status))
+# Result of setting HREG 94: True
+```
+
+> :warning: Please be aware of bug
+[#35](https://github.com/brainelectronics/micropython-modbus/issues/35). It is
+not possible to write to a specific position within a configured list of
+multiple holding registers on a MicroPython Modbus TCP client device. Setting
+holding register 95+96 to e.g. `[-12, 30001]` in the above example will throw
+an error. This bug affects only devices using this package. Other devices work
+as expected and can be addressed as specified.
 
 ### TCP
 
