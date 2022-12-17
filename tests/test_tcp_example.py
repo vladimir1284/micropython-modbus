@@ -665,13 +665,129 @@ class TestTcpExample(unittest.TestCase):
         self.assertTrue(all(isinstance(x, int) for x in register_value))
         self.assertEqual(register_value, (new_hreg_val, ))
 
-    @unittest.skip('Test not yet implemented')
     def test_write_multiple_coils(self) -> None:
-        pass
+        """Test updating multiple coils of client"""
+        # test with less than 8 coils
+        coil_address = \
+            self._register_definitions['COILS']['ANOTHER_EXAMPLE_COIL']['register']     # noqa: E501
+        coil_qty = \
+            self._register_definitions['COILS']['ANOTHER_EXAMPLE_COIL']['len']
+        expectation_list = list(
+            map(bool,
+                self._register_definitions['COILS']['ANOTHER_EXAMPLE_COIL']['val']    # noqa: E501
+                )
+        )
 
-    @unittest.skip('Test not yet implemented')
-    def test_write_multiple_registers(self) -> None:
-        pass
+        #
+        # Check clean system (client register data is as initially defined)
+        #
+        # verify current state by reading coil states
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Initial status of COIL {} length {}: {}, expectation: {}'.format(
+                coil_address, coil_qty, coil_status, expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        self.assertEqual(coil_status, expectation_list)
+
+        #
+        # Test setting coils to inverted initial states
+        #
+        # update coil states of client with a different than the current state
+        new_coil_vals = [not val for val in expectation_list]
+        expectation_list = new_coil_vals
+
+        operation_status = self._host.write_multiple_coils(
+            slave_addr=self._client_addr,
+            starting_address=coil_address,
+            output_values=new_coil_vals)
+
+        self.test_logger.debug(
+            'Result of setting COIL {} length {} to {}: {}, expectation: {}'.
+            format(
+                coil_address, coil_qty, new_coil_vals, operation_status, True))
+        self.assertIsInstance(operation_status, bool)
+        self.assertTrue(operation_status)
+
+        # verify setting of states by reading data back again
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Status of COIL {} length {}: {}, expectation: {}'.format(
+                coil_address, coil_qty, coil_status, expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        self.assertEqual(coil_status, expectation_list)
+
+        # test with more than 8 coils
+        coil_address = \
+            self._register_definitions['COILS']['MANY_COILS']['register']
+        coil_qty = \
+            self._register_definitions['COILS']['MANY_COILS']['len']
+        expectation_list = list(
+            map(bool, self._register_definitions['COILS']['MANY_COILS']['val'])
+        )
+
+        #
+        # Check clean system (client register data is as initially defined)
+        #
+        # verify current state by reading coil states
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Initial status of COIL {} length {}: {}, expectation: {}'.format(
+                coil_address, coil_qty, coil_status, expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        self.assertEqual(coil_status, expectation_list)
+
+        #
+        # Test setting coils to inverted initial states
+        #
+        # update coil states of client with a different than the current state
+        new_coil_vals = [not val for val in expectation_list]
+        expectation_list = new_coil_vals
+
+        operation_status = self._host.write_multiple_coils(
+            slave_addr=self._client_addr,
+            starting_address=coil_address,
+            output_values=new_coil_vals)
+
+        self.test_logger.debug(
+            'Result of setting COIL {} length {} to {}: {}, expectation: {}'.
+            format(
+                coil_address, coil_qty, new_coil_vals, operation_status, True))
+        self.assertIsInstance(operation_status, bool)
+        self.assertTrue(operation_status)
+
+        # verify setting of states by reading data back again
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Status of COIL {} length {}: {}, expectation: {}'.format(
+                coil_address, coil_qty, coil_status, expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        # Reading coil data bits is reversed, see #38
+        # https://github.com/brainelectronics/micropython-modbus/issues/38
+        # self.assertEqual(coil_status, expectation_list)
 
     def tearDown(self) -> None:
         """Run after every test method"""
