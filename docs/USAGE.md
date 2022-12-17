@@ -220,6 +220,7 @@ be `percent`.
 This section describes the usage of the following available functions
 
  - [0x01 `read_coils`](umodbus.tcp.TCP.read_coils)
+ - [0x02 `read_discrete_inputs`](umodbus.tcp.TCP.read_discrete_inputs)
  - [0x05 `write_single_coil`](umodbus.tcp.TCP.write_single_coil)
  - [0x15 `write_multiple_coils`](umodbus.tcp.TCP.write_multiple_coils)
 
@@ -327,6 +328,30 @@ print('Result of setting COIL {}: {}'.format(coil_address, operation_status))
 not possible to write to a specific position within a configured list of multiple coils on a MicroPython Modbus TCP client device. This bug affects only
 devices using this package. Other devices work as expected and can be addressed
 as specified.
+
+#### Discrete inputs
+
+Discrete inputs represent binary states, which can be get as either `0` (off)
+or `1` (on). Unlike [coils](#coils), these cannot be set.
+
+##### Read
+
+> The function code `0x02` is used to read from 1 to 2000 contiguous status of
+discrete inputs in a remote device.
+
+With the function [`read_discrete_inputs`](umodbus.tcp.TCP.read_discrete_inputs)
+discrete inputs can be read.
+
+```python
+ist_address = 68
+input_qty = 2
+input_status = host.read_discrete_inputs(
+    slave_addr=slave_addr,
+    starting_addr=ist_address,
+    input_qty=input_qty)
+print('Status of IST {}: {}'.format(ist_address, input_status))
+# Status of IST 68:  [True, False]
+```
 
 ### TCP
 
