@@ -103,12 +103,7 @@ mkdir /pyboard/lib/umodbus
 cp umodbus/* /pyboard/lib/umodbus
 ```
 
-As this package depends on [`micropython-urequests`][ref-urequests] to perform
-TCP requests those files have to be copied as well to the MicroPython board.
-This is of course only necessary if TCP connection are used, in case only
-serial (RTU )Modbus communication is used this step can be skipped.
-
-### Additional MicroPython packages
+### Additional MicroPython packages for examples
 
 To use this package with the provided [`boot.py`][ref-package-boot-file] and
 [`main.py`][ref-package-boot-file] file, additional modules are required,
@@ -151,7 +146,6 @@ README for further instructions.
 [ref-upy-firmware-download]: https://micropython.org/download/
 [ref-remote-upy-shell]: https://github.com/dhylands/rshell
 [ref-umodbus-module]: https://github.com/brainelectronics/micropython-modbus/tree/develop/umodbus
-[ref-urequests]: https://micropython.org/pi/urequests/urequests-0.6.tar.gz
 [ref-package-boot-file]: https://github.com/brainelectronics/micropython-modbus/blob/c45d6cc334b4adf0e0ffd9152c8f08724e1902d9/boot.py
 [ref-package-main-file]: https://github.com/brainelectronics/micropython-modbus/blob/c45d6cc334b4adf0e0ffd9152c8f08724e1902d9/main.py
 [ref-github-be-mircopython-modules]: https://github.com/brainelectronics/micropython-modules
