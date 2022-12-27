@@ -35,5 +35,5 @@ setup(
     license='MIT',
     cmdclass={'sdist': sdist_upip.sdist},
     packages=['umodbus'],
-    install_requires=['micropython-urequests']
+    install_requires=[]
 )
