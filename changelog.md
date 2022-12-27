@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.1.1] - 2022-12-27
 ### Fixed
 - Removed unnecessary dependency to `micropython-urequests` from Docker files, setup guide and package setup file
-- Enable Modbus Host mode for RTU implementation, see #40, removed during #34
+- Enable Modbus Client mode for RTU implementation, see #40, removed during #34
 
 ## [2.1.0] - 2022-12-27
 ### Added
