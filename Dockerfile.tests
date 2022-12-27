@@ -14,7 +14,6 @@ COPY umodbus /root/.micropython/lib/umodbus
 COPY mpy_unittest.py /root/.micropython/lib/mpy_unittest.py
 
 RUN micropython-dev -m upip install micropython-ulogging
-RUN micropython-dev -m upip install micropython-urequests
 RUN micropython-dev -c "import mpy_unittest as unittest; unittest.main('tests')"
 
 ENTRYPOINT ["/bin/bash"]
