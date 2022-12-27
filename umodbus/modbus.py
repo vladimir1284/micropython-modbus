@@ -2,7 +2,14 @@
 # -*- coding: UTF-8 -*-
 
 """
-modbus script
+Modbus register abstraction class
+
+Used to add, remove, set and get values or states of a register or coil.
+Additional helper properties and functions like getters for changed registers
+are available as well.
+
+This class is inherited by the Modbus client implementations
+:py:class:`umodbus.serial.ModbusRTU` and :py:class:`umodbus.tcp.ModbusTCP`
 """
 
 # system packages
@@ -11,13 +18,12 @@ import time
 # custom packages
 
 # typing not natively supported on MicroPython
-from .typing import List, Optional
-from .typing import Union
-from .typing import dict_keys
+from .typing import dict_keys, List, Optional, Union
 
 
 class Modbus(object):
-    def __init__(self, itf, addr_list: list):
+    """Modbus register abstraction."""
+    def __init__(self, itf, addr_list: List[int]) -> None:
         self._itf = itf
         self._addr_list = addr_list
 

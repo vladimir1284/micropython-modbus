@@ -27,6 +27,7 @@ from .typing import List, Optional, Tuple, Union
 
 
 class ModbusTCP(Modbus):
+    """Modbus TCP client class"""
     def __init__(self):
         super().__init__(
             # set itf to TCPServer object, addr_list to None
@@ -38,9 +39,25 @@ class ModbusTCP(Modbus):
              local_ip: str,
              local_port: int = 502,
              max_connections: int = 10) -> None:
+        """
+        Bind IP and port for incomming requests
+
+        :param      local_ip:         IP of this device listening for requests
+        :type       local_ip:         str
+        :param      local_port:       Port of this device
+        :type       local_port:       int
+        :param      max_connections:  Number of maximum connections
+        :type       max_connections:  int
+        """
         self._itf.bind(local_ip, local_port, max_connections)
 
     def get_bound_status(self) -> bool:
+        """
+        Get the IP and port binding status.
+
+        :returns:   The bound status, True if already bound, False otherwise.
+        :rtype:     bool
+        """
         try:
             return self._itf.get_is_bound()
         except Exception:
@@ -81,14 +98,18 @@ class ModbusTCP(Modbus):
             # function 04 - read input registers
             reg_type = 'IREGS'
             req_type = 'READ'
-        elif request.function == Const.WRITE_SINGLE_COIL:
+        elif (request.function == Const.WRITE_SINGLE_COIL or
+                request.function == Const.WRITE_MULTIPLE_COILS):
             # Coils (setter+getter) [0, 1]
-            # function 05 - write single register
+            # function 05 - write single coil
+            # function 15 - write multiple coil
             reg_type = 'COILS'
             req_type = 'WRITE'
-        elif request.function == Const.WRITE_SINGLE_REGISTER:
+        elif (request.function == Const.WRITE_SINGLE_REGISTER or
+                request.function == Const.WRITE_MULTIPLE_REGISTERS):
             # Hregs (setter+getter) [0, 65535]
             # function 06 - write holding register
+            # function 16 - write multiple holding register
             reg_type = 'HREGS'
             req_type = 'WRITE'
         else:
@@ -102,7 +123,10 @@ class ModbusTCP(Modbus):
 
         return True
 
-    def _create_response(self, request: request, reg_type: str):
+    def _create_response(self,
+                         request: request,
+                         reg_type: str) -> Union[bool, int,
+                                                 List[bool], List[int]]:
         """
         Create a response.
 
@@ -114,10 +138,13 @@ class ModbusTCP(Modbus):
         :returns:   Values of this register
         :rtype:     Union[bool, int, List[int], List[bool]]
         """
+        data = []
         if type(self._register_dict[reg_type][request.register_addr]) is list:
-            return self._register_dict[reg_type][request.register_addr]
+            data = self._register_dict[reg_type][request.register_addr]
         else:
-            return [self._register_dict[reg_type][request.register_addr]]
+            data = [self._register_dict[reg_type][request.register_addr]]
+
+        return data[:request.quantity]
 
     def _process_read_access(self, request: request, reg_type: str) -> None:
         """
@@ -149,34 +176,38 @@ class ModbusTCP(Modbus):
 
         if address in self._register_dict[reg_type]:
             if reg_type == 'COILS':
-                val = request.data[0]
-                if val == 0x00:
-                    val = False
-                    valid_register = True
+                valid_register = True
 
-                    request.send_response()
+                if request.function == Const.WRITE_SINGLE_COIL:
+                    val = request.data[0]
+                    if 0x00 < val < 0xFF:
+                        valid_register = False
+                        request.send_exception(Const.ILLEGAL_DATA_VALUE)
+                    else:
+                        val = (val == 0xFF)
+                elif request.function == Const.WRITE_MULTIPLE_COILS:
+                    tmp = int.from_bytes(request.data, "big")
+                    val = [
+                        bool(tmp & (1 << n)) for n in range(request.quantity)
+                    ]
 
+                if valid_register:
                     self.set_coil(address=address, value=val)
-                elif val == 0xFF:
-                    val = True
-                    valid_register = True
-
-                    request.send_response()
-
-                    self.set_coil(address=address, value=val)
-                else:
-                    request.send_exception(Const.ILLEGAL_DATA_VALUE)
             elif reg_type == 'HREGS':
                 valid_register = True
-                val = request.data_as_registers(signed=False)[0]
+                val = list(functions.to_short(byte_array=request.data,
+                                              signed=False))
 
-                request.send_response()
-
-                self.set_hreg(address=address, value=val)
+                if request.function == Const.WRITE_SINGLE_REGISTER:
+                    self.set_hreg(address=address, value=val[0])
+                elif request.function == Const.WRITE_MULTIPLE_REGISTERS:
+                    self.set_hreg(address=address, value=val)
             else:
-                pass
+                # nothing except holding registers or coils can be set
+                request.send_exception(Const.ILLEGAL_FUNCTION)
 
             if valid_register:
+                request.send_response()
                 self._set_changed_register(reg_type=reg_type,
                                            address=address,
                                            value=val)
@@ -185,6 +216,16 @@ class ModbusTCP(Modbus):
 
 
 class TCP(object):
+    """
+    TCP class handling socket connections and parsing the Modbus data
+
+    :param      slave_ip:    IP of this device listening for requests
+    :type       slave_ip:    str
+    :param      slave_port:  Port of this device
+    :type       slave_port:  int
+    :param      timeout:     Socket timeout in seconds
+    :type       timeout:     float
+    """
     def __init__(self,
                  slave_ip: str,
                  slave_port: int = 502,
@@ -494,7 +535,20 @@ class TCP(object):
     def write_multiple_coils(self,
                              slave_addr: int,
                              starting_address: int,
-                             output_values: List[int, bool]) -> bool:
+                             output_values: List[Union[int, bool]]) -> bool:
+        """
+        Update multiple coils.
+
+        :param      slave_addr:        The slave address
+        :type       slave_addr:        int
+        :param      starting_address:  The address of the first coil
+        :type       starting_address:  int
+        :param      output_values:     The output values
+        :type       output_values:     List[Union[int, bool]]
+
+        :returns:   Result of operation
+        :rtype:     bool
+        """
         modbus_pdu = functions.write_multiple_coils(
             starting_address=starting_address,
             value_list=output_values)
@@ -515,6 +569,21 @@ class TCP(object):
                                  starting_address: int,
                                  register_values: List[int],
                                  signed=True) -> bool:
+        """
+        Update multiple registers.
+
+        :param      slave_addr:        The slave address
+        :type       slave_addr:        int
+        :param      starting_address:  The starting address
+        :type       starting_address:  int
+        :param      register_values:   The register values
+        :type       register_values:   List[int]
+        :param      signed:            Indicates if signed
+        :type       signed:            bool
+
+        :returns:   Result of operation
+        :rtype:     bool
+        """
         modbus_pdu = functions.write_multiple_registers(
             starting_address=starting_address,
             register_values=register_values,
@@ -528,27 +597,52 @@ class TCP(object):
             function_code=Const.WRITE_MULTIPLE_REGISTERS,
             address=starting_address,
             quantity=len(register_values),
-            # this fixes
-            # https://github.com/brainelectronics/micropython-modbus/issues/23
-            # signed=signed
+            signed=signed
         )
 
         return operation_status
 
 
 class TCPServer(object):
+    """Modbus TCP host class"""
     def __init__(self):
         self._sock = None
         self._client_sock = None
         self._is_bound = False
 
+    @property
+    def is_bound(self) -> bool:
+        """
+        Get the IP and port binding status
+
+        :returns:   True if bound to IP and port, False otherwise
+        :rtype:     bool
+        """
+        return self._is_bound
+
     def get_is_bound(self) -> bool:
+        """
+        Get the IP and port binding status, legacy support.
+
+        :returns:   True if bound to IP and port, False otherwise
+        :rtype:     bool
+        """
         return self._is_bound
 
     def bind(self,
              local_ip: str,
              local_port: int = 502,
              max_connections: int = 10):
+        """
+        Bind IP and port for incomming requests
+
+        :param      local_ip:         IP of this device listening for requests
+        :type       local_ip:         str
+        :param      local_port:       Port of this device
+        :type       local_port:       int
+        :param      max_connections:  Number of maximum connections
+        :type       max_connections:  int
+        """
         if self._client_sock:
             self._client_sock.close()
 
@@ -566,6 +660,14 @@ class TCPServer(object):
         self._is_bound = True
 
     def _send(self, modbus_pdu: bytes, slave_addr: int) -> None:
+        """
+        Send Modbus Protocol Data Unit to slave
+
+        :param      modbus_pdu:  The Modbus Protocol Data Unit
+        :type       modbus_pdu:  bytes
+        :param      slave_addr:  The slave address
+        :type       slave_addr:  int
+        """
         size = len(modbus_pdu)
         fmt = 'B' * size
         adu = struct.pack('>HHHB' + fmt, self._req_tid, 0, size + 1, slave_addr, *modbus_pdu)
@@ -579,6 +681,24 @@ class TCPServer(object):
                       request_data: list,
                       values: Optional[list] = None,
                       signed: bool = True) -> None:
+        """
+        Send a response to a client.
+
+        :param      slave_addr:             The slave address
+        :type       slave_addr:             int
+        :param      function_code:          The function code
+        :type       function_code:          int
+        :param      request_register_addr:  The request register address
+        :type       request_register_addr:  int
+        :param      request_register_qty:   The request register qty
+        :type       request_register_qty:   int
+        :param      request_data:           The request data
+        :type       request_data:           list
+        :param      values:                 The values
+        :type       values:                 Optional[list]
+        :param      signed:                 Indicates if signed
+        :type       signed:                 bool
+        """
         modbus_pdu = functions.response(function_code,
                                         request_register_addr,
                                         request_register_qty,
@@ -591,13 +711,31 @@ class TCPServer(object):
                                 slave_addr: int,
                                 function_code: int,
                                 exception_code: int) -> None:
+        """
+        Send an exception response to a client.
+
+        :param      slave_addr:      The slave address
+        :type       slave_addr:      int
+        :param      function_code:   The function code
+        :type       function_code:   int
+        :param      exception_code:  The exception code
+        :type       exception_code:  int
+        """
         modbus_pdu = functions.exception_response(function_code,
                                                   exception_code)
         self._send(modbus_pdu, slave_addr)
 
     def _accept_request(self,
                         accept_timeout: float,
-                        unit_addr_list: list) -> None:
+                        unit_addr_list: list) -> Union[Request, None]:
+        """
+        Accept, read and decode a socket based request
+
+        :param      accept_timeout:  The socket accept timeout
+        :type       accept_timeout:  float
+        :param      unit_addr_list:  The unit address list
+        :type       unit_addr_list:  list
+        """
         self._sock.settimeout(accept_timeout)
         new_client_sock = None
 
@@ -655,7 +793,22 @@ class TCPServer(object):
                                              e.exception_code)
                 return None
 
-    def get_request(self, unit_addr_list=None, timeout=None) -> None:
+    def get_request(self,
+                    unit_addr_list: Optional[list] = None,
+                    timeout: int = None) -> Union[Request, None]:
+        """
+        Check for request within the specified timeout
+
+        :param      unit_addr_list:  The unit address list
+        :type       unit_addr_list:  Optional[list]
+        :param      timeout:         The timeout
+        :type       timeout:         int
+
+        :returns:   A request object or None.
+        :rtype:     Union[Request, None]
+
+        :raises     Exception:       If no socket is configured and bound
+        """
         if self._sock is None:
             raise Exception('Modbus TCP server not bound')
 

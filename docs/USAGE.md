@@ -4,8 +4,10 @@ Overview to use and test this `micropython-modbus` library
 
 ---------------
 
-The onwards described steps assume a successful setup as described in
-[SETUP.md](SETUP.md)
+```{note}
+The onwards described steps assume a successful setup as described in the
+[setup chapter](SETUP.md)
+```
 
 ## MicroPython
 
@@ -134,10 +136,15 @@ The value of multiple registers can be set like this
 }
 ```
 
-> :warning: As of version 2.0.0 of this package it is not possible to request
-only the holding register 94, which would hold `38` in the above example.
-This is a bug (non implemented feature) of the client/slave implementation.
-For further details check [#35](https://github.com/brainelectronics/micropython-modbus/issues/35)
+```{eval-rst}
+.. warning::
+    As of version `2.0.0 <https://github.com/brainelectronics/micropython-modbus/releases/tag/2.0.0>`_
+    of this package it is not possible to request only the holding register
+    `94`, which would hold `38` in the above example.
+
+    This is a bug (non implemented feature) of the client/slave implementation.
+    For further details check `issue #35 <https://github.com/brainelectronics/micropython-modbus/issues/35>`_
+```
 
 #### Detailed key explanation
 
@@ -182,8 +189,6 @@ config
 The output will be a list of 5 elements like `[True, False, False, True, True]`
 depending on the actual device coil states of course.
 
-
-
 ##### Value
 
 The key `val` defines the value of registers to be set on the target/client
@@ -216,6 +221,308 @@ The optional key `unit` can be used to provide further details about the unit
 of the register. In case of the PWM output register example of the
 [optional range key](#optional-range) the recommended value for this key could
 be `percent`.
+
+### Register usage
+
+This section describes the usage of the following available functions
+
+ - [0x01 `read_coils`](umodbus.tcp.TCP.read_coils)
+ - [0x02 `read_discrete_inputs`](umodbus.tcp.TCP.read_discrete_inputs)
+ - [0x03 `read_holding_registers`](umodbus.tcp.TCP.read_holding_registers)
+ - [0x04 `read_input_registers`](umodbus.tcp.TCP.read_input_registers)
+ - [0x05 `write_single_coil`](umodbus.tcp.TCP.write_single_coil)
+ - [0x06 `write_single_register`](umodbus.tcp.TCP.write_single_register)
+ - [0x0F `write_multiple_coils`](umodbus.tcp.TCP.write_multiple_coils)
+ - [0x10 `write_multiple_registers`](umodbus.tcp.TCP.write_multiple_registers)
+
+based on TCP togehter with the latest provided
+[examples](https://github.com/brainelectronics/micropython-modbus/tree/develop/examples)
+
+All described functions require a successful setup of a Host communicating
+to/with a Client device which is providing the data and accepting the new data.
+
+```python
+from umodbus.tcp import TCP as ModbusTCPMaster
+
+slave_tcp_port = 502            # port to listen to
+slave_addr = 10                 # bus address of client
+slave_ip = '192.168.178.69'     # IP address, to be adjusted
+
+host = ModbusTCPMaster(
+    slave_ip=slave_ip,
+    slave_port=slave_tcp_port,
+    timeout=5)                  # optional, default 5
+```
+
+#### Coils
+
+Coils represent binary states, which can be get as and set to either `0` (off)
+or `1` (on).
+
+##### Read
+
+```{note}
+The function code `0x01` is used to read from 1 to 2000 contiguous status of
+coils in a remote device.
+```
+
+With the function [`read_coils`](umodbus.tcp.TCP.read_coils) a single coil
+status can be read.
+
+```python
+coil_address = 125
+coil_qty = 2
+coil_status = host.read_coils(
+    slave_addr=slave_addr,
+    starting_addr=coil_address,
+    coil_qty=coil_qty)
+print('Status of COIL {}: {}'.format(coil_address, coil_status))
+# Status of COIL 125:  [True, False]
+```
+
+```{eval-rst}
+.. warning::
+    Please be aware of `bug #35 <https://github.com/brainelectronics/micropython-modbus/issues/35>`_.
+
+    It is not possible to read a specific position within a configured list of
+    multiple coils on a MicroPython Modbus TCP client device. Reading coil 126
+    in the above example will throw an error.
+
+    This bug affects only devices using this package. Other devices work as
+    expected and can be addressed as specified.
+```
+
+##### Write
+
+Coils can be set with `False` or `0` to the `OFF` state and with `True` or `1`
+to the `ON` state.
+
+###### Single
+
+```{note}
+The function code `0x05` is used to write a single output to either `ON` or
+`OFF` in a remote device.
+```
+
+With the function [`write_single_coil`](umodbus.tcp.TCP.write_single_coil)
+a single coil status can be set.
+
+```python
+coil_address = 123
+new_coil_val = 0
+operation_status = host.write_single_coil(
+    slave_addr=slave_addr,
+    output_address=coil_address,
+    output_value=new_coil_val)
+print('Result of setting COIL {}: {}'.format(coil_address, operation_status))
+# Result of setting COIL 123: True
+```
+
+```{eval-rst}
+.. warning::
+    Please be aware of `bug #15 <https://github.com/brainelectronics/micropython-modbus/issues/15>`_.
+
+    It is not possible to write to a specific position within a configured
+    list of multiple coils on a MicroPython Modbus TCP client device.
+
+    This bug affects only devices using this package. Other devices work as
+    expected and can be addressed as specified.
+```
+
+###### Multiple
+
+```{note}
+The function code `0x0F` is used to force each coil in a sequence of coils to
+either `ON` or `OFF` in a remote device.
+```
+
+With the function [`write_multiple_coils`](umodbus.tcp.TCP.write_multiple_coils)
+multiple coil states can be set at once.
+
+```python
+coil_address = 126
+new_coil_vals = [1, 1, 0]
+operation_status = self._host.write_multiple_coils(
+            slave_addr=slave_addr,
+            starting_address=coil_address,
+            output_values=new_coil_vals)
+print('Result of setting COIL {}: {}'.format(coil_address, operation_status))
+# Result of setting COIL 126: True
+```
+
+```{eval-rst}
+.. warning::
+    Please be aware of `bug #35 <https://github.com/brainelectronics/micropython-modbus/issues/35>`_.
+
+    It is not possible to write to a specific position within a configured
+    list of multiple coils on a MicroPython Modbus TCP client device. Setting
+    coil `127`, which is `1` in the above example will throw an error.
+
+    This bug affects only devices using this package. Other devices work as
+    expected and can be addressed as specified.
+```
+
+#### Discrete inputs
+
+Discrete inputs represent binary states, which can be get as either `0` (off)
+or `1` (on). Unlike [coils](#coils), these cannot be set.
+
+##### Read
+
+```{note}
+The function code `0x02` is used to read from 1 to 2000 contiguous status of
+discrete inputs in a remote device.
+```
+
+With the function [`read_discrete_inputs`](umodbus.tcp.TCP.read_discrete_inputs)
+discrete inputs can be read.
+
+```python
+ist_address = 68
+input_qty = 2
+input_status = host.read_discrete_inputs(
+    slave_addr=slave_addr,
+    starting_addr=ist_address,
+    input_qty=input_qty)
+print('Status of IST {}: {}'.format(ist_address, input_status))
+# Status of IST 68: [True, False]
+```
+
+#### Holding registers
+
+Holding registers can be get as and set to any value between `0` and `65535`.
+If supported by the client device, data can be marked as signed values to
+represent `-32768` through `32767`.
+
+##### Read
+
+```{note}
+The function code `0x03` is used to read the contents of a contiguous block
+of holding registers in a remote device.
+```
+
+With the function
+[`read_holding_registers`](umodbus.tcp.TCP.read_holding_registers) a single
+holding register can be read.
+
+```python
+hreg_address = 94
+register_qty = 3
+register_value = host.read_holding_registers(
+    slave_addr=slave_addr,
+    starting_addr=hreg_address,
+    register_qty=register_qty,
+    signed=False)
+print('Status of HREG {}: {}'.format(hreg_address, register_value))
+# Status of HREG 94: [29, 38, 0]
+```
+
+```{eval-rst}
+.. warning::
+    Please be aware of `bug #35 <https://github.com/brainelectronics/micropython-modbus/issues/35>`_.
+
+    It is not possible to read a specific position within a configured list of
+    multiple holding registers on a MicroPython Modbus TCP client device.
+    Reading holding register `95`, holding the value `38` in the above example
+    will throw an error.
+
+    This bug affects only devices using this package. Other devices work as
+    expected and can be addressed as specified.
+```
+
+##### Write
+
+Holding registers can be set to `0` through `65535` or `-32768` through `32767`
+in case signed values are used.
+
+###### Single
+
+```{note}
+The function code `0x06` is used to write a single holding register in a
+remote device.
+```
+
+With the function
+[`write_single_register`](umodbus.tcp.TCP.write_single_register) a single
+holding register can be set.
+
+```python
+hreg_address = 93
+new_hreg_val = 44
+operation_status = host.write_single_register(
+    slave_addr=slave_addr,
+    register_address=hreg_address,
+    register_value=new_hreg_val,
+    signed=False)
+print('Result of setting HREG {}: {}'.format(hreg_address, operation_status))
+# Result of setting HREG 93: True
+```
+
+###### Multiple
+
+```{note}
+The function code `0x10` is used to write a block of contiguous registers
+(1 to 123 registers) in a remote device.
+```
+
+With the function
+[`write_multiple_registers`](umodbus.tcp.TCP.write_multiple_registers)
+holding register can be set at once.
+
+```python
+hreg_address = 94
+new_hreg_vals = [54, -12, 30001]
+operation_status = self._host.write_multiple_registers(
+    slave_addr=slave_addr,
+    starting_address=hreg_address,
+    register_values=new_hreg_vals,
+    signed=True)
+print('Result of setting HREG {}: {}'.format(hreg_address, operation_status))
+# Result of setting HREG 94: True
+```
+
+```{eval-rst}
+.. warning::
+
+    Please be aware of `bug #35 <https://github.com/brainelectronics/micropython-modbus/issues/35>`_.
+
+    It is not possible to write to a specific position within a configured
+    list of multiple holding registers on a MicroPython Modbus TCP client
+    device. Setting holding register `95 + 96` to e.g. `[-12, 30001]` in the
+    above example will throw an error.
+
+    This bug affects only devices using this package. Other devices work as
+    expected and can be addressed as specified.
+```
+
+#### Input registers
+
+Input registers can hold values between `0` and `65535`. If supported by the
+client device, data can be marked as signed values to represent `-32768`
+through `32767`. Unlike [holding registers](#holding-registers), these cannot
+be set.
+
+##### Read
+
+```{note}
+The function code `0x04` is used to read from 1 to 125 contiguous input
+registers in a remote device.
+```
+
+With the function [`read_input_registers`](umodbus.tcp.TCP.read_input_registers)
+input registers can be read.
+
+```python
+ireg_address = 11
+register_qty = 3
+register_value = host.read_input_registers(
+    slave_addr=slave_addr,
+    starting_addr=ireg_address,
+    register_qty=register_qty,
+    signed=False)
+print('Status of IREG {}: {}'.format(ireg_address, register_value))
+# Status of IREG 11: [59123, 0, 390]
+```
 
 ### TCP
 

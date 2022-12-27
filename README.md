@@ -82,7 +82,7 @@ described in the [installation section](#install-package-on-board-with-pip)
 the following commands can be used to request a coil state of a target/client
 device. Further usage examples can be found in the
 [examples folder][ref-examples-folder] and in the
-[Micropython section of USAGE](USAGE.md#micropython)
+[Micropython section of USAGE](USAGE.md)
 
 #### TCP
 
@@ -175,7 +175,7 @@ of this library.
 
 * **sfera-labs** - *Initial work* - [giampiero7][ref-sferalabs-exo-sense]
 * **pycom** - *Initial Modbus work* - [pycom-modbus][ref-pycom-modbus]
-* **pfalcon** - *Initial MicroPython unittest module* - [micropython-unittest][ref-pfalcon-unittest]:
+* **pfalcon** - *Initial MicroPython unittest module* - [micropython-unittest][ref-pfalcon-unittest]
 
 <!-- Links -->
 [ref-sferalabs-exo-sense]: https://github.com/sfera-labs/exo-sense-py-modbus
