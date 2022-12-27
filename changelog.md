@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
-## [2.1.0] - 2022-12-17
+## [2.1.0] - 2022-12-27
 ### Added
 - Typing hints available for all functions of [umodbus](umodbus), see #27
 - Docstrings available for all constants, functions and classes of [umodbus](umodbus/), see #27
@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Writing multiple coils in TCP, see #22
 - Writing multiple registers in TCP, see #23
 - Unit test `test_bytes_to_bool` uses MSB and LSB data correctly
+- Only requested amount of registers are returned by `_process_read_access` logic of [tcp.py](umodbus/tcp.py), see #35
 
 ## [2.0.0] - 2022-12-03
 ### Added
