@@ -138,10 +138,13 @@ class ModbusTCP(Modbus):
         :returns:   Values of this register
         :rtype:     Union[bool, int, List[int], List[bool]]
         """
+        data = []
         if type(self._register_dict[reg_type][request.register_addr]) is list:
-            return self._register_dict[reg_type][request.register_addr]
+            data = self._register_dict[reg_type][request.register_addr]
         else:
-            return [self._register_dict[reg_type][request.register_addr]]
+            data = [self._register_dict[reg_type][request.register_addr]]
+
+        return data[:request.quantity]
 
     def _process_read_access(self, request: request, reg_type: str) -> None:
         """
