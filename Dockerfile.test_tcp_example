@@ -13,4 +13,3 @@ FROM micropython/unix:v1.18
 # COPY mpy_unittest.py /root/.micropython/lib/mpy_unittest.py
 
 RUN micropython-dev -m upip install micropython-ulogging
-RUN micropython-dev -m upip install micropython-urequests

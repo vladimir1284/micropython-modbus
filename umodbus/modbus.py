@@ -16,6 +16,9 @@ This class is inherited by the Modbus client implementations
 import time
 
 # custom packages
+from . import functions
+from . import const as Const
+from .common import Request
 
 # typing not natively supported on MicroPython
 from .typing import dict_keys, List, Optional, Union
@@ -40,6 +43,157 @@ class Modbus(object):
         self._changed_registers = dict()
         for reg_type in self._changeable_register_types:
             self._changed_registers[reg_type] = dict()
+
+    def process(self) -> bool:
+        """
+        Process the Modbus requests.
+
+        :returns:   Result of processing, True on success, False otherwise
+        :rtype:     bool
+        """
+        reg_type = None
+        req_type = None
+
+        request = self._itf.get_request(unit_addr_list=self._addr_list,
+                                        timeout=0)
+        if request is None:
+            return False
+
+        if request.function == Const.READ_COILS:
+            # Coils (setter+getter) [0, 1]
+            # function 01 - read single register
+            reg_type = 'COILS'
+            req_type = 'READ'
+        elif request.function == Const.READ_DISCRETE_INPUTS:
+            # Ists (only getter) [0, 1]
+            # function 02 - read input status (discrete inputs/digital input)
+            reg_type = 'ISTS'
+            req_type = 'READ'
+        elif request.function == Const.READ_HOLDING_REGISTERS:
+            # Hregs (setter+getter) [0, 65535]
+            # function 03 - read holding register
+            reg_type = 'HREGS'
+            req_type = 'READ'
+        elif request.function == Const.READ_INPUT_REGISTER:
+            # Iregs (only getter) [0, 65535]
+            # function 04 - read input registers
+            reg_type = 'IREGS'
+            req_type = 'READ'
+        elif (request.function == Const.WRITE_SINGLE_COIL or
+                request.function == Const.WRITE_MULTIPLE_COILS):
+            # Coils (setter+getter) [0, 1]
+            # function 05 - write single coil
+            # function 15 - write multiple coil
+            reg_type = 'COILS'
+            req_type = 'WRITE'
+        elif (request.function == Const.WRITE_SINGLE_REGISTER or
+                request.function == Const.WRITE_MULTIPLE_REGISTERS):
+            # Hregs (setter+getter) [0, 65535]
+            # function 06 - write holding register
+            # function 16 - write multiple holding register
+            reg_type = 'HREGS'
+            req_type = 'WRITE'
+        else:
+            request.send_exception(Const.ILLEGAL_FUNCTION)
+
+        if reg_type:
+            if req_type == 'READ':
+                self._process_read_access(request=request, reg_type=reg_type)
+            elif req_type == 'WRITE':
+                self._process_write_access(request=request, reg_type=reg_type)
+
+        return True
+
+    def _create_response(self,
+                         request: Request,
+                         reg_type: str) -> Union[bool, int,
+                                                 List[bool], List[int]]:
+        """
+        Create a response.
+
+        :param      request:   The request
+        :type       request:   Request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
+
+        :returns:   Values of this register
+        :rtype:     Union[bool, int, List[int], List[bool]]
+        """
+        data = []
+        if type(self._register_dict[reg_type][request.register_addr]) is list:
+            data = self._register_dict[reg_type][request.register_addr]
+        else:
+            data = [self._register_dict[reg_type][request.register_addr]]
+
+        return data[:request.quantity]
+
+    def _process_read_access(self, request: Request, reg_type: str) -> None:
+        """
+        Process read access to register
+
+        :param      request:   The request
+        :type       request:   Request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
+        """
+        if request.register_addr in self._register_dict[reg_type]:
+            vals = self._create_response(request=request, reg_type=reg_type)
+            request.send_response(vals)
+        else:
+            request.send_exception(Const.ILLEGAL_DATA_ADDRESS)
+
+    def _process_write_access(self, request: Request, reg_type: str) -> None:
+        """
+        Process write access to register
+
+        :param      request:   The request
+        :type       request:   Request
+        :param      reg_type:  The register type
+        :type       reg_type:  str
+        """
+        address = request.register_addr
+        val = 0
+        valid_register = False
+
+        if address in self._register_dict[reg_type]:
+            if reg_type == 'COILS':
+                valid_register = True
+
+                if request.function == Const.WRITE_SINGLE_COIL:
+                    val = request.data[0]
+                    if 0x00 < val < 0xFF:
+                        valid_register = False
+                        request.send_exception(Const.ILLEGAL_DATA_VALUE)
+                    else:
+                        val = (val == 0xFF)
+                elif request.function == Const.WRITE_MULTIPLE_COILS:
+                    tmp = int.from_bytes(request.data, "big")
+                    val = [
+                        bool(tmp & (1 << n)) for n in range(request.quantity)
+                    ]
+
+                if valid_register:
+                    self.set_coil(address=address, value=val)
+            elif reg_type == 'HREGS':
+                valid_register = True
+                val = list(functions.to_short(byte_array=request.data,
+                                              signed=False))
+
+                if request.function == Const.WRITE_SINGLE_REGISTER:
+                    self.set_hreg(address=address, value=val[0])
+                elif request.function == Const.WRITE_MULTIPLE_REGISTERS:
+                    self.set_hreg(address=address, value=val)
+            else:
+                # nothing except holding registers or coils can be set
+                request.send_exception(Const.ILLEGAL_FUNCTION)
+
+            if valid_register:
+                request.send_response()
+                self._set_changed_register(reg_type=reg_type,
+                                           address=address,
+                                           value=val)
+        else:
+            request.send_exception(Const.ILLEGAL_DATA_ADDRESS)
 
     def add_coil(self,
                  address: int,

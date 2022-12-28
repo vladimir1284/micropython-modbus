@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.1.1] - 2022-12-27
+### Fixed
+- Removed unnecessary dependency to `micropython-urequests` from Docker files, setup guide and package setup file
+- Enable Modbus Client mode for RTU implementation, see #40, removed during #33
+
 ## [2.1.0] - 2022-12-27
 ### Added
 - Typing hints available for all functions of [umodbus](umodbus), see #27
@@ -177,8 +182,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.1.0...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.1.1...develop
 
+[2.1.1]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.1
 [2.1.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.0
 [2.0.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.0.0
 [1.2.0]: https://github.com/brainelectronics/micropython-modbus/tree/1.2.0
