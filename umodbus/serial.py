@@ -246,6 +246,8 @@ class Serial(object):
 
         if self._ctrlPin:
             self._ctrlPin(1)
+            time.sleep_us(1000)     # wait until the control pin really changed
+            send_start_time = time.ticks_us()
 
         self._uart.write(serial_pdu)
 
