@@ -175,7 +175,7 @@ class Serial(object):
                     break
 
             # wait for the maximum time between two frames
-            time.sleep(self._t35chars)
+            time.sleep_us(self._t35chars)
 
         return response
 
