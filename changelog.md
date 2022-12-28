@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.1.2] - 2022-12-28
+### Changed
+- Baudrate specific inter frame time is used at Modbus RTU internal function `_uart_read` of [serial.py](umodbus/serial.py) instead of constant value of 5ms
+
+### Fixed
+- ESP32 port specific `wait_tx_done` function replaced by generic wait time calculation in `_send` function of [serial.py](umodbus/serial.py), see #34
+- A 1ms delay has been added between turning the RS485 control pin on and sending the Modbus PDU in `_send` function of [serial.py](umodbus/serial.py)
+
 ## [2.1.1] - 2022-12-27
 ### Fixed
 - Removed unnecessary dependency to `micropython-urequests` from Docker files, setup guide and package setup file
@@ -182,8 +190,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.1.1...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.1.2...develop
 
+[2.1.2]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.2
 [2.1.1]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.1
 [2.1.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.0
 [2.0.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.0.0
