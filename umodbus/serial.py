@@ -109,6 +109,7 @@ class Serial(object):
         else:
             self._ctrlPin = None
 
+        self._t1char = (1000000 * (data_bits + stop_bits + 2)) // baudrate
         if baudrate <= 19200:
             # 4010us (approx. 4ms) @ 9600 baud
             self._t35chars = (3500000 * (data_bits + stop_bits + 2)) // baudrate
@@ -249,9 +250,9 @@ class Serial(object):
         self._uart.write(serial_pdu)
 
         if self._ctrlPin:
-            while not self._uart.wait_tx_done(2):
+            total_frame_time_us = self._t1char * len(serial_pdu)
+            while time.ticks_us() <= send_start_time + total_frame_time_us:
                 machine.idle()
-            time.sleep_us(self._t35chars)
             self._ctrlPin(0)
 
     def _send_receive(self,
