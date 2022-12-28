@@ -173,7 +173,9 @@ class Serial(object):
                 # variable length function codes may require multiple reads
                 if self._exit_read(response):
                     break
-            time.sleep(0.05)
+
+            # wait for the maximum time between two frames
+            time.sleep(self._t35chars)
 
         return response
 
