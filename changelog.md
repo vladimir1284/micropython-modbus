@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.1.3] - 2022-12-30
+### Fixed
+- `uart_id` can be specified during init of `ModbusRTU` and `Serial` class and is no longer hardcoded to `1`, but set as `1` by default to ensure backwards compability, see #7 and #43
+- RTU Client example and USAGE documentation updated with new `uart_id` parameter
+
 ## [2.1.2] - 2022-12-28
 ### Changed
 - Baudrate specific inter frame time is used at Modbus RTU internal function `_uart_read` of [serial.py](umodbus/serial.py) instead of constant value of 5ms
@@ -190,8 +195,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.1.2...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.1.3...develop
 
+[2.1.3]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.3
 [2.1.2]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.2
 [2.1.1]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.1
 [2.1.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.0
