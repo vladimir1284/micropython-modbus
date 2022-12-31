@@ -41,9 +41,11 @@ class ModbusRTU(Modbus):
     :param      parity:      The parity, default None
     :type       parity:      Optional[int]
     :param      pins:        The pins as list [TX, RX]
-    :type       pins:        List[int, int]
+    :type       pins:        List[Union[int, Pin], Union[int, Pin]]
     :param      ctrl_pin:    The control pin
     :type       ctrl_pin:    int
+    :param      uart_id:     The ID of the used UART
+    :type       uart_id:     int
     """
     def __init__(self,
                  addr: int,
@@ -51,11 +53,12 @@ class ModbusRTU(Modbus):
                  data_bits: int = 8,
                  stop_bits: int = 1,
                  parity: Optional[int] = None,
-                 pins: List[int, int] = None,
-                 ctrl_pin: int = None):
+                 pins: List[Union[int, Pin], Union[int, Pin]] = None,
+                 ctrl_pin: int = None,
+                 uart_id: int = 1):
         super().__init__(
             # set itf to Serial object, addr_list to [addr]
-            Serial(uart_id=1,
+            Serial(uart_id=uart_id,
                    baudrate=baudrate,
                    data_bits=data_bits,
                    stop_bits=stop_bits,
@@ -73,7 +76,7 @@ class Serial(object):
                  data_bits: int = 8,
                  stop_bits: int = 1,
                  parity=None,
-                 pins: List[int, int] = None,
+                 pins: List[Union[int, Pin], Union[int, Pin]] = None,
                  ctrl_pin: int = None):
         """
         Setup Serial/RTU Modbus
@@ -89,7 +92,7 @@ class Serial(object):
         :param      parity:      The parity, default None
         :type       parity:      Optional[int]
         :param      pins:        The pins as list [TX, RX]
-        :type       pins:        List[int, int]
+        :type       pins:        List[Union[int, Pin], Union[int, Pin]]
         :param      ctrl_pin:    The control pin
         :type       ctrl_pin:    int
         """

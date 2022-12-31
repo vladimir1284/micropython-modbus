@@ -241,6 +241,8 @@ based on TCP togehter with the latest provided
 All described functions require a successful setup of a Host communicating
 to/with a Client device which is providing the data and accepting the new data.
 
+#### TCP
+
 ```python
 from umodbus.tcp import TCP as ModbusTCPMaster
 
@@ -252,6 +254,31 @@ host = ModbusTCPMaster(
     slave_ip=slave_ip,
     slave_port=slave_tcp_port,
     timeout=5)                  # optional, default 5
+```
+
+#### RTU
+
+```python
+from umodbus.serial import Serial as ModbusRTUMaster
+
+slave_addr = 10                 # bus address of client
+
+# check MicroPython UART documentation
+# https://docs.micropython.org/en/latest/library/machine.UART.html
+# for Device/Port specific setup
+# RP2 needs "rtu_pins = (Pin(4), Pin(5))" whereas ESP32 can use any pin
+# the following example is for an ESP32
+rtu_pins = (25, 26)         # (TX, RX)
+host = ModbusRTUMaster(
+    addr=1,                 # bus address of this Host/Master, usually '1'
+    baudrate=9600,          # optional, default 9600
+    pins=rtu_pins,          # given as tuple (TX, RX)
+    # data_bits=8,          # optional, default 8
+    # stop_bits=1,          # optional, default 1
+    # parity=None,          # optional, default None
+    # ctrl_pin=12,          # optional, control DE/RE
+    # uart_id=1             # optional, see port specific documentation
+)
 ```
 
 #### Coils
