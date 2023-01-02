@@ -18,6 +18,18 @@ bus address and UART communication speed can be defined by the user.
 # import modbus client classes
 from umodbus.serial import ModbusRTU
 
+IS_DOCKER_MICROPYTHON = False
+try:
+    import machine
+    machine.reset_cause()
+except ImportError:
+    raise Exception('Unable to import machine, are all fakes available?')
+except AttributeError:
+    # machine fake class has no "reset_cause" function
+    IS_DOCKER_MICROPYTHON = True
+    import json
+
+
 # ===============================================
 # RTU Slave setup
 # act as client, provide Modbus data via RTU to a host device
@@ -40,6 +52,10 @@ client = ModbusRTU(
     # ctrl_pin=12,          # optional, control DE/RE
     # uart_id=1             # optional, see port specific documentation
 )
+
+if IS_DOCKER_MICROPYTHON:
+    # works only with fake machine UART
+    assert client._itf._uart._is_server is True
 
 # common slave register setup, to be used with the Master example above
 register_definitions = {
@@ -78,20 +94,35 @@ register_definitions = {
     }
 }
 
-"""
 # alternatively the register definitions can also be loaded from a JSON file
-import json
+# this is always done if Docker is used for testing purpose in order to keep
+# the client registers in sync with the test registers
+if IS_DOCKER_MICROPYTHON:
+    with open('registers/example.json', 'r') as file:
+        register_definitions = json.load(file)
 
-with open('registers/example.json', 'r') as file:
-    register_definitions = json.load(file)
-"""
-
+print('Setting up registers ...')
 # use the defined values of each register type provided by register_definitions
 client.setup_registers(registers=register_definitions)
 # alternatively use dummy default values (True for bool regs, 999 otherwise)
 # client.setup_registers(registers=register_definitions, use_default_vals=True)
+print('Register setup done')
+
+reset_data_register = \
+    register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['register']
 
 while True:
-    result = client.process()
+    try:
+        result = client.process()
+        if reset_data_register in client.coils:
+            if client.get_coil(address=reset_data_register):
+                print('Resetting register data to default values ...')
+                client.setup_registers(registers=register_definitions)
+                print('Default values restored')
+    except KeyboardInterrupt:
+        print('KeyboardInterrupt, stopping RTU client...')
+        break
+    except Exception as e:
+        print('Exception during execution: {}'.format(e))
 
 print("Finished providing/accepting data as client")

@@ -1,8 +1,8 @@
 #
 # build all non-image containers
-# $ docker-compose -f docker-compose-tcp-test.yaml build
+# $ docker-compose build
 # can be combined into one command to also start it afterwards
-# $ docker-compose -f docker-compose-tcp-test.yaml up --build
+# $ docker-compose up --build
 #
 
 version: "3.8"
@@ -11,46 +11,41 @@ services:
   micropython-client:
     build:
       context: .
-      dockerfile: Dockerfile.client_tcp
+      dockerfile: Dockerfile.client_rtu
     container_name: micropython-client
     volumes:
       - ./:/home
-      - ./registers:/home/registers
       - ./umodbus:/root/.micropython/lib/umodbus
+      - ./fakes:/usr/lib/micropython
     expose:
-      - "502"
+      - "65433"
     ports:
-      - "502:502" # reach "micropython-client" at 172.24.0.2:502, see networks
+      - "65433:65433" # reach "micropython-client" at 172.25.0.2:65433, see networks
     networks:
-      my_bridge:
+      serial_bridge:
         # fix IPv4 address to be known and in the MicroPython scripts
         # https://docs.docker.com/compose/compose-file/#ipv4_address
-        ipv4_address: 172.24.0.2
+        ipv4_address: 172.25.0.2
 
   micropython-host:
     build:
       context: .
-      dockerfile: Dockerfile.test_examples
+      dockerfile: Dockerfile.host_rtu
     container_name: micropython-host
     volumes:
       - ./:/home
       - ./umodbus:/root/.micropython/lib/umodbus
-      - ./mpy_unittest.py:/root/.micropython/lib/mpy_unittest.py
+      - ./fakes:/usr/lib/micropython
     depends_on:
       - micropython-client
-    command:
-      - /bin/bash
-      - -c
-      - |
-        micropython-dev -c "import mpy_unittest as unittest; unittest.main(name='tests.test_tcp_example', fromlist=['TestTcpExample'])"
     networks:
-      my_bridge:
+      serial_bridge:
         # fix IPv4 address to be known and in the MicroPython scripts
         # https://docs.docker.com/compose/compose-file/#ipv4_address
-        ipv4_address: 172.24.0.3
+        ipv4_address: 172.25.0.3
 
 networks:
-  my_bridge:
+  serial_bridge:
     # use "external: true" if the network already exists
     # check available networks with "docker network ls"
     # external: true
@@ -58,5 +53,5 @@ networks:
     # https://docs.docker.com/compose/compose-file/#ipam
     ipam:
       config:
-        - subnet: 172.24.0.0/16
-          gateway: 172.24.0.1
+        - subnet: 172.25.0.0/16
+          gateway: 172.25.0.1
