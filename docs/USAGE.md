@@ -224,18 +224,18 @@ be `percent`.
 
 ### Register usage
 
-This section describes the usage of the following available functions
+This section describes the usage of the following implemented functions
 
- - [0x01 `read_coils`](umodbus.tcp.TCP.read_coils)
- - [0x02 `read_discrete_inputs`](umodbus.tcp.TCP.read_discrete_inputs)
- - [0x03 `read_holding_registers`](umodbus.tcp.TCP.read_holding_registers)
- - [0x04 `read_input_registers`](umodbus.tcp.TCP.read_input_registers)
- - [0x05 `write_single_coil`](umodbus.tcp.TCP.write_single_coil)
- - [0x06 `write_single_register`](umodbus.tcp.TCP.write_single_register)
- - [0x0F `write_multiple_coils`](umodbus.tcp.TCP.write_multiple_coils)
- - [0x10 `write_multiple_registers`](umodbus.tcp.TCP.write_multiple_registers)
+ - [0x01 `read_coils`](umodbus.common.CommonModbusFunctions.read_coils)
+ - [0x02 `read_discrete_inputs`](umodbus.common.CommonModbusFunctions.read_discrete_inputs)
+ - [0x03 `read_holding_registers`](umodbus.common.CommonModbusFunctions.read_holding_registers)
+ - [0x04 `read_input_registers`](umodbus.common.CommonModbusFunctions.read_input_registers)
+ - [0x05 `write_single_coil`](umodbus.common.CommonModbusFunctions.write_single_coil)
+ - [0x06 `write_single_register`](umodbus.common.CommonModbusFunctions.write_single_register)
+ - [0x0F `write_multiple_coils`](umodbus.common.CommonModbusFunctions.write_multiple_coils)
+ - [0x10 `write_multiple_registers`](umodbus.common.CommonModbusFunctions.write_multiple_registers)
 
-based on TCP togehter with the latest provided
+which are available on Modbus RTU and Modbus TCP as shown in the
 [examples](https://github.com/brainelectronics/micropython-modbus/tree/develop/examples)
 
 All described functions require a successful setup of a Host communicating
@@ -270,7 +270,6 @@ slave_addr = 10                 # bus address of client
 # the following example is for an ESP32
 rtu_pins = (25, 26)         # (TX, RX)
 host = ModbusRTUMaster(
-    addr=1,                 # bus address of this Host/Master, usually '1'
     baudrate=9600,          # optional, default 9600
     pins=rtu_pins,          # given as tuple (TX, RX)
     # data_bits=8,          # optional, default 8
@@ -293,8 +292,9 @@ The function code `0x01` is used to read from 1 to 2000 contiguous status of
 coils in a remote device.
 ```
 
-With the function [`read_coils`](umodbus.tcp.TCP.read_coils) a single coil
-status can be read.
+With the function
+[`read_coils`](umodbus.common.CommonModbusFunctions.read_coils)
+a single coil status can be read.
 
 ```python
 coil_address = 125
@@ -331,7 +331,8 @@ The function code `0x05` is used to write a single output to either `ON` or
 `OFF` in a remote device.
 ```
 
-With the function [`write_single_coil`](umodbus.tcp.TCP.write_single_coil)
+With the function
+[`write_single_coil`](umodbus.common.CommonModbusFunctions.write_single_coil)
 a single coil status can be set.
 
 ```python
@@ -363,7 +364,8 @@ The function code `0x0F` is used to force each coil in a sequence of coils to
 either `ON` or `OFF` in a remote device.
 ```
 
-With the function [`write_multiple_coils`](umodbus.tcp.TCP.write_multiple_coils)
+With the function
+[`write_multiple_coils`](umodbus.common.CommonModbusFunctions.write_multiple_coils)
 multiple coil states can be set at once.
 
 ```python
@@ -401,7 +403,8 @@ The function code `0x02` is used to read from 1 to 2000 contiguous status of
 discrete inputs in a remote device.
 ```
 
-With the function [`read_discrete_inputs`](umodbus.tcp.TCP.read_discrete_inputs)
+With the function
+[`read_discrete_inputs`](umodbus.common.CommonModbusFunctions.read_discrete_inputs)
 discrete inputs can be read.
 
 ```python
@@ -429,8 +432,8 @@ of holding registers in a remote device.
 ```
 
 With the function
-[`read_holding_registers`](umodbus.tcp.TCP.read_holding_registers) a single
-holding register can be read.
+[`read_holding_registers`](umodbus.common.CommonModbusFunctions.read_holding_registers)
+a single holding register can be read.
 
 ```python
 hreg_address = 94
@@ -470,8 +473,8 @@ remote device.
 ```
 
 With the function
-[`write_single_register`](umodbus.tcp.TCP.write_single_register) a single
-holding register can be set.
+[`write_single_register`](umodbus.common.CommonModbusFunctions.write_single_register)
+a single holding register can be set.
 
 ```python
 hreg_address = 93
@@ -493,7 +496,7 @@ The function code `0x10` is used to write a block of contiguous registers
 ```
 
 With the function
-[`write_multiple_registers`](umodbus.tcp.TCP.write_multiple_registers)
+[`write_multiple_registers`](umodbus.common.CommonModbusFunctions.write_multiple_registers)
 holding register can be set at once.
 
 ```python
@@ -536,7 +539,8 @@ The function code `0x04` is used to read from 1 to 125 contiguous input
 registers in a remote device.
 ```
 
-With the function [`read_input_registers`](umodbus.tcp.TCP.read_input_registers)
+With the function
+[`read_input_registers`](umodbus.common.CommonModbusFunctions.read_input_registers)
 input registers can be read.
 
 ```python
