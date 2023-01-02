@@ -224,18 +224,18 @@ be `percent`.
 
 ### Register usage
 
-This section describes the usage of the following available functions
+This section describes the usage of the following implemented functions
 
- - [0x01 `read_coils`](umodbus.tcp.TCP.read_coils)
- - [0x02 `read_discrete_inputs`](umodbus.tcp.TCP.read_discrete_inputs)
- - [0x03 `read_holding_registers`](umodbus.tcp.TCP.read_holding_registers)
- - [0x04 `read_input_registers`](umodbus.tcp.TCP.read_input_registers)
- - [0x05 `write_single_coil`](umodbus.tcp.TCP.write_single_coil)
- - [0x06 `write_single_register`](umodbus.tcp.TCP.write_single_register)
- - [0x0F `write_multiple_coils`](umodbus.tcp.TCP.write_multiple_coils)
- - [0x10 `write_multiple_registers`](umodbus.tcp.TCP.write_multiple_registers)
+ - [0x01 `read_coils`](umodbus.common.CommonModbusFunctions.read_coils)
+ - [0x02 `read_discrete_inputs`](umodbus.common.CommonModbusFunctions.read_discrete_inputs)
+ - [0x03 `read_holding_registers`](umodbus.common.CommonModbusFunctions.read_holding_registers)
+ - [0x04 `read_input_registers`](umodbus.common.CommonModbusFunctions.read_input_registers)
+ - [0x05 `write_single_coil`](umodbus.common.CommonModbusFunctions.write_single_coil)
+ - [0x06 `write_single_register`](umodbus.common.CommonModbusFunctions.write_single_register)
+ - [0x0F `write_multiple_coils`](umodbus.common.CommonModbusFunctions.write_multiple_coils)
+ - [0x10 `write_multiple_registers`](umodbus.common.CommonModbusFunctions.write_multiple_registers)
 
-based on TCP togehter with the latest provided
+which are available on Modbus RTU and Modbus TCP as shown in the
 [examples](https://github.com/brainelectronics/micropython-modbus/tree/develop/examples)
 
 All described functions require a successful setup of a Host communicating
@@ -270,7 +270,6 @@ slave_addr = 10                 # bus address of client
 # the following example is for an ESP32
 rtu_pins = (25, 26)         # (TX, RX)
 host = ModbusRTUMaster(
-    addr=1,                 # bus address of this Host/Master, usually '1'
     baudrate=9600,          # optional, default 9600
     pins=rtu_pins,          # given as tuple (TX, RX)
     # data_bits=8,          # optional, default 8
@@ -293,8 +292,9 @@ The function code `0x01` is used to read from 1 to 2000 contiguous status of
 coils in a remote device.
 ```
 
-With the function [`read_coils`](umodbus.tcp.TCP.read_coils) a single coil
-status can be read.
+With the function
+[`read_coils`](umodbus.common.CommonModbusFunctions.read_coils)
+a single coil status can be read.
 
 ```python
 coil_address = 125
@@ -331,7 +331,8 @@ The function code `0x05` is used to write a single output to either `ON` or
 `OFF` in a remote device.
 ```
 
-With the function [`write_single_coil`](umodbus.tcp.TCP.write_single_coil)
+With the function
+[`write_single_coil`](umodbus.common.CommonModbusFunctions.write_single_coil)
 a single coil status can be set.
 
 ```python
@@ -363,7 +364,8 @@ The function code `0x0F` is used to force each coil in a sequence of coils to
 either `ON` or `OFF` in a remote device.
 ```
 
-With the function [`write_multiple_coils`](umodbus.tcp.TCP.write_multiple_coils)
+With the function
+[`write_multiple_coils`](umodbus.common.CommonModbusFunctions.write_multiple_coils)
 multiple coil states can be set at once.
 
 ```python
@@ -401,7 +403,8 @@ The function code `0x02` is used to read from 1 to 2000 contiguous status of
 discrete inputs in a remote device.
 ```
 
-With the function [`read_discrete_inputs`](umodbus.tcp.TCP.read_discrete_inputs)
+With the function
+[`read_discrete_inputs`](umodbus.common.CommonModbusFunctions.read_discrete_inputs)
 discrete inputs can be read.
 
 ```python
@@ -429,8 +432,8 @@ of holding registers in a remote device.
 ```
 
 With the function
-[`read_holding_registers`](umodbus.tcp.TCP.read_holding_registers) a single
-holding register can be read.
+[`read_holding_registers`](umodbus.common.CommonModbusFunctions.read_holding_registers)
+a single holding register can be read.
 
 ```python
 hreg_address = 94
@@ -470,8 +473,8 @@ remote device.
 ```
 
 With the function
-[`write_single_register`](umodbus.tcp.TCP.write_single_register) a single
-holding register can be set.
+[`write_single_register`](umodbus.common.CommonModbusFunctions.write_single_register)
+a single holding register can be set.
 
 ```python
 hreg_address = 93
@@ -493,7 +496,7 @@ The function code `0x10` is used to write a block of contiguous registers
 ```
 
 With the function
-[`write_multiple_registers`](umodbus.tcp.TCP.write_multiple_registers)
+[`write_multiple_registers`](umodbus.common.CommonModbusFunctions.write_multiple_registers)
 holding register can be set at once.
 
 ```python
@@ -536,7 +539,8 @@ The function code `0x04` is used to read from 1 to 125 contiguous input
 registers in a remote device.
 ```
 
-With the function [`read_input_registers`](umodbus.tcp.TCP.read_input_registers)
+With the function
+[`read_input_registers`](umodbus.common.CommonModbusFunctions.read_input_registers)
 input registers can be read.
 
 ```python
@@ -609,15 +613,15 @@ Connected to WiFi.
 ('192.168.178.42', '255.255.255.0', '192.168.178.1', '192.168.178.1')
 Requesting and updating data on TCP client at 192.168.178.69:502
 
-Status of COIL 123: [True, False, False, False, False, False, False, False]
+Status of COIL 123: [True]
 Result of setting COIL 123: True
-Status of COIL 123: [False, False, False, False, False, False, False, False]
+Status of COIL 123: [False]
 
 Status of HREG 93: (44,)
 Result of setting HREG 93: True
 Status of HREG 93: (44,)
 
-Status of IST 67: [False, False, False, False, False, False, False, False]
+Status of IST 67: [False]
 Status of IREG 10: (60001,)
 
 Finished requesting/setting data on client
@@ -626,12 +630,74 @@ Type "help()" for more information.
 >>>
 ```
 
-<!--
 ### RTU
 
 Get two UART/RS485 capable boards up and running, collecting and setting data
 on each other.
--->
+
+Adjust the UART pins according to the MicroPython port specific
+[documentation][ref-uart-documentation]. RP2 boards e.g. require the UART pins
+as tuple of `Pin`, like `rtu_pins = (Pin(4), Pin(5))` and the specific
+`uart_id=1` for those, whereas ESP32 boards can use almost alls pins for UART
+communication and shall be given as `rtu_pins = (25, 26)`.
+
+#### Client
+
+The client, former known as slave, provides some dummy registers which can be
+read and updated by another device.
+
+```bash
+cp examples/rtu_client_example.py /pyboard/main.py
+cp examples/boot.py /pyboard/boot.py
+repl
+```
+
+Inside the REPL press CTRL+D to perform a soft reboot. The device will serve
+several registers now. The log output might look similar to this
+
+```
+MPY: soft reboot
+System booted successfully!
+Setting up registers ...
+Register setup done
+```
+
+#### Host
+
+The host, former known as master, requests and updates some dummy registers of
+another device.
+
+```bash
+cp examples/rtu_host_example.py /pyboard/main.py
+cp examples/boot.py /pyboard/boot.py
+repl
+```
+
+Inside the REPL press CTRL+D to perform a soft reboot. The device will request
+and update registers of the Client after a few seconds. The log output might
+look similar to this
+
+```
+MPY: soft reboot
+System booted successfully!
+Requesting and updating data on RTU client at 10 with 9600 baud.
+
+Status of COIL 123: [True]
+Result of setting COIL 123: True
+Status of COIL 123: [False]
+
+Status of HREG 93: (44,)
+Result of setting HREG 93: True
+Status of HREG 93: (44,)
+
+Status of IST 67: [False]
+Status of IREG 10: (60001,)
+
+Finished requesting/setting data on client
+MicroPython v1.18 on 2022-01-17; ESP32 module (spiram) with ESP32
+Type "help()" for more information.
+>>>
+```
 
 ### TCP-RTU bridge
 
@@ -777,14 +843,21 @@ failed.
 
 #### Docker compose
 
-The following command uses the setup defined in the `docker-compose.yaml` file
-to act as two MicroPython devices communicating via TCP. The container
-`micropython-host` defined by `Dockerfile.host` acts as host and sets/gets
-data at/from the client as defined by `tcp_host_example.py`. On the other hand
-the container `micropython-client` defined by `Dockerfile.client` acts as
-client and provides data for the host as defined by `tcp_client_example.py`.
+The following command uses the setup defined in the individual
+`docker-compose-*-test.yaml` file to act as two MicroPython devices
+communicating via TCP or RTU. The container `micropython-host-*` defined by
+`Dockerfile.host_*` acts as host and sets/gets data at/from the client as
+defined by `*_host_example.py`. On the other hand the container
+`micropython-client-*` defined by `Dockerfile.client_*` acts as client and
+provides data for the host as defined by `*_client_example.py`.
+
 The port defined in `tcp_host_example.py` and `tcp_client_example.py` has to
-be open and optionally exposed in the `docker-compose.yaml` file.
+be open and optionally exposed in the `docker-compose-tcp-example.yaml` file.
+
+As the [MicroPython containers](https://hub.docker.com/r/micropython/unix/tags)
+does not have a UART interface with is additionally not connectable via two
+containers a UART fake has been implemented. It is using a socket connection
+to exchange all the data.
 
 ```bash
 docker compose up --build --exit-code-from micropython-host
@@ -796,7 +869,13 @@ the containers. All "dynamic" data is shared via `volumes`
 ##### Test for TCP example
 
 ```bash
-docker compose -f docker-compose-tcp-test.yaml up --build --exit-code-from micropython-host
+docker compose -f docker-compose-tcp-test.yaml up --build --exit-code-from micropython-host --remove-orphans
+```
+
+##### Test for RTU example
+
+```bash
+docker compose -f docker-compose-rtu-test.yaml up --build --exit-code-from micropython-host-rtu --remove-orphans
 ```
 
 ## Documentation
@@ -835,6 +914,7 @@ The created documentation can be found at [`docs/build/html`](docs/build/html).
 [ref-myevse-be]: https://brainelectronics.de/
 [ref-myevse-tindie]: https://www.tindie.com/stores/brainelectronics/
 [ref-package-main-file]: https://github.com/brainelectronics/micropython-modbus/blob/c45d6cc334b4adf0e0ffd9152c8f08724e1902d9/main.py
+[ref-uart-documentation]: https://docs.micropython.org/en/latest/library/machine.UART.html
 [ref-github-be-modbus-wrapper]: https://github.com/brainelectronics/be-modbus-wrapper
 [ref-modules-folder]: https://github.com/brainelectronics/python-modules/tree/43bad716b7db27db07c94c2d279cee57d0c8c753
 [ref-rtd-micropython-modbus]: https://micropython-modbus.readthedocs.io/en/latest/

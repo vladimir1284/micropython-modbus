@@ -42,6 +42,12 @@ jobs:
     - name: Run Client/Host TCP test
       run: |
         docker compose -f docker-compose-tcp-test.yaml up --build --exit-code-from micropython-host
+    - name: Run Client/Host RTU example
+      run: |
+        docker compose -f docker-compose-rtu.yaml up --build --exit-code-from micropython-host
+    - name: Run Client/Host RTU test
+      run: |
+        docker compose -f docker-compose-rtu-test.yaml up --build --exit-code-from micropython-host
     - name: Build package
       run: |
         changelog2version \

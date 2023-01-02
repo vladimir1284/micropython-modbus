@@ -11,7 +11,7 @@ services:
   micropython-client:
     build:
       context: .
-      dockerfile: Dockerfile.client
+      dockerfile: Dockerfile.client_tcp
     container_name: micropython-client
     volumes:
       - ./:/home
@@ -29,7 +29,7 @@ services:
   micropython-host:
     build:
       context: .
-      dockerfile: Dockerfile.host
+      dockerfile: Dockerfile.host_tcp
     container_name: micropython-host
     volumes:
       - ./:/home
