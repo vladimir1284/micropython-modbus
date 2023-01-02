@@ -17,12 +17,12 @@ import time
 # custom packages
 from . import functions
 from . import const as Const
-from .common import Request
+from .common import Request, CommonModbusFunctions
 from .common import ModbusException
 from .modbus import Modbus
 
 # typing not natively supported on MicroPython
-from .typing import List, Optional, Tuple, Union
+from .typing import Optional, Tuple, Union
 
 
 class ModbusTCP(Modbus):
@@ -63,7 +63,7 @@ class ModbusTCP(Modbus):
             return False
 
 
-class TCP(object):
+class TCP(CommonModbusFunctions):
     """
     TCP class handling socket connections and parsing the Modbus data
 
@@ -88,13 +88,13 @@ class TCP(object):
         self._sock.settimeout(timeout)
 
     def _create_mbap_hdr(self,
-                         slave_id: int,
+                         slave_addr: int,
                          modbus_pdu: bytes) -> Tuple[bytes, int]:
         """
         Create a Modbus header.
 
-        :param      slave_id:    The slave identifier
-        :type       slave_id:    int
+        :param      slave_addr:  The slave identifier
+        :type       slave_addr:  int
         :param      modbus_pdu:  The modbus Protocol Data Unit
         :type       modbus_pdu:  bytes
 
@@ -110,14 +110,14 @@ class TCP(object):
         self.trans_id_ctr += 1
 
         mbap_hdr = struct.pack(
-            '>HHHB', trans_id, 0, len(modbus_pdu) + 1, slave_id)
+            '>HHHB', trans_id, 0, len(modbus_pdu) + 1, slave_addr)
 
         return mbap_hdr, trans_id
 
     def _validate_resp_hdr(self,
                            response: bytearray,
                            trans_id: int,
-                           slave_id: int,
+                           slave_addr: int,
                            function_code: int,
                            count: bool = False) -> bytes:
         """
@@ -127,8 +127,8 @@ class TCP(object):
         :type       response:       bytearray
         :param      trans_id:       The transaction identifier
         :type       trans_id:       int
-        :param      slave_id:       The slave identifier
-        :type       slave_id:       int
+        :param      slave_addr:     The slave identifier
+        :type       slave_addr:     int
         :param      function_code:  The function code
         :type       function_code:  int
         :param      count:          The count
@@ -146,7 +146,7 @@ class TCP(object):
         if (rec_pid != 0):
             raise ValueError('invalid protocol ID')
 
-        if (slave_id != rec_uid):
+        if (slave_addr != rec_uid):
             raise ValueError('wrong slave ID')
 
         if (rec_fc == (function_code + Const.ERROR_BIAS)):
@@ -159,14 +159,14 @@ class TCP(object):
         return response[hdr_length:]
 
     def _send_receive(self,
-                      slave_id: int,
+                      slave_addr: int,
                       modbus_pdu: bytes,
                       count: bool) -> bytes:
         """
         Send a modbus message and receive the reponse.
 
-        :param      slave_id:    The slave identifier
-        :type       slave_id:    int
+        :param      slave_addr:    The slave identifier
+        :type       slave_addr:    int
         :param      modbus_pdu:  The modbus PDU
         :type       modbus_pdu:  bytes
         :param      count:       The count
@@ -175,280 +175,18 @@ class TCP(object):
         :returns:   Modbus data
         :rtype:     bytes
         """
-        mbap_hdr, trans_id = self._create_mbap_hdr(slave_id=slave_id,
+        mbap_hdr, trans_id = self._create_mbap_hdr(slave_addr=slave_addr,
                                                    modbus_pdu=modbus_pdu)
         self._sock.send(mbap_hdr + modbus_pdu)
 
         response = self._sock.recv(256)
         modbus_data = self._validate_resp_hdr(response=response,
                                               trans_id=trans_id,
-                                              slave_id=slave_id,
+                                              slave_addr=slave_addr,
                                               function_code=modbus_pdu[0],
                                               count=count)
 
         return modbus_data
-
-    def read_coils(self,
-                   slave_addr: int,
-                   starting_addr: int,
-                   coil_qty: int) -> List[bool]:
-        """
-        Read coils (COILS).
-
-        :param      slave_addr:     The slave address
-        :type       slave_addr:     int
-        :param      starting_addr:  The coil starting address
-        :type       starting_addr:  int
-        :param      coil_qty:       The amount of coils to read
-        :type       coil_qty:       int
-
-        :returns:   State of read coils as list
-        :rtype:     List[bool]
-        """
-        modbus_pdu = functions.read_coils(
-            starting_address=starting_addr,
-            quantity=coil_qty)
-
-        response = self._send_receive(slave_id=slave_addr,
-                                      modbus_pdu=modbus_pdu,
-                                      count=True)
-        status_pdu = functions.bytes_to_bool(byte_list=response,
-                                             bit_qty=coil_qty)
-
-        return status_pdu
-
-    def read_discrete_inputs(self,
-                             slave_addr: int,
-                             starting_addr: int,
-                             input_qty: int) -> List[bool]:
-        """
-        Read discrete inputs (ISTS).
-
-        :param      slave_addr:     The slave address
-        :type       slave_addr:     int
-        :param      starting_addr:  The discrete input starting address
-        :type       starting_addr:  int
-        :param      input_qty:      The amount of discrete inputs to read
-        :type       input_qty:      int
-
-        :returns:   State of read discrete inputs as list
-        :rtype:     List[bool]
-        """
-        modbus_pdu = functions.read_discrete_inputs(
-            starting_address=starting_addr,
-            quantity=input_qty)
-
-        response = self._send_receive(slave_id=slave_addr,
-                                      modbus_pdu=modbus_pdu,
-                                      count=True)
-        status_pdu = functions.bytes_to_bool(byte_list=response,
-                                             bit_qty=input_qty)
-
-        return status_pdu
-
-    def read_holding_registers(self,
-                               slave_addr: int,
-                               starting_addr: int,
-                               register_qty: int,
-                               signed: bool = True) -> Tuple[int, ...]:
-        """
-        Read holding registers (HREGS).
-
-        :param      slave_addr:     The slave address
-        :type       slave_addr:     int
-        :param      starting_addr:  The holding register starting address
-        :type       starting_addr:  int
-        :param      register_qty:   The amount of holding registers to read
-        :type       register_qty:   int
-        :param      signed:         Indicates if signed
-        :type       signed:         bool
-
-        :returns:   State of read holding register as tuple
-        :rtype:     Tuple[int, ...]
-        """
-        modbus_pdu = functions.read_holding_registers(
-            starting_address=starting_addr,
-            quantity=register_qty)
-
-        response = self._send_receive(slave_id=slave_addr,
-                                      modbus_pdu=modbus_pdu,
-                                      count=True)
-        register_value = functions.to_short(byte_array=response, signed=signed)
-
-        return register_value
-
-    def read_input_registers(self,
-                             slave_addr: int,
-                             starting_addr: int,
-                             register_qty: int,
-                             signed: bool = True) -> Tuple[int, ...]:
-        """
-        Read input registers (IREGS).
-
-        :param      slave_addr:     The slave address
-        :type       slave_addr:     int
-        :param      starting_addr:  The input register starting address
-        :type       starting_addr:  int
-        :param      register_qty:   The amount of input registers to read
-        :type       register_qty:   int
-        :param      signed:         Indicates if signed
-        :type       signed:         bool
-
-        :returns:   State of read input register as tuple
-        :rtype:     Tuple[int, ...]
-        """
-        modbus_pdu = functions.read_input_registers(
-            starting_address=starting_addr,
-            quantity=register_qty)
-
-        response = self._send_receive(slave_id=slave_addr,
-                                      modbus_pdu=modbus_pdu,
-                                      count=True)
-        register_value = functions.to_short(byte_array=response, signed=signed)
-
-        return register_value
-
-    def write_single_coil(self,
-                          slave_addr: int,
-                          output_address: int,
-                          output_value: Union[int, bool]) -> bool:
-        """
-        Update a single coil.
-
-        :param      slave_addr:      The slave address
-        :type       slave_addr:      int
-        :param      output_address:  The output address
-        :type       output_address:  int
-        :param      output_value:    The output value
-        :type       output_value:    Union[int, bool]
-
-        :returns:   Result of operation
-        :rtype:     bool
-        """
-        modbus_pdu = functions.write_single_coil(output_address=output_address,
-                                                 output_value=output_value)
-
-        response = self._send_receive(slave_id=slave_addr,
-                                      modbus_pdu=modbus_pdu,
-                                      count=False)
-        if response is None:
-            return False
-
-        operation_status = functions.validate_resp_data(
-            data=response,
-            function_code=Const.WRITE_SINGLE_COIL,
-            address=output_address,
-            value=output_value,
-            signed=False)
-
-        return operation_status
-
-    def write_single_register(self,
-                              slave_addr: int,
-                              register_address: int,
-                              register_value: int,
-                              signed: bool = True) -> bool:
-        """
-        Update a single register.
-
-        :param      slave_addr:        The slave address
-        :type       slave_addr:        int
-        :param      register_address:  The register address
-        :type       register_address:  int
-        :param      register_value:    The register value
-        :type       register_value:    int
-        :param      signed:            Indicates if signed
-        :type       signed:            bool
-
-        :returns:   Result of operation
-        :rtype:     bool
-        """
-        modbus_pdu = functions.write_single_register(
-            register_address=register_address,
-            register_value=register_value,
-            signed=signed)
-
-        response = self._send_receive(slave_id=slave_addr,
-                                      modbus_pdu=modbus_pdu,
-                                      count=False)
-        operation_status = functions.validate_resp_data(
-            data=response,
-            function_code=Const.WRITE_SINGLE_REGISTER,
-            address=register_address,
-            value=register_value,
-            signed=signed)
-
-        return operation_status
-
-    def write_multiple_coils(self,
-                             slave_addr: int,
-                             starting_address: int,
-                             output_values: List[Union[int, bool]]) -> bool:
-        """
-        Update multiple coils.
-
-        :param      slave_addr:        The slave address
-        :type       slave_addr:        int
-        :param      starting_address:  The address of the first coil
-        :type       starting_address:  int
-        :param      output_values:     The output values
-        :type       output_values:     List[Union[int, bool]]
-
-        :returns:   Result of operation
-        :rtype:     bool
-        """
-        modbus_pdu = functions.write_multiple_coils(
-            starting_address=starting_address,
-            value_list=output_values)
-
-        response = self._send_receive(slave_id=slave_addr,
-                                      modbus_pdu=modbus_pdu,
-                                      count=False)
-        operation_status = functions.validate_resp_data(
-            data=response,
-            function_code=Const.WRITE_MULTIPLE_COILS,
-            address=starting_address,
-            quantity=len(output_values))
-
-        return operation_status
-
-    def write_multiple_registers(self,
-                                 slave_addr: int,
-                                 starting_address: int,
-                                 register_values: List[int],
-                                 signed=True) -> bool:
-        """
-        Update multiple registers.
-
-        :param      slave_addr:        The slave address
-        :type       slave_addr:        int
-        :param      starting_address:  The starting address
-        :type       starting_address:  int
-        :param      register_values:   The register values
-        :type       register_values:   List[int]
-        :param      signed:            Indicates if signed
-        :type       signed:            bool
-
-        :returns:   Result of operation
-        :rtype:     bool
-        """
-        modbus_pdu = functions.write_multiple_registers(
-            starting_address=starting_address,
-            register_values=register_values,
-            signed=signed)
-
-        response = self._send_receive(slave_id=slave_addr,
-                                      modbus_pdu=modbus_pdu,
-                                      count=False)
-        operation_status = functions.validate_resp_data(
-            data=response,
-            function_code=Const.WRITE_MULTIPLE_REGISTERS,
-            address=starting_address,
-            quantity=len(register_values),
-            signed=signed
-        )
-
-        return operation_status
 
 
 class TCPServer(object):
