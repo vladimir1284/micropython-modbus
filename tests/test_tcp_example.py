@@ -149,7 +149,7 @@ class TestTcpExample(unittest.TestCase):
             self._host._validate_resp_hdr(
                 response=response,
                 trans_id=data['tid'] + 1,
-                slave_id=data['sid'],
+                slave_addr=data['sid'],
                 function_code=data['fid'])
 
         # trigger wrong function ID/throw Modbus exception code assert
@@ -157,7 +157,7 @@ class TestTcpExample(unittest.TestCase):
             self._host._validate_resp_hdr(
                 response=response,
                 trans_id=data['tid'],
-                slave_id=data['sid'],
+                slave_addr=data['sid'],
                 function_code=data['fid'] + 1)
 
         # trigger wrong slave ID assert
@@ -165,7 +165,7 @@ class TestTcpExample(unittest.TestCase):
             self._host._validate_resp_hdr(
                 response=response,
                 trans_id=data['tid'],
-                slave_id=data['sid'] + 1,
+                slave_addr=data['sid'] + 1,
                 function_code=data['fid'])
 
     @unittest.skip('Test not yet implemented')
