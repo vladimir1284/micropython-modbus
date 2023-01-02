@@ -1,0 +1,15 @@
+# Build image
+# $ docker build -t micropython-client-rtu -f Dockerfile.client_rtu .
+#
+# Run image
+# $ docker run -it --rm --name micropython-client-rtu micropython-client-rtu
+
+FROM micropython/unix:v1.18
+
+# use "volumes" in docker-compose file to remove need of rebuilding
+# COPY ./ /home
+# COPY umodbus /root/.micropython/lib/umodbus
+
+RUN micropython-dev -m upip install micropython-ulogging
+
+CMD [ "micropython-dev", "-m", "examples/rtu_client_example.py" ]
