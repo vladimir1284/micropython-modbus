@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Released
 ## [2.2.0] - 2023-01-03
 ### Added
-- Fake machine module with UART and Pin to be used on Unix MicroPython container for RTU tests and examples, see #47
+- [Fake machine module](fakes/machine.py) with UART and Pin class to be used on Unix MicroPython container for RTU tests and examples, see #47
 - [RTU host example script](examples/rtu_host_example.py)
 - [RTU docker compose file](docker-compose-rtu.yaml) and [RTU docker compose file test](docker-compose-rtu-test.yaml) based in MicroPython 1.18 image
 - [RTU client Dockerfile](Dockerfile.client_rtu) and [RTU host Dockerfile](Dockerfile.host_rtu) based on MicroPython 1.18 image
@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RTU example section for Client and Host in USAGE
 
 ### Changed
-- Removed the following common functions from [serial.py](umodbus/serial.py) and [tcp.py](umodbus/tcp.py) and added to [common.py](umodbus/common.py):
+- Outsourced the following common functions of [serial.py](umodbus/serial.py) and [tcp.py](umodbus/tcp.py) into `CommonModbusFunctions` of [common.py](umodbus/common.py):
     - `read_coils`
     - `read_discrete_inputs`
     - `read_holding_registers`
@@ -35,11 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `write_multiple_coils`
     - `write_multiple_registers`
 
+- Inherit from `CommonModbusFunctions` in `Serial` of [serial.py](umodbus/serial.py) and in `TCP` of of [tcp.py](umodbus/tcp.py)
 - Extended RTU client example for Docker usage to load all registers from example JSON file
-- Update internal functions parameter name `slave_id` to `slave_addr` to use same keywords in TCP and Serial
+- Update internal functions parameter name from `slave_id` to `slave_addr` of TCP's `_create_mbap_hdr` and `_validate_resp_hdr` function to be the same as in Serial
 - Update Modbus function documentation from TCP specific to common module in USAGE file
-
-### Fixed
+- Renamed docker files:
+     - `Dockerfile.client` -> `Dockerfile.client_tcp`
+     - `Dockerfile.host` -> `Dockerfile.host_tcp`
+     - `Dockerfile.test_tcp_example` -> `Dockerfile.test_examples`
 
 ## [2.1.3] - 2022-12-30
 ### Fixed
