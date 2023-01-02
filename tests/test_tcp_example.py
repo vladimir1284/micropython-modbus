@@ -68,7 +68,7 @@ class TestTcpExample(unittest.TestCase):
         expectation = (struct.pack('>H', trans_id) + b'\x00\x00\x00\x06\x0A',
                        trans_id)
 
-        result = self._host._create_mbap_hdr(slave_id=self._client_addr,
+        result = self._host._create_mbap_hdr(slave_addr=self._client_addr,
                                              modbus_pdu=modbus_pdu)
 
         self.assertIsInstance(result, tuple)
@@ -127,7 +127,7 @@ class TestTcpExample(unittest.TestCase):
                 result = self._host._validate_resp_hdr(
                     response=response,
                     trans_id=trans_id,
-                    slave_id=self._client_addr,
+                    slave_addr=self._client_addr,
                     function_code=function_code)
                 self.test_logger.debug('result: {}, expectation: {}'.format(
                     result, expectation))
