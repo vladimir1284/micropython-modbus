@@ -843,14 +843,21 @@ failed.
 
 #### Docker compose
 
-The following command uses the setup defined in the `docker-compose.yaml` file
-to act as two MicroPython devices communicating via TCP. The container
-`micropython-host` defined by `Dockerfile.host` acts as host and sets/gets
-data at/from the client as defined by `tcp_host_example.py`. On the other hand
-the container `micropython-client` defined by `Dockerfile.client` acts as
-client and provides data for the host as defined by `tcp_client_example.py`.
+The following command uses the setup defined in the individual
+`docker-compose-*-test.yaml` file to act as two MicroPython devices
+communicating via TCP or RTU. The container `micropython-host-*` defined by
+`Dockerfile.host_*` acts as host and sets/gets data at/from the client as
+defined by `*_host_example.py`. On the other hand the container
+`micropython-client-*` defined by `Dockerfile.client_*` acts as client and
+provides data for the host as defined by `*_client_example.py`.
+
 The port defined in `tcp_host_example.py` and `tcp_client_example.py` has to
-be open and optionally exposed in the `docker-compose.yaml` file.
+be open and optionally exposed in the `docker-compose-tcp-example.yaml` file.
+
+As the [MicroPython containers](https://hub.docker.com/r/micropython/unix/tags)
+does not have a UART interface with is additionally not connectable via two
+containers a UART fake has been implemented. It is using a socket connection
+to exchange all the data.
 
 ```bash
 docker compose up --build --exit-code-from micropython-host
@@ -863,6 +870,12 @@ the containers. All "dynamic" data is shared via `volumes`
 
 ```bash
 docker compose -f docker-compose-tcp-test.yaml up --build --exit-code-from micropython-host
+```
+
+##### Test for RTU example
+
+```bash
+docker compose -f docker-compose-rtu-test.yaml up --build --exit-code-from micropython-host-rtu
 ```
 
 ## Documentation
