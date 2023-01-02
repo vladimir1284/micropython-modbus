@@ -1,8 +1,8 @@
 # Build image
-# $ docker build -t micropython-host -f Dockerfile.host .
+# $ docker build -t micropython-client-tcp -f Dockerfile.client_tcp .
 #
 # Run image
-# $ docker run -it --rm --name micropython-host micropython-host
+# $ docker run -it --rm --name micropython-client-tcp micropython-client-tcp
 
 FROM micropython/unix:v1.18
 
@@ -12,4 +12,4 @@ FROM micropython/unix:v1.18
 
 RUN micropython-dev -m upip install micropython-ulogging
 
-CMD [ "micropython-dev", "-m", "examples/tcp_host_example.py" ]
+CMD [ "micropython-dev", "-m", "examples/tcp_client_example.py" ]
