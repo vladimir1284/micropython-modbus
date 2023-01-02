@@ -15,6 +15,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.2.0] - 2023-01-03
+### Added
+- Fake machine module with UART and Pin to be used on Unix MicroPython container for RTU tests and examples, see #47
+- [RTU host example script](examples/rtu_host_example.py)
+- [RTU docker compose file](docker-compose-rtu.yaml) and [RTU docker compose file test](docker-compose-rtu-test.yaml) based in MicroPython 1.18 image
+- [RTU client Dockerfile](Dockerfile.client_rtu) and [RTU host Dockerfile](Dockerfile.host_rtu) based on MicroPython 1.18 image
+- Initial [RTU examples unittest](tests/test_rtu_example.py)
+- RTU example section for Client and Host in USAGE
+
+### Changed
+- Removed the following common functions from [serial.py](umodbus/serial.py) and [tcp.py](umodbus/tcp.py) and added to [common.py](umodbus/common.py):
+    - `read_coils`
+    - `read_discrete_inputs`
+    - `read_holding_registers`
+    - `read_input_registers`
+    - `write_single_coil`
+    - `write_single_register`
+    - `write_multiple_coils`
+    - `write_multiple_registers`
+
+- Extended RTU client example for Docker usage to load all registers from example JSON file
+- Update internal functions parameter name `slave_id` to `slave_addr` to use same keywords in TCP and Serial
+- Update Modbus function documentation from TCP specific to common module in USAGE file
+
+### Fixed
+
 ## [2.1.3] - 2022-12-30
 ### Fixed
 - `uart_id` can be specified during init of `ModbusRTU` and `Serial` class and is no longer hardcoded to `1`, but set as `1` by default to ensure backwards compability, see #7 and #43
@@ -195,8 +221,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.1.3...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.2.0...develop
 
+[2.2.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.2.0
 [2.1.3]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.3
 [2.1.2]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.2
 [2.1.1]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.1
