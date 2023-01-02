@@ -613,15 +613,15 @@ Connected to WiFi.
 ('192.168.178.42', '255.255.255.0', '192.168.178.1', '192.168.178.1')
 Requesting and updating data on TCP client at 192.168.178.69:502
 
-Status of COIL 123: [True, False, False, False, False, False, False, False]
+Status of COIL 123: [True]
 Result of setting COIL 123: True
-Status of COIL 123: [False, False, False, False, False, False, False, False]
+Status of COIL 123: [False]
 
 Status of HREG 93: (44,)
 Result of setting HREG 93: True
 Status of HREG 93: (44,)
 
-Status of IST 67: [False, False, False, False, False, False, False, False]
+Status of IST 67: [False]
 Status of IREG 10: (60001,)
 
 Finished requesting/setting data on client
@@ -630,12 +630,74 @@ Type "help()" for more information.
 >>>
 ```
 
-<!--
 ### RTU
 
 Get two UART/RS485 capable boards up and running, collecting and setting data
 on each other.
--->
+
+Adjust the UART pins according to the MicroPython port specific
+[documentation][ref-uart-documentation]. RP2 boards e.g. require the UART pins
+as tuple of `Pin`, like `rtu_pins = (Pin(4), Pin(5))` and the specific
+`uart_id=1` for those, whereas ESP32 boards can use almost alls pins for UART
+communication and shall be given as `rtu_pins = (25, 26)`.
+
+#### Client
+
+The client, former known as slave, provides some dummy registers which can be
+read and updated by another device.
+
+```bash
+cp examples/rtu_client_example.py /pyboard/main.py
+cp examples/boot.py /pyboard/boot.py
+repl
+```
+
+Inside the REPL press CTRL+D to perform a soft reboot. The device will serve
+several registers now. The log output might look similar to this
+
+```
+MPY: soft reboot
+System booted successfully!
+Setting up registers ...
+Register setup done
+```
+
+#### Host
+
+The host, former known as master, requests and updates some dummy registers of
+another device.
+
+```bash
+cp examples/rtu_host_example.py /pyboard/main.py
+cp examples/boot.py /pyboard/boot.py
+repl
+```
+
+Inside the REPL press CTRL+D to perform a soft reboot. The device will request
+and update registers of the Client after a few seconds. The log output might
+look similar to this
+
+```
+MPY: soft reboot
+System booted successfully!
+Requesting and updating data on RTU client at 10 with 9600 baud.
+
+Status of COIL 123: [True]
+Result of setting COIL 123: True
+Status of COIL 123: [False]
+
+Status of HREG 93: (44,)
+Result of setting HREG 93: True
+Status of HREG 93: (44,)
+
+Status of IST 67: [False]
+Status of IREG 10: (60001,)
+
+Finished requesting/setting data on client
+MicroPython v1.18 on 2022-01-17; ESP32 module (spiram) with ESP32
+Type "help()" for more information.
+>>>
+```
 
 ### TCP-RTU bridge
 
@@ -839,6 +901,7 @@ The created documentation can be found at [`docs/build/html`](docs/build/html).
 [ref-myevse-be]: https://brainelectronics.de/
 [ref-myevse-tindie]: https://www.tindie.com/stores/brainelectronics/
 [ref-package-main-file]: https://github.com/brainelectronics/micropython-modbus/blob/c45d6cc334b4adf0e0ffd9152c8f08724e1902d9/main.py
+[ref-uart-documentation]: https://docs.micropython.org/en/latest/library/machine.UART.html
 [ref-github-be-modbus-wrapper]: https://github.com/brainelectronics/be-modbus-wrapper
 [ref-modules-folder]: https://github.com/brainelectronics/python-modules/tree/43bad716b7db27db07c94c2d279cee57d0c8c753
 [ref-rtd-micropython-modbus]: https://micropython-modbus.readthedocs.io/en/latest/
