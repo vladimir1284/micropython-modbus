@@ -869,13 +869,13 @@ the containers. All "dynamic" data is shared via `volumes`
 ##### Test for TCP example
 
 ```bash
-docker compose -f docker-compose-tcp-test.yaml up --build --exit-code-from micropython-host
+docker compose -f docker-compose-tcp-test.yaml up --build --exit-code-from micropython-host --remove-orphans
 ```
 
 ##### Test for RTU example
 
 ```bash
-docker compose -f docker-compose-rtu-test.yaml up --build --exit-code-from micropython-host-rtu
+docker compose -f docker-compose-rtu-test.yaml up --build --exit-code-from micropython-host-rtu --remove-orphans
 ```
 
 ## Documentation
