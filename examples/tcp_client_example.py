@@ -187,9 +187,6 @@ print('Register setup done')
 
 print('Serving as TCP client on {}:{}'.format(local_ip, tcp_port))
 
-reset_data_register = \
-    register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['register']
-
 while True:
     try:
         result = client.process()

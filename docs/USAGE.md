@@ -61,7 +61,7 @@ The JSON file/dictionary shall follow the following pattern/structure
             # the onwards mentioned keys are optional
             "description": "Optional description of the coil",
             "range": "[0, 1]",  # may provide a range of the value, only for documentation purpose
-            "unit": "BOOL"      # may provide a unit of the value, only for documentation purpose
+            "unit": "BOOL",     # may provide a unit of the value, only for documentation purpose
             "on_set_cb": my_function,   # callback function executed on the client after a new value has been set
             "on_get_cb": some_function  # callback function executed on the client after a value has been requested
         }
@@ -248,18 +248,70 @@ The callback function shall have the following three parameters:
 | `address`  | int | Type of register. `COILS`, `HREGS`, `ISTS`, `IREGS` |
 | `val`      | Union[bool, int, Tuple[bool], Tuple[int], List[bool], List[int]] | Current value of register |
 
-This example function registered for e.g. coil 123 will output the following
-content after the coil has been set to True
+This example functions registered for e.g. coil 123 will output the following
+content after the coil has been requested and afterwards set to a different
+value
 
 ```python
-def my_holding_register_set_cb(reg_type, address, val):
+def my_coil_set_cb(reg_type, address, val):
     print('Custom callback, called on setting {} at {} to: {}'.
           format(reg_type, address, val))
+
+
+def my_coil_get_cb(reg_type, address, val):
+    print('Custom callback, called on getting {} at {}, currently: {}'.
+          format(reg_type, address, val))
+
+
+# assuming the client  specific setup (port/ID settings, network connections,
+# UART setup) has already been done
+# Check the provided examples for further details
+
+# define some registers, for simplicity only a single coil is used
+register_definitions = {
+    "COILS": {
+        "EXAMPLE_COIL": {
+            "register": 123,
+            "len": 1,
+            "val": 0,
+            "on_get_cb": my_coil_get_cb,
+            "on_set_cb": my_coil_set_cb
+        }
+    }
+}
+
+print('Setting up registers ...')
+# use the defined values of each register type provided by register_definitions
+client.setup_registers(registers=register_definitions)
+# alternatively use dummy default values (True for bool regs, 999 otherwise)
+# client.setup_registers(registers=register_definitions, use_default_vals=True)
+print('Register setup done')
+
+while True:
+    try:
+        result = client.process()
+    except KeyboardInterrupt:
+        print('KeyboardInterrupt, stopping TCP client...')
+        break
+    except Exception as e:
+        print('Exception during execution: {}'.format(e))
 ```
 
 ```
+Setting up registers ...
+Register setup done
+Custom callback, called on getting COILS at 123, currently: False
 Custom callback, called on setting COILS at 123 to: True
 ```
+
+In case only specific registers shall be enhanced with callbacks the specific
+functions can be used individually instead of setting up all registers with the
+[`setup_registers`](umodbus.modbus.Modbus.setup_registers) function.
+
+ - [`add_coil`](umodbus.modbus.Modbus.add_coil)
+ - [`add_hreg`](umodbus.modbus.Modbus.add_hreg)
+ - [`add_ist`](umodbus.modbus.Modbus.add_ist)
+ - [`add_ireg`](umodbus.modbus.Modbus.add_ireg)
 
 ### Register usage
 
