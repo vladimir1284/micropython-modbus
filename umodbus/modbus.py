@@ -119,12 +119,12 @@ class Modbus(object):
         :rtype:     Union[List[bool], List[int]]
         """
         data = []
-        if type(self._register_dict[reg_type][request.register_addr]) is list:
-            data = self._register_dict[reg_type][request.register_addr]['val']
+        address = request.register_addr
+
+        if type(self._register_dict[reg_type][address]['val']) is list:
+            data = self._register_dict[reg_type][address]['val']
         else:
-            data = [
-                self._register_dict[reg_type][request.register_addr]['val']
-            ]
+            data = [self._register_dict[reg_type][address]['val']]
 
         return data[:request.quantity]
 
