@@ -62,6 +62,8 @@ The JSON file/dictionary shall follow the following pattern/structure
             "description": "Optional description of the coil",
             "range": "[0, 1]",  # may provide a range of the value, only for documentation purpose
             "unit": "BOOL"      # may provide a unit of the value, only for documentation purpose
+            "on_set_cb": my_function,   # callback function executed on the client after a new value has been set
+            "on_get_cb": some_function  # callback function executed on the client after a value has been requested
         }
     },
     "HREGS": {          # this key shall contain all holding registers
@@ -71,7 +73,9 @@ The JSON file/dictionary shall follow the following pattern/structure
             "val": 19,          # used to set a register
             "description": "Optional description of the holding register",
             "range": "[0, 65535]",
-            "unit": "Hz"
+            "unit": "Hz",
+            "on_set_cb": my_function,   # callback function executed on the client after a new value has been set
+            "on_get_cb": some_function  # callback function executed on the client after a value has been requested
         },
     },
     "ISTS": {           # this key shall contain all static input registers
@@ -81,7 +85,8 @@ The JSON file/dictionary shall follow the following pattern/structure
             "val": 0,           # used to set a register, not possible for ISTS
             "description": "Optional description of the static input register",
             "range": "[0, 1]",
-            "unit": "activated"
+            "unit": "activated",
+            "on_get_cb": some_function  # callback function executed on the client after a value has been requested
         }
     },
     "IREGS": {          # this key shall contain all input registers
@@ -91,7 +96,8 @@ The JSON file/dictionary shall follow the following pattern/structure
             "val": 60001,       # used to set a register, not possible for IREGS
             "description": "Optional description of the static input register",
             "range": "[0, 65535]",
-            "unit": "millivolt"
+            "unit": "millivolt",
+            "on_get_cb": some_function  # callback function executed on the client after a value has been requested
         }
     }
 }
@@ -221,6 +227,39 @@ The optional key `unit` can be used to provide further details about the unit
 of the register. In case of the PWM output register example of the
 [optional range key](#optional-range) the recommended value for this key could
 be `percent`.
+
+###### Optional callbacks
+
+The optional keys `on_set_cb` and `on_get_cb` can be used to register a
+callback function on client side which is executed after a new value has been
+set or after a register value has been requested.
+
+```{note}
+Getter callbacks can be registered for all registers with the `on_get_cb`
+parameter whereas the `on_set_cb` parameter is only available for coils and
+holding registers as only those can be set by a external host.
+```
+
+The callback function shall have the following three parameters:
+
+| Parameter  | Type | Description |
+| ---------- | ------ | -------------------|
+| `reg_type` | string | Type of register. `COILS`, `HREGS`, `ISTS`, `IREGS` |
+| `address`  | int | Type of register. `COILS`, `HREGS`, `ISTS`, `IREGS` |
+| `val`      | Union[bool, int, Tuple[bool], Tuple[int], List[bool], List[int]] | Current value of register |
+
+This example function registered for e.g. coil 123 will output the following
+content after the coil has been set to True
+
+```python
+def my_holding_register_set_cb(reg_type, address, val):
+    print('Custom callback, called on setting {} at {} to: {}'.
+          format(reg_type, address, val))
+```
+
+```
+Custom callback, called on setting COILS at 123 to: True
+```
 
 ### Register usage
 
