@@ -140,12 +140,15 @@ class Modbus(object):
         address = request.register_addr
 
         if address in self._register_dict[reg_type]:
-            vals = self._create_response(request=request, reg_type=reg_type)
-            request.send_response(vals)
 
             if self._register_dict[reg_type][address].get('on_get_cb', 0):
+                vals = self._create_response(request=request,
+                                             reg_type=reg_type)
                 _cb = self._register_dict[reg_type][address]['on_get_cb']
                 _cb(reg_type=reg_type, address=address, val=vals)
+
+            vals = self._create_response(request=request, reg_type=reg_type)
+            request.send_response(vals)
         else:
             request.send_exception(Const.ILLEGAL_DATA_ADDRESS)
 
@@ -382,7 +385,7 @@ class Modbus(object):
 
     def remove_ist(self, address: int) -> Union[None, bool, List[bool]]:
         """
-        Remove a holding register from the modbus register dictionary.
+        Remove a discrete input register from the modbus register dictionary.
 
         :param      address:  The address (ID) of the register
         :type       address:  int
