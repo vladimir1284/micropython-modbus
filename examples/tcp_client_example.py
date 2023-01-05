@@ -99,8 +99,17 @@ def my_discrete_inputs_register_get_cb(reg_type, address, val):
 
 
 def my_inputs_register_get_cb(reg_type, address, val):
+    # usage of global isn't great, but okay for an example
+    global client
+
     print('Custom callback, called on getting {} at {}, currently: {}'.
           format(reg_type, address, val))
+
+    # any operation should be as short as possible to avoid response timeouts
+    # It would be also possible to read the leatest pin state at this time
+    val += 1
+    client.set_ist(address=address, value=val)
+    print('Incremented current value by +1 before sending response')
 
 
 def reset_data_registers_cb(reg_type, address, val):

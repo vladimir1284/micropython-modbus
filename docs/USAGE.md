@@ -231,8 +231,9 @@ be `percent`.
 ###### Optional callbacks
 
 The optional keys `on_set_cb` and `on_get_cb` can be used to register a
-callback function on client side which is executed after a new value has been
-set or after a register value has been requested.
+callback function on client side which is executed **after** a new value has
+been set or **before** the response of a requested register value has been
+sent.
 
 ```{note}
 Getter callbacks can be registered for all registers with the `on_get_cb`
