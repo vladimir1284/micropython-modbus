@@ -107,7 +107,7 @@ def my_inputs_register_get_cb(reg_type, address, val):
 
     # any operation should be as short as possible to avoid response timeouts
     # It would be also possible to read the leatest pin state at this time
-    val += 1
+    val[0] += 1
     client.set_ist(address=address, value=val)
     print('Incremented current value by +1 before sending response')
 
