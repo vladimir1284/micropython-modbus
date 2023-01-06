@@ -106,9 +106,13 @@ def my_inputs_register_get_cb(reg_type, address, val):
           format(reg_type, address, val))
 
     # any operation should be as short as possible to avoid response timeouts
-    # It would be also possible to read the leatest pin state at this time
-    val[0] += 1
-    client.set_ist(address=address, value=val)
+    new_val = val[0] + 1
+
+    # It would be also possible to read the latest ADC value at this time
+    # adc = machine.ADC(12)     # check MicroPython port specific syntax
+    # new_val = adc.read()
+
+    client.set_ireg(address=address, value=new_val)
     print('Incremented current value by +1 before sending response')
 
 
