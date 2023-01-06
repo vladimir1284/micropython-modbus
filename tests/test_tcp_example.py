@@ -327,6 +327,39 @@ class TestTcpExample(unittest.TestCase):
                 self.assertTrue(all(isinstance(x, bool) for x in coil_status))
                 self.assertEqual(coil_status, expectation_list_partial)
 
+    def test_read_coils_specific_of_multiple(self) -> None:
+        """Test reading specific coils of client defined as list"""
+        # the offset based on the specified register
+        # e.g. register = 150, offset = 3, qty = 5, the requested coils are
+        # 153-158
+        base_coil_offset = 3
+        coil_qty = 5    # read only 5 coils of multiple defined ones
+
+        coil_address = (
+            self._register_definitions['COILS']['MANY_COILS']['register'] +
+            base_coil_offset
+        )
+        expectation_list_full = list(
+            map(bool,
+                self._register_definitions['COILS']['MANY_COILS']['val'])
+        )
+        expectation_list = expectation_list_full[
+            base_coil_offset:base_coil_offset + coil_qty
+        ]
+
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Status of COIL {} length {}: {}, expectation: {}'.
+            format(coil_address, coil_qty, coil_status, expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        self.assertEqual(coil_status, expectation_list)
+
     def test_read_discrete_inputs_single(self) -> None:
         """Test reading discrete inputs of client"""
         ist_address = \
@@ -748,6 +781,73 @@ class TestTcpExample(unittest.TestCase):
         self.assertTrue(all(isinstance(x, bool) for x in coil_status))
         self.assertEqual(coil_status, expectation_list)
 
+        # test setting a coil in a list of coils
+        base_coil_offset = 3
+        coil_qty = 1
+        coil_address = (
+            self._register_definitions['COILS']['MANY_COILS']['register'] +
+            base_coil_offset
+        )
+        expectation_list_full = list(
+            map(bool,
+                self._register_definitions['COILS']['MANY_COILS']['val'])
+        )
+        expectation_list = expectation_list_full[
+            base_coil_offset:base_coil_offset + coil_qty
+        ]
+
+        #
+        # Check clean system (client register data is as initially defined)
+        #
+        # verify current state by reading coil states
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Initial status of COIL {}: {}, expectation: {}'.format(
+                coil_address,
+                coil_status,
+                expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        self.assertEqual(coil_status, expectation_list)
+
+        #
+        # Test setting coil to True
+        #
+        # update coil state of client with a different than the current state
+        new_coil_val = not expectation_list[0]
+        expectation_list[0] = new_coil_val
+
+        operation_status = self._host.write_single_coil(
+            slave_addr=self._client_addr,
+            output_address=coil_address,
+            output_value=new_coil_val)
+
+        self.test_logger.debug(
+            'Result of setting COIL {} to {}: {}, expectation: {}'.format(
+                coil_address, new_coil_val, operation_status, True))
+        self.assertIsInstance(operation_status, bool)
+        self.assertTrue(operation_status)
+
+        # verify setting of state by reading data back again
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug('Status of COIL {}: {}, expectation: {}'.
+                               format(coil_address,
+                                      coil_status,
+                                      expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        self.assertEqual(coil_status, expectation_list)
+
     def test_write_single_register(self) -> None:
         """Test updating single holding register of client"""
         hreg_address = \
@@ -905,6 +1005,83 @@ class TestTcpExample(unittest.TestCase):
         # update coil states of client with a different than the current state
         new_coil_vals = [not val for val in expectation_list]
         expectation_list = new_coil_vals
+
+        operation_status = self._host.write_multiple_coils(
+            slave_addr=self._client_addr,
+            starting_address=coil_address,
+            output_values=new_coil_vals)
+
+        self.test_logger.debug(
+            'Result of setting COIL {} length {} to {}: {}, expectation: {}'.
+            format(
+                coil_address, coil_qty, new_coil_vals, operation_status, True))
+        self.assertIsInstance(operation_status, bool)
+        self.assertTrue(operation_status)
+
+        # verify setting of states by reading data back again
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Status of COIL {} length {}: {}, expectation: {}'.format(
+                coil_address, coil_qty, coil_status, expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        # Reading coil data bits is reversed, see #38
+        # https://github.com/brainelectronics/micropython-modbus/issues/38
+        # self.assertEqual(coil_status, expectation_list)
+
+    def test_write_multiple_coils_specific_of_multiple(self) -> None:
+        """Test updating specific coils of client defined as list"""
+        # test with more than 8 coils
+        coil_address = \
+            self._register_definitions['COILS']['MANY_COILS']['register']
+        coil_qty = \
+            self._register_definitions['COILS']['MANY_COILS']['len']
+        expectation_list = list(
+            map(bool, self._register_definitions['COILS']['MANY_COILS']['val'])
+        )
+
+        #
+        # Check clean system (client register data is as initially defined)
+        #
+        # verify current state by reading coil states
+        coil_status = self._host.read_coils(
+            slave_addr=self._client_addr,
+            starting_addr=coil_address,
+            coil_qty=coil_qty)
+
+        self.test_logger.debug(
+            'Initial status of COIL {} length {}: {}, expectation: {}'.format(
+                coil_address, coil_qty, coil_status, expectation_list))
+        self.assertIsInstance(coil_status, list)
+        self.assertEqual(len(coil_status), coil_qty)
+        self.assertTrue(all(isinstance(x, bool) for x in coil_status))
+        self.assertEqual(coil_status, expectation_list)
+
+        #
+        # Test setting coils to inverted initial states
+        #
+        # update coil states of client with a different than the current state
+        new_coil_vals_full = [not val for val in expectation_list]
+
+        # the offset based on the specified register
+        # e.g. register = 150, offset = 3, qty = 5, the requested coils are
+        # 153-158
+        base_coil_offset = 3
+        coil_qty = 5    # read only 5 coils of multiple defined ones
+
+        new_coil_vals = new_coil_vals_full[
+            base_coil_offset:(base_coil_offset + coil_qty)
+        ]
+        expectation_list = (
+            expectation_list[:base_coil_offset] +
+            new_coil_vals +
+            expectation_list[base_coil_offset + coil_qty:]
+        )
 
         operation_status = self._host.write_multiple_coils(
             slave_addr=self._client_addr,
