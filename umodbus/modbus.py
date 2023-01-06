@@ -119,14 +119,49 @@ class Modbus(object):
         :rtype:     Union[List[bool], List[int]]
         """
         data = []
-        address = request.register_addr
+        default_value = {'val': 0}
+        reg_dict = self._register_dict[reg_type]
 
-        if type(self._register_dict[reg_type][address]['val']) is list:
-            data = self._register_dict[reg_type][address]['val']
-        else:
-            data = [self._register_dict[reg_type][address]['val']]
+        if reg_type in ['COILS', 'ISTS']:
+            default_value = {'val': False}
 
-        return data[:request.quantity]
+        for addr in range(request.register_addr,
+                          request.register_addr + request.quantity):
+            value = reg_dict.get(addr, default_value)['val']
+
+            if isinstance(value, (list, tuple)):
+                data.extend(value)
+            else:
+                data.append(value)
+
+        # caution LSB vs MSB
+        # [
+        #   1, 0, 1, 1, 0, 0, 1, 1,     # 0xB3
+        #   1, 1, 0, 1, 0, 1, 1, 0,     # 0xD6
+        #   1, 0, 1                     # 0x5
+        # ]
+        # but should be, documented at #38, see
+        # https://github.com/brainelectronics/micropython-modbus/issues/38
+        # this is only an issue of data provisioning as client/slave,
+        # it has thereby NOT to be fixed in
+        # :py:function:`umodbus.functions.bytes_to_bool`
+        # [
+        #   1, 1, 0, 0, 1, 1, 0, 1,     # 0xCD
+        #   0, 1, 1, 0, 1, 0, 1, 1,     # 0x6B
+        #   1, 0, 1                     # 0x5
+        # ]
+        #       27 .... 20
+        # CD    1100 1101
+        #
+        #       35 .... 28
+        # 6B    0110 1011
+        #
+        #       43 .... 36
+        # 05    0000 0101
+        #
+        # 1011 0011   1101 0110   1010 0000
+
+        return data
 
     def _process_read_access(self, request: Request, reg_type: str) -> None:
         """
@@ -166,6 +201,10 @@ class Modbus(object):
         valid_register = False
 
         if address in self._register_dict[reg_type]:
+            if request.data is None:
+                request.send_exception(Const.ILLEGAL_DATA_VALUE)
+                return
+
             if reg_type == 'COILS':
                 valid_register = True
 
@@ -175,7 +214,7 @@ class Modbus(object):
                         valid_register = False
                         request.send_exception(Const.ILLEGAL_DATA_VALUE)
                     else:
-                        val = (val == 0xFF)
+                        val = [(val == 0xFF)]
                 elif request.function == Const.WRITE_MULTIPLE_COILS:
                     tmp = int.from_bytes(request.data, "big")
                     val = [
@@ -189,9 +228,8 @@ class Modbus(object):
                 val = list(functions.to_short(byte_array=request.data,
                                               signed=False))
 
-                if request.function == Const.WRITE_SINGLE_REGISTER:
-                    self.set_hreg(address=address, value=val[0])
-                elif request.function == Const.WRITE_MULTIPLE_REGISTERS:
+                if request.function in [Const.WRITE_SINGLE_REGISTER,
+                                        Const.WRITE_MULTIPLE_REGISTERS]:
                     self.set_hreg(address=address, value=val)
             else:
                 # nothing except holding registers or coils can be set
@@ -519,7 +557,7 @@ class Modbus(object):
         :type       reg_type:   str
         :param      address:    The address (ID) of the register
         :type       address:    int
-        :param      value:      The default value
+        :param      value:      The value(s) of the register(s)
         :type       value:      Union[bool, int, List[bool], List[int]]
         :param      on_set_cb:  Callback on setting the register
         :type       on_get_cb:  Callable[
@@ -533,13 +571,59 @@ class Modbus(object):
                                 ]
 
         :raise      KeyError:  No register at specified address found
-        :returns:   Register value
-        :rtype:     Union[bool, int, List[bool], List[int]]
         """
         if not self._check_valid_register(reg_type=reg_type):
             raise KeyError('{} is not a valid register type of {}'.
                            format(reg_type, self._available_register_types))
 
+        if isinstance(value, (list, tuple)):
+            # flatten the list and add single registers only
+            for idx, val in enumerate(value):
+                this_addr = address + idx
+                self._set_single_reg_in_dict(reg_type=reg_type,
+                                             address=this_addr,
+                                             value=val,
+                                             on_set_cb=on_set_cb,
+                                             on_get_cb=on_get_cb)
+        else:
+            self._set_single_reg_in_dict(reg_type=reg_type,
+                                         address=address,
+                                         value=value,
+                                         on_set_cb=on_set_cb,
+                                         on_get_cb=on_get_cb)
+
+    def _set_single_reg_in_dict(self,
+                                reg_type: str,
+                                address: int,
+                                value: Union[bool, int],
+                                on_set_cb: Callable[
+                                    [str, int, Union[List[bool], List[int]]],
+                                    None
+                                ] = None,
+                                on_get_cb: Callable[
+                                    [str, int, Union[List[bool], List[int]]],
+                                    None
+                                ] = None) -> None:
+        """
+        Set a register value in the dictionary of registers.
+
+        :param      reg_type:   The register type
+        :type       reg_type:   str
+        :param      address:    The address (ID) of the register
+        :type       address:    int
+        :param      value:      The value of the register
+        :type       value:      Union[bool, int]
+        :param      on_set_cb:  Callback on setting the register
+        :type       on_get_cb:  Callable[
+                                    [str, int, Union[List[bool], List[int]]],
+                                    None
+                                ]
+        :param      on_get_cb:  Callback on getting the register
+        :type       on_get_cb:  Callable[
+                                    [str, int, Union[List[bool], List[int]]],
+                                    None
+                                ]
+        """
         data = {'val': value}
 
         # if the register exists already in the register dict a "set_*"
@@ -687,8 +771,13 @@ class Modbus(object):
         :raise      KeyError:  Register can not be changed externally
         """
         if reg_type in self._changeable_register_types:
-            content = {'val': value, 'time': time.ticks_ms()}
-            self._changed_registers[reg_type][address] = content
+            if isinstance(value, (list, tuple)):
+                for idx, val in enumerate(value):
+                    content = {'val': val, 'time': time.ticks_ms()}
+                    self._changed_registers[reg_type][address + idx] = content
+            else:
+                content = {'val': value, 'time': time.ticks_ms()}
+                self._changed_registers[reg_type][address] = content
         else:
             raise KeyError('{} can not be changed externally'.format(reg_type))
 
