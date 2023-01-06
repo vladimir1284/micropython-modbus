@@ -88,8 +88,9 @@ class Collection:
     pass
 
 
-class Callable:
-    pass
+# class Callable:
+#     pass
+Callable = _subscriptable
 
 
 class AbstractSet:

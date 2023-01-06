@@ -542,6 +542,10 @@ class TestTcpExample(unittest.TestCase):
         expectation = \
             (self._register_definitions['IREGS']['EXAMPLE_IREG']['val'], )
 
+        # due to value increment by registered callback in
+        # tcp_client_example.py, see #31 and #51
+        expectation = (expectation[0] + 1, )
+
         register_value = self._host.read_input_registers(
             slave_addr=self._client_addr,
             starting_addr=ireg_address,
