@@ -101,7 +101,7 @@ register_definitions = {
     "IREGS": {
         "EXAMPLE_IREG": {
             "register": 10,
-            "len": 2,
+            "len": 1,
             "val": 60001
         }
     }
