@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.3.1] - 2023-01-06
+### Added
+- Unittest to read multiple coils at any location if defined as list, verifies #35
+- Unittests to write a single coil or multiple coils at any location if defined as list, verifies fix #15 and #24
+
+### Fixed
+- All configured register of a client can be accessed and modified individually, see #35
+- Resolved overlapping register positions in example JSON file
+- Register length of `EXAMPLE_IREG` in TCP and RTU examples corrected to 1 instead of 2
+
 ## [2.3.0] - 2023-01-03
 ### Added
 - Custom callback functions can be registered on client (ModbusRTU or ModbusTCP) side with new parameters `on_set_cb` and `on_get_cb` available from [modbus.py](umodbus/modbus.py) functions `add_coil` and `add_hreg`. Functions `add_ist` and `add_ireg` support only `on_get_cb`, see #31
@@ -233,8 +243,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.0...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.1...develop
 
+[2.3.1]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.1
 [2.3.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.0
 [2.2.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.2.0
 [2.1.3]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.3
