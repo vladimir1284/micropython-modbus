@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.3.0] - 2023-01-03
+### Added
+- Custom callback functions can be registered on client (ModbusRTU or ModbusTCP) side with new parameters `on_set_cb` and `on_get_cb` available from [modbus.py](umodbus/modbus.py) functions `add_coil` and `add_hreg`. Functions `add_ist` and `add_ireg` support only `on_get_cb`, see #31
+- Example callback usage shown in [TCP client example](examples/tcp_client_example.py)
+- Documentation for callback functions in USAGE
+
+### Changed
+- Typing hint `Callable` is now subscriptable
+
 ## [2.2.0] - 2023-01-03
 ### Added
 - [Fake machine module](fakes/machine.py) with UART and Pin class to be used on Unix MicroPython container for RTU tests and examples, see #47
@@ -224,8 +233,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.2.0...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.0...develop
 
+[2.3.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.0
 [2.2.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.2.0
 [2.1.3]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.3
 [2.1.2]: https://github.com/brainelectronics/micropython-modbus/tree/2.1.2
