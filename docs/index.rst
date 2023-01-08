@@ -9,6 +9,7 @@ Contents
 
    readme_link
    SETUP
+   INSTALLATION
    USAGE
    CONTRIBUTING
    umodbus
