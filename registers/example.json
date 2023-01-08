@@ -33,7 +33,7 @@
             "unit": ""
         },
         "ANOTHER_EXAMPLE_COIL": {
-            "register": 126,
+            "register": 127,
             "len": 3,
             "val": [0, 1, 0],
             "description": "Example COILS registers with length of 3, Coils (setter+getter) [0, 1]",
@@ -97,7 +97,7 @@
             "unit": ""
         },
         "ANOTHER_EXAMPLE_ISTS": {
-            "register": 69,
+            "register": 70,
             "len": 3,
             "val": [0, 1, 0],
             "description": "Example ISTS registers with length of 3, Ists (only getter) [0, 1]",
