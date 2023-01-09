@@ -11,8 +11,12 @@ Contents
    SETUP
    INSTALLATION
    USAGE
+   EXAMPLES
+   TESTING
+   DOCUMENTATION
    CONTRIBUTING
    umodbus
+   fakes
    UPGRADE
    changelog_link
 
