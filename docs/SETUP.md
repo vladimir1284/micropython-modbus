@@ -56,7 +56,7 @@ ready to test and run the examples.
 ### Flash firmware
 
 Flash the [MicroPython firmware][ref-upy-firmware-download] to the MicroPython
-board with this call in case a ESP32 is used.
+board. The following example call is valid for ESP32 boards.
 
 ```bash
 esptool.py --chip esp32 --port /dev/tty.SLAB_USBtoUART erase_flash

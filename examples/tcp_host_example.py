@@ -201,6 +201,8 @@ register_value = host.read_input_registers(
 print('Status of IREG {}: {}'.format(ireg_address, register_value))
 time.sleep(1)
 
+print()
+
 # reset all registers back to their default values on the client
 # WRITE COILS
 print('Resetting register data to default values...')
