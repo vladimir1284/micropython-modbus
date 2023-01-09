@@ -16,15 +16,17 @@ here = Path(__file__).parent.resolve()
 try:
     import umodbus
 except ImportError:
-    raise SystemExit("umodbus has to be importable")
+    raise SystemExit("umodbus and fakes have to be importable")
 else:
     # Inject mock modules so that we can build the
     # documentation without having the real stuff available
     from mock import Mock
+    from fakes import machine
 
-    for mod_name in ['micropython', 'machine', 'urequests']:
-        sys.modules[mod_name] = Mock()
-        print("Mocked {}".format(mod_name))
+    sys.modules['micropython'] = Mock()
+    print("Mocked 'micropython' module")
+    sys.modules['machine'] = machine
+    print("Imported 'machine' module from 'fakes'")
 
 # load elements of version.py
 exec(open(here / '..' / 'umodbus' / 'version.py').read())
@@ -32,7 +34,7 @@ exec(open(here / '..' / 'umodbus' / 'version.py').read())
 # -- Project information
 
 project = 'micropython-modbus'
-copyright = '2022, brainelectronics'
+copyright = '2023, brainelectronics'
 author = 'brainelectronics'
 
 version = __version__
