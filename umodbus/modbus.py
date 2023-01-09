@@ -25,7 +25,14 @@ from .typing import Callable, dict_keys, List, Optional, Union
 
 
 class Modbus(object):
-    """Modbus register abstraction."""
+    """
+    Modbus register abstraction
+
+    :param      itf:        Abstraction interface
+    :type       itf:        Callable
+    :param      addr_list:  List of addresses
+    :type       addr_list:  List[int]
+    """
     def __init__(self, itf, addr_list: List[int]) -> None:
         self._itf = itf
         self._addr_list = addr_list
@@ -262,14 +269,14 @@ class Modbus(object):
         :type       value:      Union[bool, List[bool]], optional
         :param      on_set_cb:  Callback on setting the coil
         :type       on_set_cb:  Callable[
-                                    [str, int, Union[List[bool], List[int]]],
-                                    None
-                                ]
+            [str, int, Union[List[bool], List[int]]],
+            None
+            ]
         :param      on_get_cb:  Callback on getting the coil
         :type       on_get_cb:  Callable[
-                                    [str, int, Union[List[bool], List[int]]],
-                                    None
-                                ]
+            [str, int, Union[List[bool], List[int]]],
+            None
+            ]
         """
         self._set_reg_in_dict(reg_type='COILS',
                               address=address,
@@ -412,9 +419,9 @@ class Modbus(object):
         :type       value:      bool or list of bool, optional
         :param      on_get_cb:  Callback on getting the discrete input register
         :type       on_get_cb:  Callable[
-                                    [str, int, Union[List[bool], List[int]]],
-                                    None
-                                ]
+            [str, int, Union[List[bool], List[int]]],
+            None
+            ]
         """
         self._set_reg_in_dict(reg_type='ISTS',
                               address=address,
@@ -483,9 +490,9 @@ class Modbus(object):
         :type       value:      Union[int, List[int]], optional
         :param      on_get_cb:  Callback on getting the input register
         :type       on_get_cb:  Callable[
-                                    [str, int, Union[List[bool], List[int]]],
-                                    None
-                                ]
+            [str, int, Union[List[bool], List[int]]],
+            None
+            ]
         """
         self._set_reg_in_dict(reg_type='IREGS',
                               address=address,
@@ -561,14 +568,14 @@ class Modbus(object):
         :type       value:      Union[bool, int, List[bool], List[int]]
         :param      on_set_cb:  Callback on setting the register
         :type       on_get_cb:  Callable[
-                                    [str, int, Union[List[bool], List[int]]],
-                                    None
-                                ]
+            [str, int, Union[List[bool], List[int]]],
+            None
+            ]
         :param      on_get_cb:  Callback on getting the register
         :type       on_get_cb:  Callable[
-                                    [str, int, Union[List[bool], List[int]]],
-                                    None
-                                ]
+            [str, int, Union[List[bool], List[int]]],
+            None
+            ]
 
         :raise      KeyError:  No register at specified address found
         """
@@ -615,14 +622,14 @@ class Modbus(object):
         :type       value:      Union[bool, int]
         :param      on_set_cb:  Callback on setting the register
         :type       on_get_cb:  Callable[
-                                    [str, int, Union[List[bool], List[int]]],
-                                    None
-                                ]
+            [str, int, Union[List[bool], List[int]]],
+            None
+            ]
         :param      on_get_cb:  Callback on getting the register
         :type       on_get_cb:  Callable[
-                                    [str, int, Union[List[bool], List[int]]],
-                                    None
-                                ]
+            [str, int, Union[List[bool], List[int]]],
+            None
+            ]
         """
         data = {'val': value}
 
