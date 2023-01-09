@@ -66,6 +66,23 @@ commands inside the REPL
 import machine
 import network
 import time
+import mip
+station = network.WLAN(network.STA_IF)
+station.active(True)
+station.connect('SSID', 'PASSWORD')
+time.sleep(1)
+print('Device connected to network: {}'.format(station.isconnected()))
+mip.install('micropython-modbus', index='https://pypi.org/pypi')
+print('Installation completed')
+machine.soft_reset()
+```
+
+For MicroPython versions below 1.19.1 use the `upip` package instead of `mip`
+
+```python
+import machine
+import network
+import time
 import upip
 station = network.WLAN(network.STA_IF)
 station.active(True)
@@ -143,6 +160,11 @@ which are not part of this repo/package. To install these modules on the
 device, connect to a network and install them via `upip` as follows
 
 ```python
+# with MicroPython version 1.19.1 or newer
+import mip
+mip.install('micropython-brainelectronics-helpers', index='https://pypi.org/pypi')
+
+# before MicroPython version 1.19.1
 import upip
 upip.install('micropython-brainelectronics-helpers')
 ```
