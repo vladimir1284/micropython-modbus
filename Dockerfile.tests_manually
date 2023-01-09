@@ -1,0 +1,18 @@
+# Build image
+# $ docker build -t micropython-test-manually -f Dockerfile.tests_manually .
+# if a unittest fails, it will exit with non-zero code
+#
+# Run image, only possible if all tests passed
+# $ docker run -it --rm --name micropython-test-manually micropython-test-manually
+
+FROM micropython/unix:v1.18
+
+COPY ./ /home
+# keep examples and tests registers JSON file easily in sync
+COPY registers/example.json /home/tests/test-registers.json
+COPY umodbus /root/.micropython/lib/umodbus
+COPY mpy_unittest.py /root/.micropython/lib/mpy_unittest.py
+
+RUN micropython-dev -m upip install micropython-ulogging
+
+ENTRYPOINT ["/bin/bash"]
