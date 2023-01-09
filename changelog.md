@@ -15,6 +15,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.3.2] - 2023-01-09
+### Added
+- Installation instructions for `mip` usage on MicroPython 1.19.1 or newer, see #44
+- [Manual testing Dockerfile](Dockerfile.tests_manually)
+- [INSTALLATION](docs/INSTALLATION.md), [TESTING](docs/TESTING.md) and [EXAMPLES](docs/EXAMPLES.md) files for simpler docs structure
+
+### Changed
+- Split [SETUP](docs/SETUP.md) into [INSTALLATION](docs/INSTALLATION.md)
+- Split [USAGE](docs/USAGE.md) into [TESTING](docs/TESTING.md) and [EXAMPLES](docs/EXAMPLES.md)
+- Use callback to reset register data in [RTU client example](examples/rtu_client_example.py)
+- Update docs copyright year to 2023
+- Use fakes machine module instead of classic Mock in docs config file
+
+### Fixed
+- Basic RTU host example in root [README](README.md) uses correct init values, optional parameters are listed after mandatory ones
+- Remove outdated warning sections about #35 bug from [USAGE](docs/USAGE.md)
+
 ## [2.3.1] - 2023-01-06
 ### Added
 - Unittest to read multiple coils at any location if defined as list, verifies #35
@@ -243,8 +260,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.1...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.2...develop
 
+[2.3.2]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.2
 [2.3.1]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.1
 [2.3.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.0
 [2.2.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.2.0
