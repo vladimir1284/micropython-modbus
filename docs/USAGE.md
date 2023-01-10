@@ -1,39 +1,17 @@
 # Usage
 
-Overview to use and test this `micropython-modbus` library
+Overview to use this `micropython-modbus` library
 
 ---------------
 
 ```{note}
 The onwards described steps assume a successful setup as described in the
 [setup chapter](SETUP.md)
+
+Further examples are available in the [examples chapter](EXAMPLES.md)
 ```
 
-## MicroPython
-
-This section describes the necessary steps on the MicroPython device to get
-ready to test and run the examples.
-
-```bash
-# Linux/Mac
-source .venv/bin/activate
-
-rshell -p /dev/tty.SLAB_USBtoUART --editor nano
-```
-
-On a Windows based system activate the virtual environment and enter the
-remote shell like this
-
-```
-.venv\Scripts\activate.bat
-
-rshell -p COM9
-```
-
-The onwards mentioned commands shall be performed inside the previously entered
-remote shell.
-
-### Register configuration
+## Register configuration
 
 The available registers can be defined by a JSON file, placed inside the
 `/pyboard/registers` folder or any other location on the board and loaded in
@@ -43,7 +21,7 @@ As an [example the registers][ref-registers-MyEVSE] of a
 [brainelectronics MyEVSE][ref-myevse-be], [MyEVSE on Tindie][ref-myevse-tindie]
 board and others are provided with this repo.
 
-#### Structure
+### Structure
 
 If only an interaction with a single register is intended no dictionary needs
 to be defined of course. The onwards explanations assume a bigger setup of
@@ -78,12 +56,12 @@ The JSON file/dictionary shall follow the following pattern/structure
             "on_get_cb": some_function  # callback function executed on the client after a value has been requested
         },
     },
-    "ISTS": {           # this key shall contain all static input registers
-        "ISTS_NAME": {  # custom name of a static input register
-            "register": 67,     # register address of the static input register
+    "ISTS": {           # this key shall contain all input status registers
+        "ISTS_NAME": {  # custom name of a input status register
+            "register": 67,     # register address of the input status register
             "len": 1,           # amount of registers to request aka quantity
             "val": 0,           # used to set a register, not possible for ISTS
-            "description": "Optional description of the static input register",
+            "description": "Optional description of the input status register",
             "range": "[0, 1]",
             "unit": "activated",
             "on_get_cb": some_function  # callback function executed on the client after a value has been requested
@@ -121,10 +99,10 @@ would look like
 In order to act as client/slave device the same structure can be used. If no
 `val` element is found in the structure the default values are
 
-| Type | Function Code | Default value |
-| ---- | ------------- | ------------- |
+| Type  | Function Code | Default value |
+| ----- | ------------- | ------------- |
 | COILS | 0x01 | False (0x0) |
-| ISTS | 0x02 | False (0x0) |
+| ISTS  | 0x02 | False (0x0) |
 | HREGS | 0x03 | 0 |
 | IREGS | 0x04 | 0 |
 
@@ -142,28 +120,18 @@ The value of multiple registers can be set like this
 }
 ```
 
-```{eval-rst}
-.. warning::
-    As of version `2.0.0 <https://github.com/brainelectronics/micropython-modbus/releases/tag/2.0.0>`_
-    of this package it is not possible to request only the holding register
-    `94`, which would hold `38` in the above example.
-
-    This is a bug (non implemented feature) of the client/slave implementation.
-    For further details check `issue #35 <https://github.com/brainelectronics/micropython-modbus/issues/35>`_
-```
-
-#### Detailed key explanation
+### Detailed key explanation
 
 The onwards described key explanations are valid for COIL, HREG, IST and IREG
 
-##### Register
+#### Register
 
 The key `register` defines the register to request or manipulate.
 
 According to the Modbus specification the register address has to be in the
 range of 0x0000 to 0xFFFF (65535) to be valid.
 
-##### Length
+#### Length
 
 The key `len` defines the amout of registers to be requested starting from/with
 the defined `register` address.
@@ -171,12 +139,12 @@ the defined `register` address.
 According to the Modbus specification the length or amount depends on the type
 of the register as summarized in the table below.
 
-| Type | Function Code | Valid range |
-| ---- | ------------- | ----------- |
-| COILS | 0x01 | 0x1 to 0x7D0 (2000) |
-| ISTS | 0x02 | 0x1 to 0x7D0 (2000) |
-| HREGS | 0x03 | 0x1 to 0x7D (125) |
-| IREGS | 0x04 | 0x1 to 0x7D (125) |
+| Type  | Function Code | Valid range |
+| ----- | ------------- | ----------- |
+| COILS | 0x01 | 0x1 to 0x7D0 (2000)  |
+| ISTS  | 0x02 | 0x1 to 0x7D0 (2000)  |
+| HREGS | 0x03 | 0x1 to 0x7D (125)    |
+| IREGS | 0x04 | 0x1 to 0x7D (125)    |
 
 In order to read 5 coils starting at 124 use the following dictionary aka
 config
@@ -195,7 +163,7 @@ config
 The output will be a list of 5 elements like `[True, False, False, True, True]`
 depending on the actual device coil states of course.
 
-##### Value
+#### Value
 
 The key `val` defines the value of registers to be set on the target/client
 device.
@@ -208,27 +176,27 @@ of the register as summarized in the table below.
 | COILS | 0x05 | 0x0000 or 0xFF00 | This package maps `0` or `False` to `0x0000` and `1` or `True` to `0xFF00` |
 | HREGS | 0x06 | 0x0000 to 0xFFFF (65535) |  |
 
-##### Optional description
+#### Optional description
 
 The optional key `description` can be used to provide an additional
 description of the register. This might be helpful if the register name is not
 meaninful enough or for any other reason of course.
 
-##### Optional range
+#### Optional range
 
 The optional key `range` can be used to indicate the possible value range of
 this specific target. For example a holding register for setting a PWM output
 might only support a range of 0 to 100. This might be especially helpful with
 the optional [`unit`](#optional-unit) key.
 
-###### Optional unit
+##### Optional unit
 
 The optional key `unit` can be used to provide further details about the unit
 of the register. In case of the PWM output register example of the
 [optional range key](#optional-range) the recommended value for this key could
 be `percent`.
 
-###### Optional callbacks
+##### Optional callbacks
 
 The optional keys `on_set_cb` and `on_get_cb` can be used to register a
 callback function on client side which is executed **after** a new value has
@@ -248,6 +216,13 @@ The callback function shall have the following three parameters:
 | `reg_type` | string | Type of register. `COILS`, `HREGS`, `ISTS`, `IREGS` |
 | `address`  | int | Type of register. `COILS`, `HREGS`, `ISTS`, `IREGS` |
 | `val`      | Union[bool, int, Tuple[bool], Tuple[int], List[bool], List[int]] | Current value of register |
+
+```{note}
+The function parameter `val` is always an unsigned value. The host device
+requesting data is interpreting the data as signed or not, the client device
+has no informations about it. Setting a holding register to `-4` will be
+returned as `65532` on a registered callback.
+```
 
 This example functions registered for e.g. coil 123 will output the following
 content after the coil has been requested and afterwards set to a different
@@ -286,6 +261,14 @@ print('Setting up registers ...')
 client.setup_registers(registers=register_definitions)
 # alternatively use dummy default values (True for bool regs, 999 otherwise)
 # client.setup_registers(registers=register_definitions, use_default_vals=True)
+
+# callbacks can also be defined after a register setup has been performed
+client.add_coil(
+    address=123,
+    value=bool(1),
+    on_set_cb=my_coil_set_cb,
+    on_get_cb=my_coil_get_cb
+)
 print('Register setup done')
 
 while True:
@@ -314,7 +297,7 @@ functions can be used individually instead of setting up all registers with the
  - [`add_ist`](umodbus.modbus.Modbus.add_ist)
  - [`add_ireg`](umodbus.modbus.Modbus.add_ireg)
 
-### Register usage
+## Register usage
 
 This section describes the usage of the following implemented functions
 
@@ -328,56 +311,17 @@ This section describes the usage of the following implemented functions
  - [0x10 `write_multiple_registers`](umodbus.common.CommonModbusFunctions.write_multiple_registers)
 
 which are available on Modbus RTU and Modbus TCP as shown in the
-[examples](https://github.com/brainelectronics/micropython-modbus/tree/develop/examples)
+[GitHub examples folder](https://github.com/brainelectronics/micropython-modbus/tree/develop/examples) and the [examples chapter](EXAMPLES.md)
 
 All described functions require a successful setup of a Host communicating
 to/with a Client device which is providing the data and accepting the new data.
 
-#### TCP
-
-```python
-from umodbus.tcp import TCP as ModbusTCPMaster
-
-slave_tcp_port = 502            # port to listen to
-slave_addr = 10                 # bus address of client
-slave_ip = '192.168.178.69'     # IP address, to be adjusted
-
-host = ModbusTCPMaster(
-    slave_ip=slave_ip,
-    slave_port=slave_tcp_port,
-    timeout=5)                  # optional, default 5
-```
-
-#### RTU
-
-```python
-from umodbus.serial import Serial as ModbusRTUMaster
-
-slave_addr = 10                 # bus address of client
-
-# check MicroPython UART documentation
-# https://docs.micropython.org/en/latest/library/machine.UART.html
-# for Device/Port specific setup
-# RP2 needs "rtu_pins = (Pin(4), Pin(5))" whereas ESP32 can use any pin
-# the following example is for an ESP32
-rtu_pins = (25, 26)         # (TX, RX)
-host = ModbusRTUMaster(
-    baudrate=9600,          # optional, default 9600
-    pins=rtu_pins,          # given as tuple (TX, RX)
-    # data_bits=8,          # optional, default 8
-    # stop_bits=1,          # optional, default 1
-    # parity=None,          # optional, default None
-    # ctrl_pin=12,          # optional, control DE/RE
-    # uart_id=1             # optional, see port specific documentation
-)
-```
-
-#### Coils
+### Coils
 
 Coils represent binary states, which can be get as and set to either `0` (off)
 or `1` (on).
 
-##### Read
+#### Read
 
 ```{note}
 The function code `0x01` is used to read from 1 to 2000 contiguous status of
@@ -389,34 +333,24 @@ With the function
 a single coil status can be read.
 
 ```python
-coil_address = 125
-coil_qty = 2
+coil_address = 125  # register to start reading
+coil_qty = 2        # amount of registers to read
+
 coil_status = host.read_coils(
     slave_addr=slave_addr,
     starting_addr=coil_address,
     coil_qty=coil_qty)
+
 print('Status of COIL {}: {}'.format(coil_address, coil_status))
-# Status of COIL 125:  [True, False]
+# Status of COIL 125: [True, False]
 ```
 
-```{eval-rst}
-.. warning::
-    Please be aware of `bug #35 <https://github.com/brainelectronics/micropython-modbus/issues/35>`_.
-
-    It is not possible to read a specific position within a configured list of
-    multiple coils on a MicroPython Modbus TCP client device. Reading coil 126
-    in the above example will throw an error.
-
-    This bug affects only devices using this package. Other devices work as
-    expected and can be addressed as specified.
-```
-
-##### Write
+#### Write
 
 Coils can be set with `False` or `0` to the `OFF` state and with `True` or `1`
 to the `ON` state.
 
-###### Single
+##### Single
 
 ```{note}
 The function code `0x05` is used to write a single output to either `ON` or
@@ -428,28 +362,19 @@ With the function
 a single coil status can be set.
 
 ```python
-coil_address = 123
-new_coil_val = 0
+coil_address = 123  # register to start writing
+new_coil_val = 0    # new coil value
+
 operation_status = host.write_single_coil(
     slave_addr=slave_addr,
     output_address=coil_address,
     output_value=new_coil_val)
+
 print('Result of setting COIL {}: {}'.format(coil_address, operation_status))
 # Result of setting COIL 123: True
 ```
 
-```{eval-rst}
-.. warning::
-    Please be aware of `bug #15 <https://github.com/brainelectronics/micropython-modbus/issues/15>`_.
-
-    It is not possible to write to a specific position within a configured
-    list of multiple coils on a MicroPython Modbus TCP client device.
-
-    This bug affects only devices using this package. Other devices work as
-    expected and can be addressed as specified.
-```
-
-###### Multiple
+##### Multiple
 
 ```{note}
 The function code `0x0F` is used to force each coil in a sequence of coils to
@@ -461,34 +386,24 @@ With the function
 multiple coil states can be set at once.
 
 ```python
-coil_address = 126
-new_coil_vals = [1, 1, 0]
+coil_address = 126          # register to start writing
+new_coil_vals = [1, 1, 0]   # new coil values for 126, 127 and 128
+
 operation_status = self._host.write_multiple_coils(
             slave_addr=slave_addr,
             starting_address=coil_address,
             output_values=new_coil_vals)
+
 print('Result of setting COIL {}: {}'.format(coil_address, operation_status))
 # Result of setting COIL 126: True
 ```
 
-```{eval-rst}
-.. warning::
-    Please be aware of `bug #35 <https://github.com/brainelectronics/micropython-modbus/issues/35>`_.
-
-    It is not possible to write to a specific position within a configured
-    list of multiple coils on a MicroPython Modbus TCP client device. Setting
-    coil `127`, which is `1` in the above example will throw an error.
-
-    This bug affects only devices using this package. Other devices work as
-    expected and can be addressed as specified.
-```
-
-#### Discrete inputs
+### Discrete inputs
 
 Discrete inputs represent binary states, which can be get as either `0` (off)
-or `1` (on). Unlike [coils](#coils), these cannot be set.
+or `1` (on). Unlike [coils](USAGE.md#coils), discrete inputs cannot be set.
 
-##### Read
+#### Read
 
 ```{note}
 The function code `0x02` is used to read from 1 to 2000 contiguous status of
@@ -500,23 +415,25 @@ With the function
 discrete inputs can be read.
 
 ```python
-ist_address = 68
-input_qty = 2
+ist_address = 68    # register to start reading
+input_qty = 2       # amount of registers to read
+
 input_status = host.read_discrete_inputs(
     slave_addr=slave_addr,
     starting_addr=ist_address,
     input_qty=input_qty)
+
 print('Status of IST {}: {}'.format(ist_address, input_status))
 # Status of IST 68: [True, False]
 ```
 
-#### Holding registers
+### Holding registers
 
 Holding registers can be get as and set to any value between `0` and `65535`.
 If supported by the client device, data can be marked as signed values to
 represent `-32768` through `32767`.
 
-##### Read
+#### Read
 
 ```{note}
 The function code `0x03` is used to read the contents of a contiguous block
@@ -528,36 +445,25 @@ With the function
 a single holding register can be read.
 
 ```python
-hreg_address = 94
-register_qty = 3
+hreg_address = 94   # register to start reading
+register_qty = 3    # amount of registers to read
+
 register_value = host.read_holding_registers(
     slave_addr=slave_addr,
     starting_addr=hreg_address,
     register_qty=register_qty,
     signed=False)
+
 print('Status of HREG {}: {}'.format(hreg_address, register_value))
 # Status of HREG 94: [29, 38, 0]
 ```
 
-```{eval-rst}
-.. warning::
-    Please be aware of `bug #35 <https://github.com/brainelectronics/micropython-modbus/issues/35>`_.
-
-    It is not possible to read a specific position within a configured list of
-    multiple holding registers on a MicroPython Modbus TCP client device.
-    Reading holding register `95`, holding the value `38` in the above example
-    will throw an error.
-
-    This bug affects only devices using this package. Other devices work as
-    expected and can be addressed as specified.
-```
-
-##### Write
+#### Write
 
 Holding registers can be set to `0` through `65535` or `-32768` through `32767`
 in case signed values are used.
 
-###### Single
+##### Single
 
 ```{note}
 The function code `0x06` is used to write a single holding register in a
@@ -569,18 +475,20 @@ With the function
 a single holding register can be set.
 
 ```python
-hreg_address = 93
-new_hreg_val = 44
+hreg_address = 93   # register to start writing
+new_hreg_val = 44   # new holding register value
+
 operation_status = host.write_single_register(
     slave_addr=slave_addr,
     register_address=hreg_address,
     register_value=new_hreg_val,
     signed=False)
+
 print('Result of setting HREG {}: {}'.format(hreg_address, operation_status))
 # Result of setting HREG 93: True
 ```
 
-###### Multiple
+##### Multiple
 
 ```{note}
 The function code `0x10` is used to write a block of contiguous registers
@@ -592,39 +500,27 @@ With the function
 holding register can be set at once.
 
 ```python
-hreg_address = 94
-new_hreg_vals = [54, -12, 30001]
+hreg_address = 94                   # register to start writing
+new_hreg_vals = [54, -12, 30001]    # new holding register values for 94, 95, 96
+
 operation_status = self._host.write_multiple_registers(
     slave_addr=slave_addr,
     starting_address=hreg_address,
     register_values=new_hreg_vals,
     signed=True)
+
 print('Result of setting HREG {}: {}'.format(hreg_address, operation_status))
 # Result of setting HREG 94: True
 ```
 
-```{eval-rst}
-.. warning::
-
-    Please be aware of `bug #35 <https://github.com/brainelectronics/micropython-modbus/issues/35>`_.
-
-    It is not possible to write to a specific position within a configured
-    list of multiple holding registers on a MicroPython Modbus TCP client
-    device. Setting holding register `95 + 96` to e.g. `[-12, 30001]` in the
-    above example will throw an error.
-
-    This bug affects only devices using this package. Other devices work as
-    expected and can be addressed as specified.
-```
-
-#### Input registers
+### Input registers
 
 Input registers can hold values between `0` and `65535`. If supported by the
 client device, data can be marked as signed values to represent `-32768`
-through `32767`. Unlike [holding registers](#holding-registers), these cannot
-be set.
+through `32767`. Unlike [holding registers](USAGE.md#holding-registers), input
+registers cannot be set.
 
-##### Read
+#### Read
 
 ```{note}
 The function code `0x04` is used to read from 1 to 125 contiguous input
@@ -636,18 +532,20 @@ With the function
 input registers can be read.
 
 ```python
-ireg_address = 11
-register_qty = 3
+ireg_address = 11   # register to start reading
+register_qty = 3    # amount of registers to read
+
 register_value = host.read_input_registers(
     slave_addr=slave_addr,
     starting_addr=ireg_address,
     register_qty=register_qty,
     signed=False)
+
 print('Status of IREG {}: {}'.format(ireg_address, register_value))
 # Status of IREG 11: [59123, 0, 390]
 ```
 
-### TCP
+## TCP
 
 Get two network capable boards up and running, collecting and setting data on
 each other.
@@ -655,7 +553,7 @@ each other.
 Adjust the WiFi network name (SSID) and password to be able to connect to your
 personal network or remove that section if a wired network connection is used.
 
-#### Client
+### Client
 
 The client, former known as slave, provides some dummy registers which can be
 read and updated by another device.
@@ -681,7 +579,7 @@ Register setup done
 Serving as TCP client on 192.168.178.69:502
 ```
 
-#### Host
+### Host
 
 The host, former known as master, requests and updates some dummy registers of
 another device.
@@ -716,13 +614,16 @@ Status of HREG 93: (44,)
 Status of IST 67: [False]
 Status of IREG 10: (60001,)
 
+Resetting register data to default values...
+Result of setting COIL 42: True
+
 Finished requesting/setting data on client
 MicroPython v1.18 on 2022-01-17; ESP32 module (spiram) with ESP32
 Type "help()" for more information.
 >>>
 ```
 
-### RTU
+## RTU
 
 Get two UART/RS485 capable boards up and running, collecting and setting data
 on each other.
@@ -733,7 +634,7 @@ as tuple of `Pin`, like `rtu_pins = (Pin(4), Pin(5))` and the specific
 `uart_id=1` for those, whereas ESP32 boards can use almost alls pins for UART
 communication and shall be given as `rtu_pins = (25, 26)`.
 
-#### Client
+### Client
 
 The client, former known as slave, provides some dummy registers which can be
 read and updated by another device.
@@ -752,9 +653,10 @@ MPY: soft reboot
 System booted successfully!
 Setting up registers ...
 Register setup done
+Serving as RTU client on address 10 at 9600 baud
 ```
 
-#### Host
+### Host
 
 The host, former known as master, requests and updates some dummy registers of
 another device.
@@ -772,7 +674,7 @@ look similar to this
 ```
 MPY: soft reboot
 System booted successfully!
-Requesting and updating data on RTU client at 10 with 9600 baud.
+Requesting and updating data on RTU client at address 10 with 9600 baud
 
 Status of COIL 123: [True]
 Result of setting COIL 123: True
@@ -785,13 +687,16 @@ Status of HREG 93: (44,)
 Status of IST 67: [False]
 Status of IREG 10: (60001,)
 
+Resetting register data to default values...
+Result of setting COIL 42: True
+
 Finished requesting/setting data on client
 MicroPython v1.18 on 2022-01-17; ESP32 module (spiram) with ESP32
 Type "help()" for more information.
 >>>
 ```
 
-### TCP-RTU bridge
+## TCP-RTU bridge
 
 This example implementation shows how to act as bridge between an RTU (serial)
 connected device and another external TCP device.
@@ -801,8 +706,8 @@ comment of [`main.py`][ref-package-main-file].
 
 ## Classic development environment
 
-This section describes the necessary steps on the computer to get ready to
-test and run the examples.
+This section describes the necessary steps on the computer to read and/or write
+data from/to a Modbus TCP Client device.
 
 ```bash
 # Linux/Mac
@@ -866,141 +771,6 @@ cd examples
 sh write_registers_tcp.sh 192.168.178.69 ../registers/set-example.json 502
 ```
 
-## Docker development environment
-
-### Pull container
-
-Checkout the available
-[MicroPython containers](https://hub.docker.com/r/micropython/unix/tags)
-
-```bash
-docker pull micropython/unix:v1.18
-```
-
-### Spin up container
-
-#### Simple container
-
-Use this command for your first tests or to run some MicroPython commands in
-a simple REPL
-
-```bash
-docker run -it \
---name micropython-1.18 \
---network=host \
---entrypoint bash \
-micropython/unix:v1.18
-```
-
-#### Enter MicroPython REPL
-
-Inside the container enter the REPL by running `micropython-dev`. The console
-should now look similar to this
-
-```
-root@debian:/home#
-MicroPython v1.18 on 2022-01-17; linux version
-Use Ctrl-D to exit, Ctrl-E for paste mode
->>>
-```
-
-#### Manually run unittests
-
-In order to manually execute only a specific set of tests use the following
-command inside the container
-
-```bash
-# run all unittests defined in "tests" directory and exit with status result
-micropython-dev -c "import unittest; unittest.main('tests')"
-
-# run all tests of "TestAbsoluteTruth" defined in tests/test_absolute_truth.py
-# and exit with status result
-micropython-dev -c "import unittest; unittest.main(name='tests.test_absolute_truth', fromlist=['TestAbsoluteTruth'])"
-```
-
-#### Custom container for unittests
-
-```bash
-docker build \
---tag micropython-test \
---file Dockerfile.tests .
-```
-
-The unittests are executed during the building process. It will exit with a
-non-zero status in case of a unittest failure.
-
-The return value can be collected by `echo $?` (on Linux based systems), which
-will be either `0` in case all tests passed, or `1` if one or multiple tests
-failed.
-
-#### Docker compose
-
-The following command uses the setup defined in the individual
-`docker-compose-*-test.yaml` file to act as two MicroPython devices
-communicating via TCP or RTU. The container `micropython-host-*` defined by
-`Dockerfile.host_*` acts as host and sets/gets data at/from the client as
-defined by `*_host_example.py`. On the other hand the container
-`micropython-client-*` defined by `Dockerfile.client_*` acts as client and
-provides data for the host as defined by `*_client_example.py`.
-
-The port defined in `tcp_host_example.py` and `tcp_client_example.py` has to
-be open and optionally exposed in the `docker-compose-tcp-example.yaml` file.
-
-As the [MicroPython containers](https://hub.docker.com/r/micropython/unix/tags)
-does not have a UART interface with is additionally not connectable via two
-containers a UART fake has been implemented. It is using a socket connection
-to exchange all the data.
-
-```bash
-docker compose up --build --exit-code-from micropython-host
-```
-
-The option `--build` can be skipped on the second run, to avoid rebuilds of
-the containers. All "dynamic" data is shared via `volumes`
-
-##### Test for TCP example
-
-```bash
-docker compose -f docker-compose-tcp-test.yaml up --build --exit-code-from micropython-host --remove-orphans
-```
-
-##### Test for RTU example
-
-```bash
-docker compose -f docker-compose-rtu-test.yaml up --build --exit-code-from micropython-host-rtu --remove-orphans
-```
-
-## Documentation
-
-The documentation is automatically generated on every merge to the develop
-branch and available [here][ref-rtd-micropython-modbus]
-
-### Install required packages
-
-```bash
-# create and activate virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# install and upgrade required packages
-pip install -U -r docs/requirements.txt
-```
-
-### Create documentation
-
-Some usefull checks have been disabled in the `docs/conf.py` file. Please
-check the documentation build output locally before opening a PR.
-
-```bash
-# perform link checks
-sphinx-build docs/ docs/build/linkcheck -d docs/build/docs_doctree/ --color -blinkcheck -j auto -W
-
-# create documentation
-sphinx-build docs/ docs/build/html/ -d docs/build/docs_doctree/ --color -bhtml -j auto -W
-```
-
-The created documentation can be found at [`docs/build/html`](docs/build/html).
-
 <!-- Links -->
 [ref-registers-MyEVSE]: https://github.com/brainelectronics/micropython-modbus/blob/c45d6cc334b4adf0e0ffd9152c8f08724e1902d9/registers/modbusRegisters-MyEVSE.json
 [ref-myevse-be]: https://brainelectronics.de/
@@ -1009,4 +779,3 @@ The created documentation can be found at [`docs/build/html`](docs/build/html).
 [ref-uart-documentation]: https://docs.micropython.org/en/latest/library/machine.UART.html
 [ref-github-be-modbus-wrapper]: https://github.com/brainelectronics/be-modbus-wrapper
 [ref-modules-folder]: https://github.com/brainelectronics/python-modules/tree/43bad716b7db27db07c94c2d279cee57d0c8c753
-[ref-rtd-micropython-modbus]: https://micropython-modbus.readthedocs.io/en/latest/

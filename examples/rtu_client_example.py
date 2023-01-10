@@ -44,8 +44,8 @@ slave_addr = 10             # address on bus as client
 baudrate = 9600
 client = ModbusRTU(
     addr=slave_addr,        # address on bus
-    baudrate=baudrate,      # optional, default 9600
     pins=rtu_pins,          # given as tuple (TX, RX)
+    baudrate=baudrate,      # optional, default 9600
     # data_bits=8,          # optional, default 8
     # stop_bits=1,          # optional, default 1
     # parity=None,          # optional, default None
@@ -56,6 +56,17 @@ client = ModbusRTU(
 if IS_DOCKER_MICROPYTHON:
     # works only with fake machine UART
     assert client._itf._uart._is_server is True
+
+
+def reset_data_registers_cb(reg_type, address, val):
+    # usage of global isn't great, but okay for an example
+    global client
+    global register_definitions
+
+    print('Resetting register data to default values ...')
+    client.setup_registers(registers=register_definitions)
+    print('Default values restored')
+
 
 # common slave register setup, to be used with the Master example above
 register_definitions = {
@@ -101,6 +112,10 @@ if IS_DOCKER_MICROPYTHON:
     with open('registers/example.json', 'r') as file:
         register_definitions = json.load(file)
 
+# reset all registers back to their default value with a callback
+register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['on_set_cb'] = \
+    reset_data_registers_cb
+
 print('Setting up registers ...')
 # use the defined values of each register type provided by register_definitions
 client.setup_registers(registers=register_definitions)
@@ -108,17 +123,12 @@ client.setup_registers(registers=register_definitions)
 # client.setup_registers(registers=register_definitions, use_default_vals=True)
 print('Register setup done')
 
-reset_data_register = \
-    register_definitions['COILS']['RESET_REGISTER_DATA_COIL']['register']
+print('Serving as RTU client on address {} at {} baud'.
+      format(slave_addr, baudrate))
 
 while True:
     try:
         result = client.process()
-        if reset_data_register in client.coils:
-            if client.get_coil(address=reset_data_register):
-                print('Resetting register data to default values ...')
-                client.setup_registers(registers=register_definitions)
-                print('Default values restored')
     except KeyboardInterrupt:
         print('KeyboardInterrupt, stopping RTU client...')
         break

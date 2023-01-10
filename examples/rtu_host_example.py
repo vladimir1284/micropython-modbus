@@ -47,9 +47,10 @@ slave_addr = 10             # address on bus of the client/slave
 # the following example is for an ESP32
 rtu_pins = (25, 26)         # (TX, RX)
 baudrate = 9600
+
 host = ModbusRTUMaster(
-    baudrate=baudrate,      # optional, default 9600
     pins=rtu_pins,          # given as tuple (TX, RX)
+    baudrate=baudrate,      # optional, default 9600
     # data_bits=8,          # optional, default 8
     # stop_bits=1,          # optional, default 1
     # parity=None,          # optional, default None
@@ -106,7 +107,7 @@ with open('registers/example.json', 'r') as file:
     register_definitions = json.load(file)
 """
 
-print('Requesting and updating data on RTU client at {} with {} baud'.
+print('Requesting and updating data on RTU client at address {} with {} baud'.
       format(slave_addr, baudrate))
 print()
 
@@ -117,7 +118,7 @@ coil_status = host.read_coils(
     slave_addr=slave_addr,
     starting_addr=coil_address,
     coil_qty=coil_qty)
-print('Status of coil {}: {}'.format(coil_status, coil_address))
+print('Status of COIL {}: {}'.format(coil_address, coil_status))
 time.sleep(1)
 
 # WRITE COILS
@@ -126,7 +127,7 @@ operation_status = host.write_single_coil(
     slave_addr=slave_addr,
     output_address=coil_address,
     output_value=new_coil_val)
-print('Result of setting coil {} to {}'.format(coil_address, operation_status))
+print('Result of setting COIL {} to {}'.format(coil_address, operation_status))
 time.sleep(1)
 
 # READ COILS again
@@ -134,7 +135,7 @@ coil_status = host.read_coils(
     slave_addr=slave_addr,
     starting_addr=coil_address,
     coil_qty=coil_qty)
-print('Status of coil {}: {}'.format(coil_status, coil_address))
+print('Status of COIL {}: {}'.format(coil_address, coil_status))
 time.sleep(1)
 
 print()
@@ -147,7 +148,7 @@ register_value = host.read_holding_registers(
     starting_addr=hreg_address,
     register_qty=register_qty,
     signed=False)
-print('Status of hreg {}: {}'.format(hreg_address, register_value))
+print('Status of HREG {}: {}'.format(hreg_address, register_value))
 time.sleep(1)
 
 # WRITE HREGS
@@ -157,7 +158,7 @@ operation_status = host.write_single_register(
     register_address=hreg_address,
     register_value=new_hreg_val,
     signed=False)
-print('Result of setting hreg {} to {}'.format(hreg_address, operation_status))
+print('Result of setting HREG {} to {}'.format(hreg_address, operation_status))
 time.sleep(1)
 
 # READ HREGS again
@@ -166,7 +167,7 @@ register_value = host.read_holding_registers(
     starting_addr=hreg_address,
     register_qty=register_qty,
     signed=False)
-print('Status of hreg {}: {}'.format(hreg_address, register_value))
+print('Status of HREG {}: {}'.format(hreg_address, register_value))
 time.sleep(1)
 
 print()
@@ -178,7 +179,7 @@ input_status = host.read_discrete_inputs(
     slave_addr=slave_addr,
     starting_addr=ist_address,
     input_qty=input_qty)
-print('Status of ist {}: {}'.format(ist_address, input_status))
+print('Status of IST {}: {}'.format(ist_address, input_status))
 time.sleep(1)
 
 # READ IREGS
@@ -189,7 +190,7 @@ register_value = host.read_input_registers(
     starting_addr=ireg_address,
     register_qty=register_qty,
     signed=False)
-print('Status of ireg {}: {}'.format(ireg_address, register_value))
+print('Status of IREG {}: {}'.format(ireg_address, register_value))
 time.sleep(1)
 
 print()

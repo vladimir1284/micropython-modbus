@@ -1,4 +1,4 @@
-micropython-modbus API
+API
 =======================
 
 .. autosummary::
@@ -28,7 +28,7 @@ Common functions
    :private-members:
    :show-inheritance:
 
-umodbus.modbus module
+Modbus client module
 ---------------------------------
 
 .. automodule:: umodbus.modbus
