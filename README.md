@@ -18,8 +18,8 @@ Forked from [Exo Sense Py][ref-sferalabs-exo-sense], based on
 [PyCom Modbus][ref-pycom-modbus] and extended with other functionalities to
 become a powerfull MicroPython library
 
-:books: The latest documentation is available at
-[MicroPython Modbus ReadTheDocs][ref-rtd-micropython-modbus] :books:
+📚 The latest documentation is available at
+[MicroPython Modbus ReadTheDocs][ref-rtd-micropython-modbus] 📚
 
 <!-- MarkdownTOC -->
 
