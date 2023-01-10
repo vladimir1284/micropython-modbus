@@ -29,9 +29,12 @@ station.isconnected()
 `mip` has been added in MicroPython 1.19.1 and later. For earlier MicroPython
 versions check the [upip section below](#install-with-upip)
 
-> `mip` ("mip installs packages") is similar in concept to Python's `pip`
-> tool, however it does not use the PyPI index, rather it uses micropython-lib
-> as its index by default.
+```{eval-rst}
+.. epigraph::
+	`mip` ("mip installs packages") is similar in concept to Python's `pip`
+	tool, however it does not use the PyPI index, rather it uses
+	micropython-lib as its index by default.
+```
 
 As this library is pushed to [PyPi][ref-micropython-modbus-pypi] and
 [TestPyPi][ref-micropython-modbus-test-pypi], but not the default
@@ -72,9 +75,8 @@ upip.install('micropython-modbus')
 
 ### mpremote
 
-As of January 2022 the [`mpremote`][ref-mpremote] tool is available via `pip`.
-
-> It can be used from a host PC to install packages to a locally connected device
+As of January 2022 the [`mpremote`][ref-mpremote] tool is available via `pip`
+and can be used to install packages on a connected device from a host machine.
 
 As described in the `Install required tools` section of [SETUP](SETUP.md), the
 tool will be installed with the provided `requirements.txt` file. Please
