@@ -217,6 +217,13 @@ The callback function shall have the following three parameters:
 | `address`  | int | Type of register. `COILS`, `HREGS`, `ISTS`, `IREGS` |
 | `val`      | Union[bool, int, Tuple[bool], Tuple[int], List[bool], List[int]] | Current value of register |
 
+```{note}
+The function parameter `val` is always an unsigned value. The host device
+requesting data is interpreting the data as signed or not, the client device
+has no informations about it. Setting a holding register to `-4` will be
+returned as `65532` on a registered callback.
+```
+
 This example functions registered for e.g. coil 123 will output the following
 content after the coil has been requested and afterwards set to a different
 value
