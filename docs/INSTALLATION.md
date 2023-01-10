@@ -100,7 +100,18 @@ mpremote connect /dev/tty.SLAB_USBtoUART mip install --index https://test.pypi.o
 ### Manually
 
 Copy all files of the [umodbus module][ref-umodbus-module] to the MicroPython
-board using [Remote MicroPython shell][ref-remote-upy-shell]
+board using [Remote MicroPython shell][ref-remote-upy-shell] or
+[mpremote][ref-mpremote]
+
+#### mpremote
+
+Perform the following command to copy all files and folders to the device
+
+```bash
+mpremote connect /dev/tty.SLAB_USBtoUART cp -r umodbus/ :
+```
+
+#### rshell
 
 Open the remote shell with the following command. Additionally use `-b 115200`
 in case no CP210x is used but a CH34x.
