@@ -56,12 +56,12 @@ The JSON file/dictionary shall follow the following pattern/structure
             "on_get_cb": some_function  # callback function executed on the client after a value has been requested
         },
     },
-    "ISTS": {           # this key shall contain all static input registers
-        "ISTS_NAME": {  # custom name of a static input register
-            "register": 67,     # register address of the static input register
+    "ISTS": {           # this key shall contain all input status registers
+        "ISTS_NAME": {  # custom name of a input status register
+            "register": 67,     # register address of the input status register
             "len": 1,           # amount of registers to request aka quantity
             "val": 0,           # used to set a register, not possible for ISTS
-            "description": "Optional description of the static input register",
+            "description": "Optional description of the input status register",
             "range": "[0, 1]",
             "unit": "activated",
             "on_get_cb": some_function  # callback function executed on the client after a value has been requested
