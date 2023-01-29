@@ -56,12 +56,13 @@ try:
     print('MicroPython infos: {}'.format(os_info))
     print('Used micropthon-modbus version: {}'.format(version.__version__))
 
-    if 'pyb' in os_info:
+    if 'pyboard' in os_info:
         # NOT YET TESTED !
         # https://docs.micropython.org/en/latest/library/pyb.UART.html#pyb-uart
         # (TX, RX) = (X9, X10) = (PB6, PB7)
         uart_id = 1
-        rtu_pins = (Pin(PB6), Pin(PB7))     # (TX, RX)
+        # (TX, RX)
+        rtu_pins = (Pin(PB6), Pin(PB7))     # noqa: F821
     elif 'esp8266' in os_info:
         # https://docs.micropython.org/en/latest/esp8266/quickref.html#uart-serial-bus
         raise Exception(
