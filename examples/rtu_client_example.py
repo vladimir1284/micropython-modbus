@@ -90,7 +90,7 @@ client = ModbusRTU(
     # stop_bits=1,          # optional, default 1
     # parity=None,          # optional, default None
     # ctrl_pin=12,          # optional, control DE/RE
-    # uart_id=1             # optional, see port specific documentation
+    uart_id=uart_id         # optional, default 1, see port specific docs
 )
 
 if IS_DOCKER_MICROPYTHON:
