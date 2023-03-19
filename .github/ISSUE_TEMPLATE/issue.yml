@@ -52,6 +52,21 @@ body:
     validations:
       required: true
   - type: textarea
+    id: modbus-version
+    attributes:
+      label: MicroPython Modbus version
+      description: Which version of this lib are you using?
+      value: |
+        # e.g. v2.3.3
+        # use the following command to get the used version
+        import os
+        from umodbus import version
+        print('MicroPython infos:', os.uname())
+        print('Used micropthon-modbus version:', version.__version__))
+      render: python
+    validations:
+      required: true
+  - type: textarea
     id: logs
     attributes:
       label: Relevant log output
