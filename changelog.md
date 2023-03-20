@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
-## [2.4.0] - 2023-03-19
+## [2.3.4] - 2023-03-20
 ### Added
 - `package.json` for `mip` installation with MicroPython v1.19.1 or newer
 - `.editorconfig` for common editor settings
@@ -282,9 +282,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.4.0...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.4...develop
 
-[2.4.0]: https://github.com/brainelectronics/micropython-modbus/tree/2.4.0
+[2.3.4]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.4
 [2.3.3]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.3
 [2.3.2]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.2
 [2.3.1]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.1
