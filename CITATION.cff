@@ -1,15 +1,17 @@
 cff-version: 1.2.0
 message: "Feel free to use this, if you want to cite this library."
 authors:
-- name: "Pycom Limited"
-- given-names: "Jones"
-- name: "The Micropython Modbus team"
-title: "Micropython Modbus"
-abstract: "A lightweight Modbus TCP/RTU library for Micropython"
+  - name: "Pycom Limited"
+  - affiliation: brainelectronics
+    family-names: Scharpf
+    given-names: Jonas
+- name: "The MicroPython Modbus team"
+title: "MicroPython Modbus"
+abstract: "A lightweight Modbus TCP/RTU library for MicroPython"
 version: "2.3.4"
 license: "GPLv3"
-date-released: 2017-12-18
+date-released: 2023-03-20
 url: "https://github.com/brainelectronics/micropython-modbus"
 keywords:
-- micropython
-- modbus
+  - micropython
+  - modbus
