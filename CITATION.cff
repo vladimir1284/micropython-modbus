@@ -8,11 +8,11 @@ message: >-
   metadata from this file.
 type: software
 authors:
-  - affiliation: Pycom Limited
+  - name: Pycom Limited
   - given-names: Jonas
     family-names: Scharpf
     affiliation: brainelectronics
-  - affiliation: The MicroPython Modbus team
+  - name: The MicroPython Modbus team
 repository-code: 'https://github.com/brainelectronics/micropython-modbus/'
 url: 'https://brainelectronics.de'
 repository-artifact: 'https://pypi.org/project/micropython-modbus/'
