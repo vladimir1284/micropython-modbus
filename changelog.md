@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.3.5] - 2023-05-05
+### Fixed
+- Use `ticks_diff` to get correct time to lower control pin after sending the frame, see #72
+
 ## [2.3.4] - 2023-03-20
 ### Added
 - `package.json` for `mip` installation with MicroPython v1.19.1 or newer
@@ -282,8 +286,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.4...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.5...develop
 
+[2.3.4]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.4
 [2.3.4]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.4
 [2.3.3]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.3
 [2.3.2]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.2
