@@ -258,7 +258,7 @@ class Serial(CommonModbusFunctions):
 
         if self._ctrlPin:
             total_frame_time_us = self._t1char * len(serial_pdu)
-            while time.ticks_us() <= send_start_time + total_frame_time_us:
+            while time.ticks_diff(time.ticks_us(), send_start_time) < total_frame_time_us:
                 machine.idle()
             self._ctrlPin(0)
 
