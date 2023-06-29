@@ -242,32 +242,36 @@ class Serial(CommonModbusFunctions):
         """
         Send Modbus frame via UART
 
-        If a flow control pin has been setup, it will be controller accordingly
+        If a flow control pin has been setup, it will be controlled accordingly
 
         :param      modbus_pdu:  The modbus Protocol Data Unit
         :type       modbus_pdu:  bytes
         :param      slave_addr:  The slave address
         :type       slave_addr:  int
         """
-        serial_pdu = bytearray()
-        serial_pdu.append(slave_addr)
-        serial_pdu.extend(modbus_pdu)
-
-        crc = self._calculate_crc16(serial_pdu)
-        serial_pdu.extend(crc)
+        # modbus_adu: Modbus Application Data Unit
+        # consists of the Modbus PDU, with slave address prepended and checksum appended
+        modbus_adu = bytearray()
+        modbus_adu.append(slave_addr)
+        modbus_adu.extend(modbus_pdu)
+        modbus_adu.extend(self._calculate_crc16(modbus_adu))
 
         if self._ctrlPin:
-            self._ctrlPin(1)
+            self._ctrlPin.on()
             time.sleep_us(1000)     # wait until the control pin really changed
-            send_start_time = time.ticks_us()
 
-        self._uart.write(serial_pdu)
+        # the timing of this part is critical:
+        # - if we disable output too early,
+        #   the command will not be received in full
+        # - if we disable output too late,
+        #   the incoming response will lose some data at the beginning
+        # easiest to just wait for the bytes to be sent out on the wire
+
+        self._uart.write(modbus_adu)
+        self._uart.flush()
 
         if self._ctrlPin:
-            total_frame_time_us = self._t1char * len(serial_pdu)
-            while time.ticks_us() <= send_start_time + total_frame_time_us:
-                machine.idle()
-            self._ctrlPin(0)
+            self._ctrlPin.off()
 
     def _send_receive(self,
                       modbus_pdu: bytes,
@@ -286,7 +290,7 @@ class Serial(CommonModbusFunctions):
         :returns:   Validated response content
         :rtype:     bytes
         """
-        # flush the Rx FIFO
+        # flush the Rx FIFO buffer
         self._uart.read()
 
         self._send(modbus_pdu=modbus_pdu, slave_addr=slave_addr)
