@@ -112,12 +112,16 @@ class Serial(CommonModbusFunctions):
         else:
             self._ctrlPin = None
 
+        # timing of 1 character in microseconds (us)
         self._t1char = (1000000 * (data_bits + stop_bits + 2)) // baudrate
+
+        # inter-frame delay in microseconds (us)
+        # - <= 19200 bps: 3.5x timing of 1 character
+        # - > 19200 bps: 1750 us
         if baudrate <= 19200:
-            # 4010us (approx. 4ms) @ 9600 baud
-            self._t35chars = (3500000 * (data_bits + stop_bits + 2)) // baudrate
+            self._inter_frame_delay = (self._t1char * 3500) // 1000
         else:
-            self._t35chars = 1750   # 1750us (approx. 1.75ms)
+            self._inter_frame_delay = 1750
 
     def _calculate_crc16(self, data: bytearray) -> bytes:
         """
@@ -180,7 +184,7 @@ class Serial(CommonModbusFunctions):
                     break
 
             # wait for the maximum time between two frames
-            time.sleep_us(self._t35chars)
+            time.sleep_us(self._inter_frame_delay)
 
         return response
 
@@ -196,10 +200,9 @@ class Serial(CommonModbusFunctions):
         """
         received_bytes = bytearray()
 
-        # set timeout to at least twice the time between two frames in case the
-        # timeout was set to zero or None
+        # set default timeout to at twice the inter-frame delay
         if timeout == 0 or timeout is None:
-            timeout = 2 * self._t35chars  # in milliseconds
+            timeout = 2 * self._inter_frame_delay  # in microseconds
 
         start_us = time.ticks_us()
 
@@ -212,13 +215,13 @@ class Serial(CommonModbusFunctions):
 
                 # do not stop reading and appending the result to the buffer
                 # until the time between two frames elapsed
-                while time.ticks_diff(time.ticks_us(), last_byte_ts) <= self._t35chars:
+                while time.ticks_diff(time.ticks_us(), last_byte_ts) <= self._inter_frame_delay:
                     # WiPy only
                     # r = self._uart.readall()
                     r = self._uart.read()
 
                     # if something has been read after the first iteration of
-                    # this inner while loop (during self._t35chars time)
+                    # this inner while loop (within self._inter_frame_delay)
                     if r is not None:
                         # append the new read stuff to the buffer
                         received_bytes.extend(r)
