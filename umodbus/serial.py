@@ -166,14 +166,16 @@ class Serial(CommonModbusFunctions):
 
     def _uart_read(self) -> bytearray:
         """
-        Read up to 40 bytes from UART
+        Read incoming slave response from UART
 
         :returns:   Read content
         :rtype:     bytearray
         """
         response = bytearray()
 
-        for x in range(1, 40):
+        # TODO: use some kind of hint or user-configurable delay
+        #       to determine this loop counter
+        for x in range(1, 120):
             if self._uart.any():
                 # WiPy only
                 # response.extend(self._uart.readall())
