@@ -143,17 +143,19 @@ class Serial(CommonModbusFunctions):
         :param      response:    The response
         :type       response:    bytearray
 
-        :returns:   State of basic read response evaluation
+        :returns:   State of basic read response evaluation,
+                    True if entire response has been read
         :rtype:     bool
         """
-        if response[1] >= Const.ERROR_BIAS:
-            if len(response) < Const.ERROR_RESP_LEN:
+        response_len = len(response)
+        if response_len >= 2 and response[1] >= Const.ERROR_BIAS:
+            if response_len < Const.ERROR_RESP_LEN:
                 return False
-        elif (Const.READ_COILS <= response[1] <= Const.READ_INPUT_REGISTER):
+        elif response_len >= 3 and (Const.READ_COILS <= response[1] <= Const.READ_INPUT_REGISTER):
             expected_len = Const.RESPONSE_HDR_LENGTH + 1 + response[2] + Const.CRC_LENGTH
-            if len(response) < expected_len:
+            if response_len < expected_len:
                 return False
-        elif len(response) < Const.FIXED_RESP_LEN:
+        elif response_len < Const.FIXED_RESP_LEN:
             return False
 
         return True
