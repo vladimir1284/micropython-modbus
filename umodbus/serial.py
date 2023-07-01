@@ -13,7 +13,6 @@ from machine import UART
 from machine import Pin
 import struct
 import time
-import machine
 
 # custom packages
 from . import const as Const
@@ -96,6 +95,8 @@ class Serial(CommonModbusFunctions):
         :param      ctrl_pin:    The control pin
         :type       ctrl_pin:    int
         """
+        # UART flush function is introduced in Micropython v1.20.0
+        self._has_uart_flush = callable(getattr(UART, "flush", None))
         self._uart = UART(uart_id,
                           baudrate=baudrate,
                           bits=data_bits,
@@ -258,7 +259,9 @@ class Serial(CommonModbusFunctions):
 
         if self._ctrlPin:
             self._ctrlPin.on()
-            time.sleep_us(1000)     # wait until the control pin really changed
+            # wait until the control pin really changed
+            # 85-95us (ESP32 @ 160/240MHz)
+            time.sleep_us(200)
 
         # the timing of this part is critical:
         # - if we disable output too early,
@@ -267,8 +270,19 @@ class Serial(CommonModbusFunctions):
         #   the incoming response will lose some data at the beginning
         # easiest to just wait for the bytes to be sent out on the wire
 
+        send_start_time = time.ticks_us()
+        # 360-400us @ 9600-115200 baud (measured) (ESP32 @ 160/240MHz)
         self._uart.write(modbus_adu)
-        self._uart.flush()
+        send_finish_time = time.ticks_us()
+        if self._has_uart_flush:
+            self._uart.flush()
+        else:
+            sleep_time_us = (
+                self._t1char * len(modbus_adu) -    # total frame time in us
+                time.ticks_diff(send_finish_time, send_start_time) +
+                100     # only required at baudrates above 57600, but hey 100us
+            )
+            time.sleep_us(sleep_time_us)
 
         if self._ctrlPin:
             self._ctrlPin.off()
