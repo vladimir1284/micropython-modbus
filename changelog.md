@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.3.5] - 2023-07-01
+### Fixed
+- Time between RS485 control pin raise and UART transmission reduced by 80% from 1000us to 200us
+- The RS485 control pin is lowered as fast as possible by using `time.sleep_us()` instead of `machine.idle()` which uses an IRQ on the order of milliseconds. This kept the control pin active longer than necessary, causing the response message to be missed at higher baud rates. This applies only to MicroPython firmwares below v1.20.0
+- The following fixes were provided by @wpyoga
+- RS485 control pin handling fixed by using UART `flush` function, see #68
+- Invalid CRC while reading multiple coils and fixed, see #50 and #52
+
 ## [2.3.4] - 2023-03-20
 ### Added
 - `package.json` for `mip` installation with MicroPython v1.19.1 or newer
@@ -282,8 +290,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.4...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.5...develop
 
+[2.3.5]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.5
 [2.3.4]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.4
 [2.3.3]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.3
 [2.3.2]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.2
