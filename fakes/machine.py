@@ -425,6 +425,9 @@ class UART(object):
         """Send a break condition on the bus"""
         raise MachineError('Not yet implemented')
 
+    '''
+    # flush introduced in MicroPython v1.20.0
+    # use manual timing calculation for testing
     def flush(self) -> None:
         """
         Waits until all data has been sent
@@ -434,6 +437,7 @@ class UART(object):
         Only available with newer versions than 1.19
         """
         raise MachineError('Not yet implemented')
+    '''
 
     def txdone(self) -> bool:
         """
