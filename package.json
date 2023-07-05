@@ -37,8 +37,6 @@
             "github:brainelectronics/micropython-modbus/umodbus/version.py"
         ]
     ],
-    "deps": [
-    ],
+    "deps": [],
     "version": "2.3.4"
 }
-
