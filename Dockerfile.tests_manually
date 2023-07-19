@@ -12,7 +12,6 @@ COPY ./ /home
 COPY registers/example.json /home/tests/test-registers.json
 COPY umodbus /root/.micropython/lib/umodbus
 COPY mpy_unittest.py /root/.micropython/lib/mpy_unittest.py
-
-RUN micropython-dev -m upip install micropython-ulogging
+COPY tests/ulogging.py /root/.micropython/lib/ulogging.py
 
 ENTRYPOINT ["/bin/bash"]

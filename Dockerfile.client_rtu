@@ -10,6 +10,4 @@ FROM micropython/unix:v1.18
 # COPY ./ /home
 # COPY umodbus /root/.micropython/lib/umodbus
 
-RUN micropython-dev -m upip install micropython-ulogging
-
 CMD [ "micropython-dev", "-m", "examples/rtu_client_example.py" ]

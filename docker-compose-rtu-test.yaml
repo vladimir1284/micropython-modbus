@@ -20,6 +20,7 @@ services:
       - ./registers:/home/registers
       - ./umodbus:/root/.micropython/lib/umodbus
       - ./fakes:/usr/lib/micropython
+      - ./tests/ulogging.py:/root/.micropython/lib/ulogging.py
     expose:
       - "65433"
     ports:
@@ -41,6 +42,7 @@ services:
       - ./umodbus:/root/.micropython/lib/umodbus
       - ./fakes:/usr/lib/micropython
       - ./mpy_unittest.py:/root/.micropython/lib/mpy_unittest.py
+      - ./tests/ulogging.py:/root/.micropython/lib/ulogging.py
     depends_on:
       - micropython-client
     command:

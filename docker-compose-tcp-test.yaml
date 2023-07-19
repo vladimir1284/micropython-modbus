@@ -19,6 +19,7 @@ services:
       - ./:/home
       - ./registers:/home/registers
       - ./umodbus:/root/.micropython/lib/umodbus
+      - ./tests/ulogging.py:/root/.micropython/lib/ulogging.py
     expose:
       - "502"
     ports:
@@ -39,6 +40,7 @@ services:
       - ./:/home
       - ./umodbus:/root/.micropython/lib/umodbus
       - ./mpy_unittest.py:/root/.micropython/lib/mpy_unittest.py
+      - ./tests/ulogging.py:/root/.micropython/lib/ulogging.py
     depends_on:
       - micropython-client
     command:
