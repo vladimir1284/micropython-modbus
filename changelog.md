@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.3.7] - 2023-07-19
+### Fixed
+- Add a single character wait time after flush to avoid timing issues with RTU control pin, see #68 and #72
+
 ## [2.3.6] - 2023-07-19
 ### Added
 - Add contribution guideline, see #67
@@ -303,8 +307,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.6...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.7...develop
 
+[2.3.7]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.7
 [2.3.6]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.6
 [2.3.5]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.5
 [2.3.4]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.4
