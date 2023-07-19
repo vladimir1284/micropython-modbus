@@ -15,6 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [Unreleased] -->
 
 ## Released
+## [2.3.6] - 2023-07-19
+### Added
+- Add contribution guideline, see #67
+- Content of `package.json` is validated on each test workflow run
+- Precommit hooks for `package.json` and package version file validation, yaml style, flake8 and trailing whitespace checks, contributes to #67
+
+### Changed
+- `umodbus/version.py` file is validated against the latest changelog entry before running all tests and testing the package creation
+
+### Fixed
+- Added missing empty line in several files
+
 ## [2.3.5] - 2023-07-01
 ### Fixed
 - Time between RS485 control pin raise and UART transmission reduced by 80% from 1000us to 200us
@@ -290,8 +302,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PEP8 style issues on all files of [`lib/uModbus`](lib/uModbus)
 
 <!-- Links -->
-[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.5...develop
+[Unreleased]: https://github.com/brainelectronics/micropython-modbus/compare/2.3.6...develop
 
+[2.3.6]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.6
 [2.3.5]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.5
 [2.3.4]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.4
 [2.3.3]: https://github.com/brainelectronics/micropython-modbus/tree/2.3.3
