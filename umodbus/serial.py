@@ -274,8 +274,10 @@ class Serial(CommonModbusFunctions):
         # 360-400us @ 9600-115200 baud (measured) (ESP32 @ 160/240MHz)
         self._uart.write(modbus_adu)
         send_finish_time = time.ticks_us()
+
         if self._has_uart_flush:
             self._uart.flush()
+            time.sleep_us(self._t1char)
         else:
             sleep_time_us = (
                 self._t1char * len(modbus_adu) -    # total frame time in us
