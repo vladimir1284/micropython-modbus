@@ -11,5 +11,3 @@ FROM micropython/unix:v1.18
 # COPY ./ /home
 # COPY umodbus /root/.micropython/lib/umodbus
 # COPY mpy_unittest.py /root/.micropython/lib/mpy_unittest.py
-
-RUN micropython-dev -m upip install micropython-ulogging

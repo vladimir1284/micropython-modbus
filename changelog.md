@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `umodbus/version.py` file is validated against the latest changelog entry before running all tests and testing the package creation
+- `ulogging` placed into `tests` folder instead of installing it with deprecated `upip` in all Docker containers
 
 ### Fixed
 - Added missing empty line in several files
