@@ -33,6 +33,7 @@ class Modbus(object):
     :param      addr_list:  List of addresses
     :type       addr_list:  List[int]
     """
+
     def __init__(self, itf, addr_list: List[int]) -> None:
         self._itf = itf
         self._addr_list = addr_list
@@ -167,6 +168,13 @@ class Modbus(object):
         # 05    0000 0101
         #
         # 1011 0011   1101 0110   1010 0000
+        # Fixing issue #38 from @robertonaranjo
+        n = len(data)
+        fp = data[:8]
+        lp = data[8:n]
+        fp.reverse()
+        lp.reverse()
+        data = fp + lp
 
         return data
 
